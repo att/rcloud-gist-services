@@ -1,18 +1,17 @@
 
-ext.serviceInstallPath = '/opt/rcloud-gist-service'
+ext.serviceInstallPath = '/opt'
 ext.installPath = serviceInstallPath + '/' + archivesBaseName
 ext.jarPath = installPath + '/' + archivesBaseName + '-' + project.version + '.jar'
 ext.initPath = '/etc/init.d/' + archivesBaseName
 project.description = "RCloud Gist service providing gist access api."
 ext.projectVendor = "TBD"
-ext.projectUrl = "TBD"
+ext.projectUrl = "https://github.com/MangoTheCat/rcloud-gist-services"
 ext.projectPackageGroup = "TBD"
 ext.buildId = new Date().format('yyyyMMddHHmmss')
 
 dependencies {
   compile 'org.springframework.boot:spring-boot-starter'
   compile 'org.springframework.boot:spring-boot-starter-actuator'
-  //compile 'org.springframework.boot:spring-boot-starter-undertow'
   compile 'org.springframework.boot:spring-boot-starter-web'
   compile 'org.springframework.cloud:spring-cloud-starter'
   compile 'org.springframework.cloud:spring-cloud-starter-zuul'
@@ -30,10 +29,10 @@ ospackage {
     packageName = archivesBaseName
     version = project.version.replaceAll("-", ".")
     release = buildId
-    arch = NOARCH
+    //arch = NOARCH
     os = LINUX
-    user = "rcloudgist"
-    group = "rcloudgist"
+    user = "rcloudgistservice"
+    group = "rcloudgistservice"
     summary = "RCloud Gist Service"
     vendor = projectVendor
     packageDescription = description
@@ -41,7 +40,7 @@ ospackage {
     url = projectUrl
     type = BINARY
 
-    //preInstall file('src/main/rpm/scripts/preInstall.sh')
+    preInstall file('src/main/pkg/scripts/preInstall.sh')
 
     into(installPath)
 
@@ -49,7 +48,7 @@ ospackage {
         fileMode 0500
     }
 
-    from('src/main/rpm/home') {
+    from('src/main/pkg/home') {
         fileType CONFIG | NOREPLACE
         rename { String fileName ->
             if(fileName.equals("service.conf")) {

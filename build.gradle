@@ -152,10 +152,13 @@ configure(subprojects.findAll {it.name =~ /.*service/}) {
   }
 */
 
-  task distRpm(type: Rpm, dependsOn: bootRepackage) {
+  task distRpm(type: Rpm, dependsOn: bootRepackage) {}
 
-  }
+  task distDeb(type: Deb, dependsOn: bootRepackage) {}
+
   assemble.dependsOn distRpm
+
+  assemble.dependsOn distDeb
 
 
 }

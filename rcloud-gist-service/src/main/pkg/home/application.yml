@@ -1,0 +1,7 @@
+logging:
+  config: logback.xml
+  file: /var/log/${spring.application.name}/${spring.application.name}-file.log
+
+github:
+  api:
+    url: https://api.github.com
