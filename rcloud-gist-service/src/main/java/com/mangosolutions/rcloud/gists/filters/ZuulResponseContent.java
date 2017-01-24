@@ -23,6 +23,10 @@ public class ZuulResponseContent {
 		this.context = context;
 	}
 	
+	/**
+	 * Get the content from the response.
+	 * @return the content obtained from the response.
+	 */
 	public String getContent() {
 		String content = context.getResponseBody();
 		if (content == null) {
@@ -31,6 +35,9 @@ public class ZuulResponseContent {
 		return content;
 	}
 	
+	/**
+	 * Clears the response content
+	 */
 	public void clearContent() {
 		if(context.getResponseDataStream() != null) {
 			IOUtils.closeQuietly(context.getResponseDataStream());
@@ -39,6 +46,10 @@ public class ZuulResponseContent {
 		context.setResponseBody(null);
 	}
 	
+	/**
+	 * Sets the content onto the response.
+	 * @param content the content to set
+	 */
 	public void setContent(String content) {
 		this.clearContent();
 		context.setResponseBody(content);
