@@ -1,0 +1,3 @@
+rootProject.name = 'rcloud-gist-service'
+
+include 'rcloud-gist-service'

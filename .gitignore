@@ -1,0 +1,14 @@
+.gradle
+build
+target
+.classpath
+.project
+.springBeans
+.settings/
+
+.Rproj.user
+.Rbuildignore
+.Rhistory
+.Rproj
+.vagrant
+bin

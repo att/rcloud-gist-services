@@ -1,0 +1,23 @@
+server:
+    port: 13010
+
+management:
+   port: 13011
+
+info:
+  version: 1.0.0
+  stage: dev
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    config:
+      enabled: false
+
+
+zuul:
+  routes:
+    repos:
+      path: /**
+      url: https://api.github.com

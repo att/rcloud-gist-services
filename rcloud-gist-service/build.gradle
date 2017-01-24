@@ -1,0 +1,65 @@
+
+ext.serviceInstallPath = '/opt/rcloud-gist-service'
+ext.installPath = serviceInstallPath + '/' + archivesBaseName
+ext.jarPath = installPath + '/' + archivesBaseName + '-' + project.version + '.jar'
+ext.initPath = '/etc/init.d/' + archivesBaseName
+project.description = "RCloud Gist service providing gist access api."
+ext.projectVendor = "TBD"
+ext.projectUrl = "TBD"
+ext.projectPackageGroup = "TBD"
+ext.buildId = new Date().format('yyyyMMddHHmmss')
+
+dependencies {
+  compile 'org.springframework.boot:spring-boot-starter'
+  compile 'org.springframework.boot:spring-boot-starter-actuator'
+  //compile 'org.springframework.boot:spring-boot-starter-undertow'
+  compile 'org.springframework.boot:spring-boot-starter-web'
+  compile 'org.springframework.cloud:spring-cloud-starter'
+  compile 'org.springframework.cloud:spring-cloud-starter-zuul'
+  compile 'com.eclipsesource.minimal-json:minimal-json:0.9.4'
+
+
+  testCompile 'junit:junit:4.11'
+  testCompile 'org.mockito:mockito-all:1.10.8'
+  testCompile 'org.springframework.boot:spring-boot-starter-test'
+
+}
+
+
+ospackage {
+    packageName = archivesBaseName
+    version = project.version.replaceAll("-", ".")
+    release = buildId
+    arch = NOARCH
+    os = LINUX
+    user = "rcloudgist"
+    group = "rcloudgist"
+    summary = "RCloud Gist Service"
+    vendor = projectVendor
+    packageDescription = description
+    packageGroup = projectPackageGroup
+    url = projectUrl
+    type = BINARY
+
+    //preInstall file('src/main/rpm/scripts/preInstall.sh')
+
+    into(installPath)
+
+    from(jar.outputs.files) {
+        fileMode 0500
+    }
+
+    from('src/main/rpm/home') {
+        fileType CONFIG | NOREPLACE
+        rename { String fileName ->
+            if(fileName.equals("service.conf")) {
+                fileName.replace('service', project.name + "-" + project.version)
+            } else {
+                fileName
+            }
+        }
+    }
+    link(initPath, jarPath)
+}
+
+assemble.dependsOn distRpm

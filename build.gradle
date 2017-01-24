@@ -1,0 +1,161 @@
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.4.3.RELEASE'
+        classpath 'io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE'
+        classpath 'com.netflix.nebula:gradle-ospackage-plugin:3.7.1'
+        classpath 'com.netflix.nebula:gradle-info-plugin:3.5.0'
+        classpath 'com.netflix.nebula:nebula-project-plugin:3.3.0'
+        classpath 'gradle.plugin.com.github.jk1:gradle-license-report:0.3.5'
+        classpath 'com.fizzpod:gradle-sweeney-plugin:2.1.1'
+        classpath 'pl.allegro.tech.build:axion-release-plugin:1.4.1'
+    }
+}
+
+apply plugin: 'com.fizzpod.sweeney'
+apply plugin: "pl.allegro.tech.build.axion-release"
+
+
+sweeney {
+  enforce 'jdk:[1.7,)'
+  enforce 'gradle:[2.14,)'
+  validate()
+}
+
+scmVersion {
+    tag {
+        prefix = 'release-'
+    }
+}
+
+allprojects {
+    repositories {
+      jcenter()
+    }
+    group = 'com.mangosolutions.rcloud'
+    project.version = scmVersion.version
+
+}
+
+subprojects {
+  apply plugin: 'java'
+  apply plugin: 'groovy'
+  apply plugin: "io.spring.dependency-management"
+  apply plugin: 'eclipse'
+  apply plugin: 'nebula.info'
+  apply plugin: 'nebula.integtest'
+  apply plugin: 'maven'
+  apply plugin: 'maven-publish'
+
+
+
+  sourceCompatibility = JavaVersion.VERSION_1_7
+  targetCompatibility = JavaVersion.VERSION_1_7
+
+  dependencyManagement {
+    imports {
+      mavenBom 'org.springframework.cloud:spring-cloud-starter-parent:Camden.SR4'
+      mavenBom 'org.springframework.boot:spring-boot-starter-parent:1.4.3.RELEASE'
+    }
+  }
+
+  //Exclude the log4j dependencies as will use logback
+  configurations {
+    all*.exclude group: 'log4j', module: 'log4j'
+    all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    all*.exclude module: "spring-boot-starter-tomcat"
+  }
+
+  task sourcesJar(type: Jar, dependsOn: classes) {
+      classifier = 'sources'
+      from sourceSets.main.allSource
+  }
+
+  tasks.withType(JavaExec) {
+    if (Boolean.getBoolean('DEBUG')) {
+      jvmArgs '-Xdebug',  '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000'
+    }
+  }
+
+  task javadocJar(type: Jar, dependsOn: javadoc) {
+      classifier = 'javadoc'
+      from javadoc.destinationDir
+  }
+
+  artifacts {
+      archives sourcesJar
+      archives javadocJar
+  }
+
+  project.tasks.findAll {
+    it.name.startsWith("publish")
+  }.each {
+    it.dependsOn assemble
+  }
+
+
+}
+
+configure(subprojects.findAll {it.name =~ /.*service/}) {
+
+  apply plugin: 'org.springframework.boot'
+  apply plugin: 'nebula.ospackage'
+
+  springBoot {
+      executable = true
+      buildInfo()
+  }
+
+  ext.installPath='/opt/' + archivesBaseName
+  ext.jarPath=installPath + '/' + archivesBaseName + '-' + scmVersion.version + '.jar'
+  ext.initPath='/etc/init.d/' + archivesBaseName
+  project.description = "TBD"
+  ext.projectVendor = "TBD"
+  ext.projectUrl = "TBD"
+  ext.projectPackageGroup = "TBD"
+  ext.buildId = new Date().format('yyyyMMddHHmmss')
+
+  dependencies {
+    compile("org.springframework.boot:spring-boot-starter-undertow:1.4.3.RELEASE")
+  }
+
+  processResources {
+      filesMatching('config/application.yml') { expand (project.properties) }
+  }
+
+  artifacts {
+    archives buildRpm
+  }
+
+/*
+  ospackage {
+  	packageName = archivesBaseName
+  	version = project.version.replaceAll("-", ".")
+  	release = 1
+  	arch = NOARCH
+  	os = LINUX
+    user = "prov"
+    group = "prov"
+
+  	into installPath
+
+  	from(jar.outputs.files) {
+  		fileMode 0500
+  	}
+
+    link(initPath, jarPath)
+
+  }
+*/
+
+  task distRpm(type: Rpm, dependsOn: bootRepackage) {
+
+  }
+  assemble.dependsOn distRpm
+
+
+}
