@@ -10,7 +10,7 @@ info:
 
 spring:
   application:
-    name: gateway-service
+    name: rcloud-gist-service
   cloud:
     config:
       enabled: false
@@ -20,4 +20,4 @@ zuul:
   routes:
     repos:
       path: /**
-      url: https://api.github.com
+      url: ${github.api.url:https://api.github.com}
