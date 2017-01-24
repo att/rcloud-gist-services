@@ -3,10 +3,7 @@ package com.mangosolutions.rcloud.gists.filters;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Collections2.filter;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,7 +25,12 @@ public final class HeaderUrlRewritingFilter extends ZuulFilter {
 
 	private final ImmutableSet<String> whitelist = DEFAULT_WHITELIST;
 
-
+	private int order = 100;
+	
+	
+	public HeaderUrlRewritingFilter(int order) {
+		this.order = order;
+	}
 
 	@Override
 	public String filterType() {
@@ -37,7 +39,7 @@ public final class HeaderUrlRewritingFilter extends ZuulFilter {
 
 	@Override
 	public int filterOrder() {
-		return 100;
+		return order;
 	}
 
 	@Override

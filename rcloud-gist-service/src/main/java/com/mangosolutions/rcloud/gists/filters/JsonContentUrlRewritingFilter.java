@@ -24,6 +24,12 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 
 	private static final Logger logger = LoggerFactory.getLogger(JsonContentUrlRewritingFilter.class);
 
+	private int order = 100;
+	
+	public JsonContentUrlRewritingFilter(int order) {
+		this.order = order;
+	}
+	
 	@Override
 	public String filterType() {
 		return "post";
@@ -31,7 +37,7 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 
 	@Override
 	public int filterOrder() {
-		return 100;
+		return order;
 	}
 
 	@Override

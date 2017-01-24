@@ -16,12 +16,12 @@ public class GistsServiceConfiguration {
 
 	@Bean
 	public ZuulFilter getUrlRewritingFilter() {
-		return new HeaderUrlRewritingFilter();
+		return new HeaderUrlRewritingFilter(10);
 	}
 	
 	@Bean
 	public ZuulFilter getJsonContentUrlRewritingFilter() {
-		return new JsonContentUrlRewritingFilter();
+		return new JsonContentUrlRewritingFilter(20);
 	}
 
 }
