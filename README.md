@@ -1,4 +1,8 @@
+[![Build Status](https://travis-ci.org/MangoTheCat/rcloud-gist-services.svg?branch=master)](https://travis-ci.org/MangoTheCat/rcloud-gist-services)
+
 # RCloud Gist Service
+
+
 
 ## Overview
 
