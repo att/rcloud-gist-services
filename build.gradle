@@ -38,7 +38,7 @@ allprojects {
     }
     group = 'com.mangosolutions.rcloud'
     project.version = scmVersion.version
-
+    ext.projectUrl = "https://github.com/MangoTheCat/rcloud-gist-services"
 }
 
 subprojects {
@@ -110,15 +110,6 @@ configure(subprojects.findAll {it.name =~ /.*service/}) {
       buildInfo()
   }
 
-  ext.installPath='/opt/' + archivesBaseName
-  ext.jarPath=installPath + '/' + archivesBaseName + '-' + scmVersion.version + '.jar'
-  ext.initPath='/etc/init.d/' + archivesBaseName
-  project.description = "TBD"
-  ext.projectVendor = "TBD"
-  ext.projectUrl = "TBD"
-  ext.projectPackageGroup = "TBD"
-  ext.buildId = new Date().format('yyyyMMddHHmmss')
-
   dependencies {
     compile("org.springframework.boot:spring-boot-starter-undertow:1.4.3.RELEASE")
   }
@@ -130,27 +121,6 @@ configure(subprojects.findAll {it.name =~ /.*service/}) {
   artifacts {
     archives buildRpm
   }
-
-/*
-  ospackage {
-  	packageName = archivesBaseName
-  	version = project.version.replaceAll("-", ".")
-  	release = 1
-  	arch = NOARCH
-  	os = LINUX
-    user = "prov"
-    group = "prov"
-
-  	into installPath
-
-  	from(jar.outputs.files) {
-  		fileMode 0500
-  	}
-
-    link(initPath, jarPath)
-
-  }
-*/
 
   task distRpm(type: Rpm, dependsOn: bootRepackage) {}
 
