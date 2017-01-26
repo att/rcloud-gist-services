@@ -1,3 +1,16 @@
 language: java
 jdk:
-  - oraclejdk7
+- oraclejdk7
+deploy:
+  provider: releases
+  api_key:
+    secure: HYh0fPSByuuJB/r7YKc+iHRBzo13lScGz1Kign/Uj3GnAcDL+NpnYCvEl1JCymd+v8vPyFDxWmFJ6mJSyAlQzhxIRoeHpOQhECVJXuuB9IUk+o2hb+MhUuPpOwGtlUDW2Rry9qnz73fX5boEBzrYHF3vwbbqdfqc+sugkPcPJubtwlsH49CWHA0kMila/esZyuB7KvXuEmVCy3BCHBPK9KZ9Wo8LlB3pQhUwJWkSJID5BJl/zYDqOrKo4kjXpu6p5xcwAi+HtpCmV3gAMgcHPTO8sXy2b9JKcko0C52/+nyHpQ39gmwS0y+q0lnGZJy38IF52JDzXLAq1DxIXm2hPvI/zMNlhYJ6ovCuT7xTXypKnktwetQJ5dT6hvtNmtBMxkXww43svAb/k9nr2bo9z65iOqKpqdFQYzFB/wltToMbX50xC9Yi+fYv219H3Fc6vioJw5bkRCoapC7ImmkhVjsv5YDEGbqv3dyEbGOWyI0phnJBd6+UjMFCSxX9pinu+RUhLU0uga9/765kiMYsQAH7svzyo5iYcN0HB4X1amAKjaLmp2so2AqKk4FKznVHhtY0Mm74Xgq6tmQTk7iuCwbvf2M1pCjhV4zDBio2XODHGGxJeIZAQTx0CIXz0F20o6K9XC2vDM6BWHt2YCN6qjR0buYP/NdsOPcjeSnCVMk=
+  file_glob: True
+  file:
+    - "./rcloud-gist-service/build/distributions/*.deb"
+    - "./rcloud-gist-service/build/distributions/*.rpm"
+    - "./rcloud-gist-service/build/libs/*.jar"
+  skip_cleanup: true
+  on:
+    repo: MangoTheCat/rcloud-gist-services
+    tags: true
