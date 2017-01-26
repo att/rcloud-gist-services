@@ -28,7 +28,7 @@ sweeney {
 
 scmVersion {
     tag {
-        prefix = 'release-'
+        prefix = 'release'
     }
 }
 
