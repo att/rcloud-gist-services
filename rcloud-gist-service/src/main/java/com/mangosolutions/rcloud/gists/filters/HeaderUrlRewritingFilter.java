@@ -21,7 +21,7 @@ public final class HeaderUrlRewritingFilter extends ZuulFilter {
 
 	private static final Logger log = LoggerFactory.getLogger(HeaderUrlRewritingFilter.class);
 	
-	private static final ImmutableSet<String> DEFAULT_WHITELIST = ImmutableSet.of("Link", "Location");
+	public static final ImmutableSet<String> DEFAULT_WHITELIST = ImmutableSet.of("Link", "Location");
 
 	private final ImmutableSet<String> whitelist = DEFAULT_WHITELIST;
 
@@ -60,6 +60,10 @@ public final class HeaderUrlRewritingFilter extends ZuulFilter {
 			Throwables.propagate(e);
 		}
 		return null;
+	}
+	
+	public ImmutableSet<String> getWhitelist() {
+		return this.whitelist;
 	}
 
 	private static void rewriteHeaders(final RequestContext context, final Collection<String> whitelist) {
