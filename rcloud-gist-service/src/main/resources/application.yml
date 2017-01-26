@@ -2,7 +2,9 @@ server:
     port: 13010
 
 management:
-   port: 13011
+  port: 13011
+  security:
+    enabled: true
 
 info:
   version: 1.0.0
@@ -10,14 +12,20 @@ info:
 
 spring:
   application:
-    name: gateway-service
+    name: rcloud-gist-service
   cloud:
     config:
       enabled: false
+
+security:
+  user:
+    name: admin
+  basic:
+    enabled: false
 
 
 zuul:
   routes:
     repos:
       path: /**
-      url: https://api.github.com
+      url: ${github.api.url:https://api.github.com}

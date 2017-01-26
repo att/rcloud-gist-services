@@ -1,23 +1,14 @@
 
-ext.serviceInstallPath = '/opt/rcloud-gist-service'
-ext.installPath = serviceInstallPath + '/' + archivesBaseName
-ext.jarPath = installPath + '/' + archivesBaseName + '-' + project.version + '.jar'
-ext.initPath = '/etc/init.d/' + archivesBaseName
 project.description = "RCloud Gist service providing gist access api."
-ext.projectVendor = "TBD"
-ext.projectUrl = "TBD"
-ext.projectPackageGroup = "TBD"
-ext.buildId = new Date().format('yyyyMMddHHmmss')
 
 dependencies {
   compile 'org.springframework.boot:spring-boot-starter'
   compile 'org.springframework.boot:spring-boot-starter-actuator'
-  //compile 'org.springframework.boot:spring-boot-starter-undertow'
+  compile 'org.springframework.boot:spring-boot-starter-security'
   compile 'org.springframework.boot:spring-boot-starter-web'
   compile 'org.springframework.cloud:spring-cloud-starter'
   compile 'org.springframework.cloud:spring-cloud-starter-zuul'
   compile 'com.eclipsesource.minimal-json:minimal-json:0.9.4'
-
 
   testCompile 'junit:junit:4.11'
   testCompile 'org.mockito:mockito-all:1.10.8'
@@ -26,40 +17,63 @@ dependencies {
 }
 
 
+ext.pkg = [:]
+  pkg.name = archivesBaseName
+  pkg.installPath = '/opt/' + pkg.name
+  pkg.jarName = archivesBaseName + '-' + project.version + '.jar'
+  pkg.jarPath = pkg.installPath + '/' + pkg.jarName
+  pkg.initPath = '/etc/init.d/' + archivesBaseName
+  pkg.description = project.description
+  pkg.summary = "RCloud Gist Service"
+  pkg.vendor = "Mango Solutions Ltd."
+  pkg.url = projectUrl
+  pkg.buildId = new Date().format('yyyyMMddHHmmss')
+  pkg.version = project.version.replaceAll("-", ".")
+  pkg.user = 'rcloudgistservice'
+  pkg.group = pkg.user
+
 ospackage {
-    packageName = archivesBaseName
-    version = project.version.replaceAll("-", ".")
-    release = buildId
-    arch = NOARCH
+    packageName = pkg.name
+    version = pkg.version
+    release = pkg.buildId
     os = LINUX
-    user = "rcloudgist"
-    group = "rcloudgist"
-    summary = "RCloud Gist Service"
-    vendor = projectVendor
-    packageDescription = description
-    packageGroup = projectPackageGroup
-    url = projectUrl
+    user = pkg.user
+    group = pkg.group
+    summary = pkg.summary
+    vendor = pkg.vendor
+    packageDescription = pkg.description
+    url = pkg.url
     type = BINARY
 
-    //preInstall file('src/main/rpm/scripts/preInstall.sh')
+    //create user and group
+    preInstall "/usr/sbin/useradd -c \"$pkg.summary\" -r -d $pkg.installPath $pkg.user 2>/dev/null || :"
 
-    into(installPath)
+    //create log directory
+    preInstall "mkdir -p /var/log/$pkg.name && chown $pkg.user:root /var/log/$pkg.name"
+
+    into(pkg.installPath)
 
     from(jar.outputs.files) {
         fileMode 0500
     }
 
-    from('src/main/rpm/home') {
+    from('src/main/pkg/home') {
         fileType CONFIG | NOREPLACE
+        filter (org.apache.tools.ant.filters.ReplaceTokens, tokens: pkg )
         rename { String fileName ->
             if(fileName.equals("service.conf")) {
                 fileName.replace('service', project.name + "-" + project.version)
+            } else if(fileName.equals("systemd.service")) {
+                fileName.replace('systemd', pkg.name)
             } else {
                 fileName
             }
         }
     }
-    link(initPath, jarPath)
+    //systemv symlink
+    link(pkg.initPath, pkg.jarPath)
+    //The following link is for systemd based systems, at the moment the above systemv symlink will suffice
+    //link("/etc/systemd/system/" + pkg.name + ".service", pkg.installPath + "/" + pkg.name + ".service")
 }
 
 assemble.dependsOn distRpm
