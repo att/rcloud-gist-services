@@ -12,5 +12,6 @@ deploy:
     - "./rcloud-gist-service/build/libs/*.jar"
   skip_cleanup: true
   on:
+    branch: master
     repo: MangoTheCat/rcloud-gist-services
     tags: true
