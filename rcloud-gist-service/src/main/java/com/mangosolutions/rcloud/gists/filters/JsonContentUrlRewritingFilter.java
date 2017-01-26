@@ -24,6 +24,8 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 
 	private static final Logger logger = LoggerFactory.getLogger(JsonContentUrlRewritingFilter.class);
 
+	private static final MimeType[] JSON_MIME_TYPES = {MimeTypeUtils.APPLICATION_JSON, MimeTypeUtils.parseMimeType("application/*+json")}; 
+	
 	private int order = 100;
 	
 	public JsonContentUrlRewritingFilter(int order) {
@@ -59,7 +61,12 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 				String value = header.second();
 				try {
 					MimeType mimeType = MimeTypeUtils.parseMimeType(value);
-					return mimeType.isCompatibleWith(MimeTypeUtils.APPLICATION_JSON);
+					for(MimeType jsonMimeType: JSON_MIME_TYPES) {
+						if(jsonMimeType.isCompatibleWith(mimeType)) {
+							return true;
+						}
+						
+					}
 				} catch (InvalidMimeTypeException e) {
 					logger.warn("Could not parse {} as a valid mimetype", value);
 				}
