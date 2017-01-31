@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.gists;
 
 import org.springframework.context.annotation.Bean;
@@ -18,7 +24,7 @@ public class GistsServiceConfiguration {
 	public ZuulFilter getUrlRewritingFilter() {
 		return new HeaderUrlRewritingFilter(10);
 	}
-	
+
 	@Bean
 	public ZuulFilter getJsonContentUrlRewritingFilter() {
 		return new JsonContentUrlRewritingFilter(20);

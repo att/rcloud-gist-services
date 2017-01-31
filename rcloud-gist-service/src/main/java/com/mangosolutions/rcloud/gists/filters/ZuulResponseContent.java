@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.gists.filters;
 
 import java.io.IOException;
@@ -10,19 +16,19 @@ import org.slf4j.LoggerFactory;
 import com.netflix.zuul.context.RequestContext;
 
 /**
- * Resolves the content of a response going through Zuul 
+ * Resolves the content of a response going through Zuul
  *
  */
 public class ZuulResponseContent {
 
 	private static final Logger logger = LoggerFactory.getLogger(ZuulResponseContent.class);
-	
+
 	private RequestContext context;
 
 	public ZuulResponseContent(RequestContext context) {
 		this.context = context;
 	}
-	
+
 	/**
 	 * Get the content from the response.
 	 * @return the content obtained from the response.
@@ -34,7 +40,7 @@ public class ZuulResponseContent {
 		}
 		return content;
 	}
-	
+
 	/**
 	 * Clears the response content
 	 */
@@ -45,7 +51,7 @@ public class ZuulResponseContent {
 		context.setResponseDataStream(null);
 		context.setResponseBody(null);
 	}
-	
+
 	/**
 	 * Sets the content onto the response.
 	 * @param content the content to set
@@ -54,7 +60,7 @@ public class ZuulResponseContent {
 		this.clearContent();
 		context.setResponseBody(content);
 	}
-	
+
 	private String getBodyFromStream(RequestContext context) {
 		InputStream bodyStream = context.getResponseDataStream();
 		if (bodyStream != null) {
@@ -62,7 +68,7 @@ public class ZuulResponseContent {
 		}
 		return null;
 	}
-	
+
 	private String extractAndReplaceBody(RequestContext context, InputStream bodyStream) {
 		String body = null;
 		try {

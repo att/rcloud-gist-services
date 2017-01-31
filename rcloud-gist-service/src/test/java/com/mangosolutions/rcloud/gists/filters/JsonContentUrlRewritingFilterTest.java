@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.gists.filters;
 
 import java.net.MalformedURLException;
@@ -14,12 +20,12 @@ public class JsonContentUrlRewritingFilterTest {
 
 	private static final String REMOTE_URL = "https://api.github.com";
 	private static final String LOCAL_URL = "http://localhost:8080";
-	
+
 	@Before
 	public void setup() throws MalformedURLException {
 		setup(MediaType.APPLICATION_JSON_UTF8_VALUE);
 	}
-	
+
 	public void setup(String contentType) throws MalformedURLException {
 		RequestContext context = RequestContext.getCurrentContext();
 		context.getZuulResponseHeaders().clear();
@@ -29,28 +35,28 @@ public class JsonContentUrlRewritingFilterTest {
 		context.addZuulResponseHeader("Content-Type", contentType);
 		context.setRouteHost(new URL("https://api.github.com"));
 	}
-	
+
 	public void setContent(String content) {
 		RequestContext.getCurrentContext().setResponseBody(content);
 	}
-	
+
 	@Test
 	public void testShouldFilterJsonContent() {
 		Assert.assertTrue(new JsonContentUrlRewritingFilter(1).shouldFilter());
 	}
-	
+
 	@Test
 	public void testShouldNotFilterXmlContent() throws MalformedURLException {
 		setup(MediaType.APPLICATION_XML_VALUE);
 		Assert.assertFalse(new JsonContentUrlRewritingFilter(1).shouldFilter());
 	}
-	
+
 	@Test
 	public void testShouldFilterJsonExtensionContent() throws MalformedURLException {
 		setup("application/hal+json");
 		Assert.assertTrue(new JsonContentUrlRewritingFilter(1).shouldFilter());
 	}
-	
+
 	@Test
 	public void replaceUrlInJsonArray() throws MalformedURLException {
 		String jsonArray = "[ \"https://api.github.com\" ]";
@@ -61,7 +67,7 @@ public class JsonContentUrlRewritingFilterTest {
 		Assert.assertFalse(responseBody.contains(REMOTE_URL));
 		Assert.assertTrue(responseBody.contains(LOCAL_URL));
 	}
-	
+
 	@Test
 	public void replaceUrlInJsonObject() {
 		String jsonArray = "{ \"url\": \"https://api.github.com\" }";
@@ -72,7 +78,7 @@ public class JsonContentUrlRewritingFilterTest {
 		Assert.assertFalse(responseBody.contains(REMOTE_URL));
 		Assert.assertTrue(responseBody.contains(LOCAL_URL));
 	}
-	
+
 	@Test
 	public void replaceUrlInNestedJsonObject() {
 		String jsonArray = "{ \"obj\": { \"url\": \"https://api.github.com\" } }";
@@ -83,7 +89,7 @@ public class JsonContentUrlRewritingFilterTest {
 		Assert.assertFalse(responseBody.contains(REMOTE_URL));
 		Assert.assertTrue(responseBody.contains(LOCAL_URL));
 	}
-	
+
 	@Test
 	public void replaceUrlInSpecificJsonObject() {
 		String jsonArray = "{ \"obj\": { \"url\": \"https://api.github.com\", \"noUrl\": \"I am not a url\" } }";

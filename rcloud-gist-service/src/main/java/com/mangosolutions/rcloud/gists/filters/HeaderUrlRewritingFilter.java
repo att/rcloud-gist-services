@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.gists.filters;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -20,14 +26,14 @@ import com.netflix.zuul.context.RequestContext;
 public final class HeaderUrlRewritingFilter extends ZuulFilter {
 
 	private static final Logger log = LoggerFactory.getLogger(HeaderUrlRewritingFilter.class);
-	
+
 	public static final ImmutableSet<String> DEFAULT_WHITELIST = ImmutableSet.of("Link", "Location");
 
 	private final ImmutableSet<String> whitelist = DEFAULT_WHITELIST;
 
 	private int order = 100;
-	
-	
+
+
 	public HeaderUrlRewritingFilter(int order) {
 		this.order = order;
 	}
@@ -61,7 +67,7 @@ public final class HeaderUrlRewritingFilter extends ZuulFilter {
 		}
 		return null;
 	}
-	
+
 	public ImmutableSet<String> getWhitelist() {
 		return this.whitelist;
 	}
@@ -86,7 +92,7 @@ public final class HeaderUrlRewritingFilter extends ZuulFilter {
 		}
 	}
 
-	
+
 
 	private static boolean caseInsensitiveContains(final Collection<String> collection, final String value) {
 		return !filter(collection, new CaseInsensitiveEqualityPredicate(value)).isEmpty();

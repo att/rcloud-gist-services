@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.gists.filters;
 
 import java.net.MalformedURLException;
@@ -13,7 +19,7 @@ import com.netflix.zuul.context.RequestContext;
 
 public class HeaderUrlRewritingFilterTest {
 
-	
+
 	@Before
 	public void setupHeaders() throws MalformedURLException {
 		RequestContext context = RequestContext.getCurrentContext();
@@ -23,15 +29,15 @@ public class HeaderUrlRewritingFilterTest {
 		context.addZuulResponseHeader("Location", "https://api.github.com");
 		//add another header
 		context.addZuulResponseHeader("Content-Type", "application/json");
-		
+
 		context.addZuulResponseHeader("Blacklist-Header", "https://api.github.com");
-		
+
 		context.addZuulRequestHeader("x-forwarded-host", "localhost:8080");
 		context.addZuulRequestHeader("x-forwarded-proto", "http");
 		context.addZuulRequestHeader("x-forwarded-port", "8080");
 		context.setRouteHost(new URL("https://api.github.com"));
 	}
-	
+
 	@Test
 	public void filterHeaders() {
 		RequestContext context = RequestContext.getCurrentContext();
@@ -49,7 +55,7 @@ public class HeaderUrlRewritingFilterTest {
 				Assert.assertFalse(header.second().contains("https://api.github.com"));
 			}
 		}
-		
+
 	}
 
 }

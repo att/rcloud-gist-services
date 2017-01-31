@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.gists.filters;
 
 import java.util.LinkedList;
@@ -24,14 +30,14 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 
 	private static final Logger logger = LoggerFactory.getLogger(JsonContentUrlRewritingFilter.class);
 
-	private static final MimeType[] JSON_MIME_TYPES = {MimeTypeUtils.APPLICATION_JSON, MimeTypeUtils.parseMimeType("application/*+json")}; 
-	
+	private static final MimeType[] JSON_MIME_TYPES = {MimeTypeUtils.APPLICATION_JSON, MimeTypeUtils.parseMimeType("application/*+json")};
+
 	private int order = 100;
-	
+
 	public JsonContentUrlRewritingFilter(int order) {
 		this.order = order;
 	}
-	
+
 	@Override
 	public String filterType() {
 		return "post";
@@ -65,7 +71,7 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 						if(jsonMimeType.isCompatibleWith(mimeType)) {
 							return true;
 						}
-						
+
 					}
 				} catch (InvalidMimeTypeException e) {
 					logger.warn("Could not parse {} as a valid mimetype", value);
@@ -80,7 +86,7 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 		logger.debug("Running");
 		RequestContext context = RequestContext.getCurrentContext();
 		ZuulResponseContent zuulContent = new ZuulResponseContent(context);
-		
+
 		String content = zuulContent.getContent();
 		if (StringUtils.isNotEmpty(content)) {
 			content = replaceUrls(context, content);
@@ -98,7 +104,7 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 		ZuulRequestUrlResolver resolver = new ZuulRequestUrlResolver();
         String zuulUrl = resolver.getZuulServiceUrl(context);
         String targetUrl = resolver.getProxiedServiceUrl(context);
-        
+
 		while ((value = jsonValues.poll()) != null) {
 			if (value.isArray()) {
 				JsonArray jsonArray = value.asArray();
@@ -124,15 +130,15 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 							memberString = memberString.replace(targetUrl, zuulUrl);
 							value.asObject().set(name, memberString);
 						}
-						
-						
+
+
 					} else {
 						jsonValues.add(memberValue);
 					}
 				}
 			}
 		}
-		
+
 		return jsonRoot.toString(WriterConfig.PRETTY_PRINT);
 
 	}

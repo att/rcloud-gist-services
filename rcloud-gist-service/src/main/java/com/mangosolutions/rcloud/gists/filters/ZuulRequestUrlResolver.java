@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.gists.filters;
 
 import java.net.MalformedURLException;
@@ -13,7 +19,7 @@ import com.netflix.zuul.context.RequestContext;
 public class ZuulRequestUrlResolver {
 
 	private static final Logger logger = LoggerFactory.getLogger(ZuulRequestUrlResolver.class);
-	
+
 	public String getProxiedServiceUrl(RequestContext context) {
 		return context.getRouteHost().toString();
 	}

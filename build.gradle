@@ -1,3 +1,10 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
+
 buildscript {
     repositories {
         maven { url 'https://plugins.gradle.org/m2/' }
