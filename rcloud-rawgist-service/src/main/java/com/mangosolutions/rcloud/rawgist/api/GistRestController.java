@@ -23,8 +23,8 @@ public class GistRestController {
 	}
 	
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.GET)
-	public void getGist(@PathVariable("gistId") String gistId) {
-		repository.getGist(gistId);
+	public GistResponse getGist(@PathVariable("gistId") String gistId) {
+		return repository.getGist(gistId);
 	}
 	
 	@RequestMapping(method=RequestMethod.POST)

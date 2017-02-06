@@ -5,7 +5,7 @@ public interface GistRepository {
 
 	public void listGists();
 	
-	public void getGist(String gistId);
+	public GistResponse getGist(String gistId);
 	
 	public GistResponse createGist(GistRequest request);
 	

@@ -14,6 +14,7 @@ import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.operation.AddOp;
 import org.ajoberstar.grgit.operation.CommitOp;
 import org.ajoberstar.grgit.operation.InitOp;
+import org.ajoberstar.grgit.operation.OpenOp;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
@@ -40,8 +41,17 @@ public class GitGistRepository implements GistRepository {
 	}
 
 	@Override
-	public void getGist(String gistId) {
-		
+	public GistResponse getGist(String gistId) {
+		File repositoryFolder = getRepositoryFolder(gistId);
+		GistResponse response = null;
+		if(repositoryFolder.exists()) {
+			// create git repository
+			OpenOp openOp = new OpenOp();
+			openOp.setDir(repositoryFolder);
+			Grgit git = openOp.call();
+			response = buildResponse(gistId, repositoryFolder, git);
+		}
+		return response;
 	}
 
 	@Override
