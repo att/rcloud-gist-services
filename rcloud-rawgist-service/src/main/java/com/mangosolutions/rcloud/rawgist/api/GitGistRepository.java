@@ -3,8 +3,12 @@ package com.mangosolutions.rcloud.rawgist.api;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import javax.activation.MimetypesFileTypeMap;
 
 import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.operation.AddOp;
@@ -12,6 +16,9 @@ import org.ajoberstar.grgit.operation.CommitOp;
 import org.ajoberstar.grgit.operation.InitOp;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 public class GitGistRepository implements GistRepository {
 
@@ -38,7 +45,7 @@ public class GitGistRepository implements GistRepository {
 	}
 
 	@Override
-	public void createGist(GistRequest request) {
+	public GistResponse createGist(GistRequest request) {
 		String id = idGenerator.generateId();
 		//create folder
 		File repositoryFolder = getRepositoryFolder(id);
@@ -55,17 +62,40 @@ public class GitGistRepository implements GistRepository {
 		initOp.setDir(repositoryFolder);
 		Grgit git = initOp.call();
 		saveContent(repositoryFolder, git, request);
-		
+		return buildResponse(id, repositoryFolder, git);
+	}
+
+	private GistResponse buildResponse(String id, File repositoryFolder, Grgit git) {
+		GistResponse response = new GistResponse();
+		response.setId(id);
+		Map<String, FileContent> files = new LinkedHashMap<String, FileContent>();
+		Collection<File> fileList = FileUtils.listFiles(repositoryFolder, FileFileFilter.FILE, FileFilterUtils.and(TrueFileFilter.INSTANCE, FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".git"))));
+		for(File file: fileList) {
+			FileContent content = new FileContent();
+			try {
+				content.setContent(FileUtils.readFileToString(file, CharEncoding.UTF_8));
+				content.setSize(file.length());
+				content.setTruncated(false);
+				//TODO mimetype
+				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
+				files.put(file.getName(), content);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		response.setFiles(files);
+		return response;
 	}
 
 	private void saveContent(File repositoryFolder, Grgit git, GistRequest request) {
 		Map<String, Object> files = request.getFiles();
 		for(Map.Entry<String, Object> file: files.entrySet()) {
 			String fileName = file.getKey();
-			if(file.getValue() == null) {
+			String content = getFileContent(file.getValue());
+			if(content == null) {
 				//this should delete the file
 			} else {
-				String content = file.getValue().toString();
 				try {
 					FileUtils.write(new File(repositoryFolder, fileName), content, CharEncoding.UTF_8);
 					AddOp add = new AddOp(git.getRepository());
@@ -81,6 +111,15 @@ public class GitGistRepository implements GistRepository {
 		CommitOp commitOp = new CommitOp(git.getRepository());
 		commitOp.setMessage("");
 		commitOp.call();
+	}
+
+	@SuppressWarnings("unchecked")
+	private String getFileContent(Object value) {
+		String content = null;
+		if(value != null && value instanceof Map && ((Map<String, String>)value).containsKey("content")) {
+			content = ((Map<String, String>)value).get("content");
+		}
+		return content.toString();
 	}
 
 	private File getRepositoryFolder(String id) {

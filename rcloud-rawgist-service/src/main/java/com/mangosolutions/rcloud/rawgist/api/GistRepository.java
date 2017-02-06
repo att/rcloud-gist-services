@@ -7,7 +7,7 @@ public interface GistRepository {
 	
 	public void getGist(String gistId);
 	
-	public void createGist(GistRequest request);
+	public GistResponse createGist(GistRequest request);
 	
 	public void editGist();
 	

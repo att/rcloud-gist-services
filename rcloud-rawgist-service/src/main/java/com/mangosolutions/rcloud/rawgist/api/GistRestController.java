@@ -29,8 +29,8 @@ public class GistRestController {
 	
 	@RequestMapping(method=RequestMethod.POST)
 	@ResponseStatus( HttpStatus.CREATED )
-	public void createGist(@RequestBody GistRequest request) {
-		repository.createGist(request);
+	public GistResponse createGist(@RequestBody GistRequest request) {
+		return repository.createGist(request);
 	}
 	
 	@RequestMapping(method=RequestMethod.PATCH)
