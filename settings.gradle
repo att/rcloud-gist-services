@@ -7,4 +7,5 @@
 
 rootProject.name = 'rcloud-gist-service'
 
-include 'rcloud-gist-service'
+include 'rcloud-gist-service',
+        'rcloud-rawgist-service'

@@ -1,0 +1,26 @@
+#*******************************************************************************
+# Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+#
+# SPDX-License-Identifier:   MIT
+#
+#******************************************************************************/
+server:
+    port: 13010
+
+management:
+   port: 13011
+
+logging:
+  config: logback.xml
+  file: /var/log/${spring.application.name}/${spring.application.name}-file.log
+
+github:
+  api:
+    url: https://api.github.com
+
+
+
+#security:
+#  user:
+#    name: admin
+#    password: secret

@@ -1,0 +1,33 @@
+#*******************************************************************************
+# Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+#
+# SPDX-License-Identifier:   MIT
+#
+#*******************************************************************************
+server:
+    port: 13020
+
+management:
+  port: 13021
+  security:
+    enabled: true
+
+info:
+  version: 1.0.0
+  stage: dev
+
+spring:
+  application:
+    name: rcloud-rawgist-service
+  cloud:
+    config:
+      enabled: false
+
+security:
+  user:
+    name: admin
+  basic:
+    enabled: false
+
+gists:
+  root: /var/rcloud-rawgist-service/gists/
