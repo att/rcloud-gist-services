@@ -9,7 +9,7 @@ public interface GistRepository {
 	
 	public GistResponse createGist(GistRequest request);
 	
-	public void editGist();
+	public GistResponse editGist(String gistId, GistRequest request);
 	
 	public void deleteGist(String gistId);
 	

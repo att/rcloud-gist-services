@@ -33,12 +33,13 @@ public class GistRestController {
 		return repository.createGist(request);
 	}
 	
-	@RequestMapping(method=RequestMethod.PATCH)
-	public void editGist() {
-		repository.editGist();
+	@RequestMapping(value = "/{gistId}", method=RequestMethod.PATCH)
+	public GistResponse editGist(@PathVariable("gistId") String gistId, @RequestBody GistRequest request) {
+		return repository.editGist(gistId, request);
 	}
 	
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.DELETE)
+	@ResponseStatus( HttpStatus.NO_CONTENT )
 	public void deleteGist(@PathVariable("gistId") String gistId) {
 		repository.deleteGist(gistId);
 	}
