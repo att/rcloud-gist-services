@@ -7,21 +7,29 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.activation.MimetypesFileTypeMap;
 
 import org.ajoberstar.grgit.Grgit;
+import org.ajoberstar.grgit.Repository;
+import org.ajoberstar.grgit.Status;
+import org.ajoberstar.grgit.Status.Changes;
 import org.ajoberstar.grgit.operation.AddOp;
+import org.ajoberstar.grgit.operation.CleanOp;
 import org.ajoberstar.grgit.operation.CommitOp;
 import org.ajoberstar.grgit.operation.InitOp;
 import org.ajoberstar.grgit.operation.OpenOp;
+import org.ajoberstar.grgit.operation.ResetOp;
 import org.ajoberstar.grgit.operation.RmOp;
 import org.ajoberstar.grgit.operation.StatusOp;
+import org.ajoberstar.grgit.operation.ResetOp.Mode;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.springframework.util.StringUtils;
 
 public class GitGistRepository implements GistRepository {
 
@@ -134,35 +142,88 @@ public class GitGistRepository implements GistRepository {
 	}
 
 	private void saveContent(File repositoryFolder, Grgit git, GistRequest request) {
-		Map<String, Object> files = request.getFiles();
-		for(Map.Entry<String, Object> file: files.entrySet()) {
-			String fileName = file.getKey();
-			String content = getFileContent(file.getValue());
-			File targetFile = new File(repositoryFolder, fileName);
-			if(content == null) {
-				RmOp rm = new RmOp(git.getRepository());
-				rm.setPatterns(new HashSet<String>(Arrays.asList(fileName)));
-				rm.call();
-			} else {
-				try {
-					FileUtils.write(targetFile, content, CharEncoding.UTF_8);
-					AddOp add = new AddOp(git.getRepository());
-					add.setPatterns(new HashSet<String>(Arrays.asList(fileName)));
-					add.call();
-					
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		Map<String, FileDefinition> files = request.getFiles();
+		try {
+			for(Map.Entry<String, FileDefinition> file: files.entrySet()) {
+				String fileName = file.getKey();
+				FileDefinition definition = file.getValue();
+				if(isDelete(definition)) {
+					FileUtils.forceDelete(new File(repositoryFolder, fileName));
+				} 
+				if(isUpdate(definition)) {
+					FileUtils.write(new File(repositoryFolder, fileName), definition.getContent(), CharEncoding.UTF_8);
+				} 
 				
+				if(isMove(definition)) {
+					FileUtils.moveFile(new File(repositoryFolder, fileName), new File(repositoryFolder, definition.getFilename()));
+				}
 			}
+			StatusOp statusOp = new StatusOp(git.getRepository());
+			Status status = statusOp.call();
+			if(!status.isClean()) {
+				stageAllChanges(status, git.getRepository());
+				CommitOp commitOp = new CommitOp(git.getRepository());
+				commitOp.setMessage("");
+				commitOp.call();
+			}
+		} catch (IOException e) {
+			//TODO throw new exception
+			throw new RuntimeException("Could not change repository.", e);
+		} finally {
+			StatusOp statusOp = new StatusOp(git.getRepository());
+			Status status = statusOp.call();
+			if(!status.isClean()) {
+				//clean and then reset
+				CleanOp cleanOp = new CleanOp(git.getRepository());
+				cleanOp.call();
+				ResetOp resetOp = new ResetOp(git.getRepository());
+				resetOp.setMode(Mode.HARD);
+				resetOp.call();
+			}
+			
 		}
-		StatusOp statusOp = new StatusOp(git.getRepository());
-		if(!statusOp.call().isClean()) {
-			CommitOp commitOp = new CommitOp(git.getRepository());
-			commitOp.setMessage("");
-			commitOp.call();
+	}
+
+	private void stageAllChanges(Status status, Repository repository) {
+		Changes changes = status.getUnstaged();
+		Set<String> added = changes.getAdded();
+		Set<String> modified = changes.getModified();
+		Set<String> removed = changes.getRemoved();
+		if(added != null && !added.isEmpty()) {
+			AddOp addOp = new AddOp(repository);
+			addOp.setPatterns(added);
+			addOp.call();
 		}
+		if(modified != null && !modified.isEmpty()) {
+			AddOp addOp = new AddOp(repository);
+			addOp.setPatterns(modified);
+			addOp.call();
+		}
+		if(removed != null && !removed.isEmpty()) {
+			RmOp rm = new RmOp(repository);
+			rm.setPatterns(removed);
+			rm.call();
+		}
+		
+		
+	}
+
+	private boolean isMove(FileDefinition definition) {
+		return definition != null && !StringUtils.isEmpty(definition.getFilename());
+	}
+
+	private boolean isUpdate(FileDefinition definition) {
+		return definition != null && definition.getContent() != null;
+	}
+
+	private void deleteFile(Grgit git, File file) {
+		RmOp rm = new RmOp(git.getRepository());
+		rm.setPatterns(new HashSet<String>(Arrays.asList(file.getName())));
+		rm.call();
+	}
+
+	private boolean isDelete(FileDefinition definition) {
+		return definition == null;
 	}
 
 	@SuppressWarnings("unchecked")

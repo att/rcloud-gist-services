@@ -35,7 +35,7 @@ public class GistRequest implements Serializable {
 	 * 
 	 */
 	@JsonProperty("files")
-	private Map<String, Object> files;
+	private Map<String, FileDefinition> files;
 
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -87,7 +87,7 @@ public class GistRequest implements Serializable {
 	 * 
 	 */
 	@JsonProperty("files")
-	public Map<String, Object> getFiles() {
+	public Map<String, FileDefinition> getFiles() {
 		return files;
 	}
 
@@ -97,7 +97,7 @@ public class GistRequest implements Serializable {
 	 * 
 	 */
 	@JsonProperty("files")
-	public void setFiles(Map<String, Object> files) {
+	public void setFiles(Map<String, FileDefinition> files) {
 		this.files = files;
 	}
 
