@@ -132,4 +132,105 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		return folder;
 	}
 
+	@Override
+	public List<GistCommentResponse> getComments(String gistId) {
+		Lock lock = hazelcastInstance.getLock(gistId);
+		try {
+			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+				try {
+					File repositoryFolder = getRepositoryFolder(gistId);
+					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.getComments();
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+		}
+	}
+
+	@Override
+	public GistCommentResponse getComment(String gistId, long commentId) {
+		Lock lock = hazelcastInstance.getLock(gistId);
+		try {
+			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+				try {
+					File repositoryFolder = getRepositoryFolder(gistId);
+					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.getComment(commentId);
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+		}
+	}
+
+	@Override
+	public GistCommentResponse createComment(String gistId, GistComment comment) {
+		Lock lock = hazelcastInstance.getLock(gistId);
+		try {
+			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+				try {
+					File repositoryFolder = getRepositoryFolder(gistId);
+					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.createComment(comment);
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+		}
+	}
+
+	@Override
+	public GistCommentResponse editComment(String gistId, long commentId, GistComment comment) {
+		Lock lock = hazelcastInstance.getLock(gistId);
+		try {
+			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+				try {
+					File repositoryFolder = getRepositoryFolder(gistId);
+					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.editComment(commentId, comment);
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+		}
+	}
+
+	@Override
+	public void deleteComment(String gistId, long commentId) {
+		Lock lock = hazelcastInstance.getLock(gistId);
+		try {
+			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+				try {
+					File repositoryFolder = getRepositoryFolder(gistId);
+					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+					repository.deleteComment(commentId);
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+		}
+	}
+
+
 }

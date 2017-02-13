@@ -25,13 +25,8 @@ dependencies {
   compile 'joda-time:joda-time'
   compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
 
-
-
+  compile 'org.apache.commons:commons-collections4:4.1'
   compile 'org.ajoberstar:grgit:1.7.2'
-
-
-  //compile 'org.springframework.cloud:spring-cloud-starter-zuul'
-  //compile 'com.eclipsesource.minimal-json:minimal-json:0.9.4'
 
   testCompile 'junit:junit:4.11'
   testCompile 'org.mockito:mockito-all:1.10.8'

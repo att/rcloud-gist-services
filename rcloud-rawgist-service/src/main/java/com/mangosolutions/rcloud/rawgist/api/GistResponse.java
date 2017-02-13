@@ -2,7 +2,6 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,9 +50,9 @@ public class GistResponse implements Serializable
     @JsonProperty("files")
     private Map<String, FileContent> files = new HashMap<String, FileContent>();
     @JsonProperty("truncated")
-    private Boolean truncated;
+    private Boolean truncated = false;
     @JsonProperty("comments")
-    private Integer comments;
+    private Integer comments = 0;
     @JsonProperty("comments_url")
     private String commentsUrl;
     @JsonProperty("created_at")
