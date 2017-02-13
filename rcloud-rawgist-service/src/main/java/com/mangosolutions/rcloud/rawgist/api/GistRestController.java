@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class GistRestController {
 
 	@Autowired
-	private GistRepository repository;
+	private GistRepositoryService repository;
 	
-	@RequestMapping(value = "/all", method=RequestMethod.GET)
+	@RequestMapping(value = "/public", method=RequestMethod.GET)
 	public void listGists() {
 		repository.listGists();
 	}

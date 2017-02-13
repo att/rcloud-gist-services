@@ -201,5 +201,9 @@ public class GistResponse implements Serializable
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
+    
+    public void addAdditionalProperties(Map<String, Object> properties) {
+        this.additionalProperties.putAll(properties);
+    }
 
 }

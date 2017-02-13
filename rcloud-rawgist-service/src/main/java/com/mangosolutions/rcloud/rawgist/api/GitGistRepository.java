@@ -2,9 +2,8 @@ package com.mangosolutions.rcloud.rawgist.api;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -21,9 +20,9 @@ import org.ajoberstar.grgit.operation.CommitOp;
 import org.ajoberstar.grgit.operation.InitOp;
 import org.ajoberstar.grgit.operation.OpenOp;
 import org.ajoberstar.grgit.operation.ResetOp;
+import org.ajoberstar.grgit.operation.ResetOp.Mode;
 import org.ajoberstar.grgit.operation.RmOp;
 import org.ajoberstar.grgit.operation.StatusOp;
-import org.ajoberstar.grgit.operation.ResetOp.Mode;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
@@ -31,131 +30,93 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class GitGistRepository implements GistRepository {
 
-	private static final String RECYCLE_FOLDER_NAME = ".recycle";
-	
-	private File repositoryRoot;
-	private File recycleRoot;
-	private GistIdGenerator idGenerator;
+	private static final String GIT_REPO_FOLDER_NAME = "repo";
 
-	public GitGistRepository(String repositoryRoot, GistIdGenerator idGenerator) throws IOException {
-		this.repositoryRoot = new File(repositoryRoot);
-		if(!this.repositoryRoot.exists()) {
-			FileUtils.forceMkdir(this.repositoryRoot);
-		}
-		recycleRoot = new File(repositoryRoot, RECYCLE_FOLDER_NAME);
-		if(!this.recycleRoot.exists()) {
-			FileUtils.forceMkdir(this.recycleRoot);
-		}
-		this.idGenerator = idGenerator;
-	}
-	
-	@Override
-	public void listGists() {
-		
+	private File repositoryFolder;
+	private File gitFolder;
+	private String gistId;
+
+	public GitGistRepository(File repositoryFolder, String id) {
+		this.repositoryFolder = repositoryFolder;
+		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
+		this.gistId = id;
+		this.initializeRepository();
 	}
 
+	private void initializeRepository() {
+		if (!repositoryFolder.exists()) {
+			try {
+				FileUtils.forceMkdir(repositoryFolder);
+			} catch (IOException e) {
+				throw new RuntimeException("Could not create gist store.", e);
+			}
+		}
+
+		if (!gitFolder.exists()) {
+			try {
+				FileUtils.forceMkdir(repositoryFolder);
+				InitOp initOp = new InitOp();
+				initOp.setDir(gitFolder);
+				initOp.call();
+			} catch (IOException e) {
+				throw new RuntimeException("Could not create gist store.", e);
+			}
+		}
+	}
+
 	@Override
-	public GistResponse getGist(String gistId) {
-		File repositoryFolder = getRepositoryFolder(gistId);
+	public File getGistRepositoryFolder() {
+		return repositoryFolder;
+	}
+
+	@Override
+	public GistResponse getGist() {
 		GistResponse response = null;
-		if(repositoryFolder.exists()) {
-			// create git repository
-			OpenOp openOp = new OpenOp();
-			openOp.setDir(repositoryFolder);
-			Grgit git = openOp.call();
-			response = buildResponse(gistId, repositoryFolder, git);
-		}
+		// create git repository
+		OpenOp openOp = new OpenOp();
+		openOp.setDir(gitFolder);
+		Grgit git = openOp.call();
+		response = buildResponse(git);
 		return response;
 	}
 
 	@Override
 	public GistResponse createGist(GistRequest request) {
-		String id = idGenerator.generateId();
-		//create folder
-		File repositoryFolder = getRepositoryFolder(id);
-		if(!repositoryFolder.exists()) {
-			try {
-				FileUtils.forceMkdir(repositoryFolder);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		// create git repository
-		InitOp initOp = new InitOp();
-		initOp.setDir(repositoryFolder);
-		Grgit git = initOp.call();
-		saveContent(repositoryFolder, git, request);
-		return buildResponse(id, repositoryFolder, git);
+		OpenOp openOp = new OpenOp();
+		openOp.setDir(gitFolder);
+		Grgit git = openOp.call();
+		saveContent(git, request);
+		return buildResponse(git);
+	}
+
+	@Override
+	public GistResponse editGist(GistRequest request) {
+		OpenOp openOp = new OpenOp();
+		openOp.setDir(gitFolder);
+		Grgit git = openOp.call();
+		saveContent(git, request);
+		return buildResponse(git);
 	}
 	
-	@Override
-	public GistResponse editGist(String gistId, GistRequest request) {
-		File repositoryFolder = getRepositoryFolder(gistId);
-		GistResponse response = null;
-		if(repositoryFolder.exists()) {
-			// create git repository
-			OpenOp openOp = new OpenOp();
-			openOp.setDir(repositoryFolder);
-			Grgit git = openOp.call();
-			saveContent(repositoryFolder, git, request);
-			response = buildResponse(gistId, repositoryFolder, git);
-		}
-		return response;
-	}
-
-	@Override
-	public void deleteGist(String gistId) {
-		File repositoryFolder = getRepositoryFolder(gistId);
-		try {
-			FileUtils.moveDirectoryToDirectory(repositoryFolder, new File(recycleRoot, gistId), true);
-			FileUtils.forceDelete(repositoryFolder);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private GistResponse buildResponse(String gistId, File repositoryFolder, Grgit git) {
-		GistResponse response = new GistResponse();
-		response.setId(gistId);
-		Map<String, FileContent> files = new LinkedHashMap<String, FileContent>();
-		Collection<File> fileList = FileUtils.listFiles(repositoryFolder, FileFileFilter.FILE, FileFilterUtils.and(TrueFileFilter.INSTANCE, FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".git"))));
-		for(File file: fileList) {
-			FileContent content = new FileContent();
-			try {
-				content.setContent(FileUtils.readFileToString(file, CharEncoding.UTF_8));
-				content.setSize(file.length());
-				content.setTruncated(false);
-				//TODO mimetype
-				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
-				files.put(file.getName(), content);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		response.setFiles(files);
-		return response;
-	}
-
-	private void saveContent(File repositoryFolder, Grgit git, GistRequest request) {
+	private void saveContent(Grgit git, GistRequest request) {
 		Map<String, FileDefinition> files = request.getFiles();
 		try {
 			for(Map.Entry<String, FileDefinition> file: files.entrySet()) {
 				String fileName = file.getKey();
 				FileDefinition definition = file.getValue();
 				if(isDelete(definition)) {
-					FileUtils.forceDelete(new File(repositoryFolder, fileName));
+					FileUtils.forceDelete(new File(gitFolder, fileName));
 				} 
 				if(isUpdate(definition)) {
-					FileUtils.write(new File(repositoryFolder, fileName), definition.getContent(), CharEncoding.UTF_8);
+					FileUtils.write(new File(gitFolder, fileName), definition.getContent(), CharEncoding.UTF_8);
 				} 
 				
 				if(isMove(definition)) {
-					FileUtils.moveFile(new File(repositoryFolder, fileName), new File(repositoryFolder, definition.getFilename()));
+					FileUtils.moveFile(new File(gitFolder, fileName), new File(gitFolder, definition.getFilename()));
 				}
 			}
 			StatusOp statusOp = new StatusOp(git.getRepository());
@@ -166,6 +127,7 @@ public class GitGistRepository implements GistRepository {
 				commitOp.setMessage("");
 				commitOp.call();
 			}
+			this.saveMetaData(request);
 		} catch (IOException e) {
 			//TODO throw new exception
 			throw new RuntimeException("Could not change repository.", e);
@@ -183,6 +145,41 @@ public class GitGistRepository implements GistRepository {
 			
 		}
 	}
+	
+	private void saveMetaData(GistRequest request) {
+		GistMetadata metaData = getMetaData();
+		String description = request.getDescription();
+		if(description != null) {
+			metaData.setDescription(description);
+		}
+		if(metaData.getCreatedAt() == null) {
+			metaData.setCreatedAt(new Date());
+		}
+		metaData.setUpdatedAt(new Date());
+		
+		File metaDataFile = new File(this.repositoryFolder, "meta.json");
+	    final ObjectMapper mapper = new ObjectMapper();
+	    try {
+			mapper.writeValue(metaDataFile, metaData);
+		} catch (IOException e) {
+			throw new RuntimeException("Could not read metadata file");
+		}
+	}
+	
+	private GistMetadata getMetaData() {
+		File metaDataFile = new File(this.repositoryFolder, "meta.json");
+		GistMetadata metaData = new GistMetadata();
+		if(metaDataFile.exists()) {
+		    final ObjectMapper mapper = new ObjectMapper();
+		    try {
+				metaData = mapper.readValue(metaDataFile, GistMetadata.class);
+			} catch (IOException e) {
+				throw new RuntimeException("Could not read metadata file");
+			}
+		}
+		return metaData;
+	}
+	
 
 	private void stageAllChanges(Status status, Repository repository) {
 		Changes changes = status.getUnstaged();
@@ -204,10 +201,8 @@ public class GitGistRepository implements GistRepository {
 			rm.setPatterns(removed);
 			rm.call();
 		}
-		
-		
 	}
-
+	
 	private boolean isMove(FileDefinition definition) {
 		return definition != null && !StringUtils.isEmpty(definition.getFilename());
 	}
@@ -216,34 +211,40 @@ public class GitGistRepository implements GistRepository {
 		return definition != null && definition.getContent() != null;
 	}
 
-	private void deleteFile(Grgit git, File file) {
-		RmOp rm = new RmOp(git.getRepository());
-		rm.setPatterns(new HashSet<String>(Arrays.asList(file.getName())));
-		rm.call();
-	}
-
 	private boolean isDelete(FileDefinition definition) {
 		return definition == null;
 	}
-
-	@SuppressWarnings("unchecked")
-	private String getFileContent(Object value) {
-		String content = null;
-		if(value != null && value instanceof Map && ((Map<String, String>)value).containsKey("content")) {
-			content = ((Map<String, String>)value).get("content");
+	
+	private GistResponse buildResponse(Grgit git) {
+		GistResponse response = new GistResponse();
+		
+		response.setId(gistId);
+		Map<String, FileContent> files = new LinkedHashMap<String, FileContent>();
+		Collection<File> fileList = FileUtils.listFiles(gitFolder, FileFileFilter.FILE, FileFilterUtils.and(TrueFileFilter.INSTANCE, FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".git"))));
+		for(File file: fileList) {
+			FileContent content = new FileContent();
+			try {
+				content.setContent(FileUtils.readFileToString(file, CharEncoding.UTF_8));
+				content.setSize(file.length());
+				content.setTruncated(false);
+				//TODO mimetype
+				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
+				files.put(file.getName(), content);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				throw new RuntimeException("Could not build response", e);
+			}
 		}
-		return content;
+		response.setFiles(files);
+		applyMetadata(response);
+		return response;
 	}
 
-	private File getRepositoryFolder(String id) {
-		String[] paths = id.split("-");
-		File folder = repositoryRoot;
-		for(String path: paths) {
-			folder = new File(folder, path);
-		}
-		return folder;
+	private void applyMetadata(GistResponse response) {
+		GistMetadata metaData = this.getMetaData();
+		response.setDescription(metaData.getDescription());
+		response.setDescription(metaData.getDescription());
+		response.addAdditionalProperties(metaData.getAdditionalProperties());
 	}
-
-
 
 }

@@ -21,6 +21,8 @@ dependencies {
   compile 'org.springframework.cloud:spring-cloud-starter'
   compile 'commons-io:commons-io'
   compile 'org.codehaus.groovy:groovy-all'
+  compile 'com.hazelcast:hazelcast'
+
   compile 'org.ajoberstar:grgit:1.7.2'
 
 
