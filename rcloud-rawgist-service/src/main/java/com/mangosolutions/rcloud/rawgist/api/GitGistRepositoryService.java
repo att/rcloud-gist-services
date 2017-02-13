@@ -2,10 +2,16 @@ package com.mangosolutions.rcloud.rawgist.api;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.core.HazelcastInstance;
@@ -37,8 +43,13 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public void listGists() {
-		throw new UnsupportedOperationException("Listing available gists is not yet supported.");
+	public List<GistResponse> listGists() {
+		List<GistResponse> gists = new ArrayList<GistResponse>();
+		for(File file: FileUtils.listFiles(repositoryRoot, FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(GitGistRepository.GIST_META_JSON_FILE)), TrueFileFilter.INSTANCE)) {
+			GistRepository repository = new GitGistRepository(file.getParentFile(), objectMapper);
+			gists.add(repository.getGist());
+		}
+		return gists;
 	}
 
 	@Override

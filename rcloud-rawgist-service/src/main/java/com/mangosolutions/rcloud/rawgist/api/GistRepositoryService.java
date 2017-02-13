@@ -1,9 +1,10 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
+import java.util.List;
 
 public interface GistRepositoryService {
 
-	public void listGists();
+	public List<GistResponse> listGists();
 	
 	public GistResponse getGist(String gistId);
 	

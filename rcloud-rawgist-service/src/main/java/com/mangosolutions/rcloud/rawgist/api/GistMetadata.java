@@ -1,7 +1,6 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,11 +17,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({ "description" })
 public class GistMetadata implements Serializable {
 
-	/**
-	 * 
-	 * (Required)
-	 * 
-	 */
+	@JsonProperty("id")
+	private String id;
+
 	@JsonProperty("description")
 	private String description;
 
@@ -36,6 +33,14 @@ public class GistMetadata implements Serializable {
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 	private final static long serialVersionUID = -7352290872081419828L;
 
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+	
 	/**
 	 * 
 	 * (Required)

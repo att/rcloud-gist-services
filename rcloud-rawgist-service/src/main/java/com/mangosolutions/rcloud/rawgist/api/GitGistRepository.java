@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GitGistRepository implements GistRepository {
 
+	public static final String GIST_META_JSON_FILE = "gist.json";
+
 	private static final String GIT_REPO_FOLDER_NAME = "repo";
 
 	private File repositoryFolder;
@@ -48,6 +50,13 @@ public class GitGistRepository implements GistRepository {
 		this.gistId = id;
 		this.initializeRepository();
 		this.objectMapper = objectMapper;
+	}
+	
+	public GitGistRepository(File repositoryFolder, ObjectMapper objectMapper) {
+		this.repositoryFolder = repositoryFolder;
+		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
+		this.objectMapper = objectMapper;
+		this.gistId = this.getMetaData().getId();
 	}
 
 	private void initializeRepository() {
@@ -151,6 +160,7 @@ public class GitGistRepository implements GistRepository {
 	
 	private void saveMetaData(GistRequest request) {
 		GistMetadata metaData = getMetaData();
+		metaData.setId(this.gistId);
 		String description = request.getDescription();
 		if(description != null) {
 			metaData.setDescription(description);
@@ -160,7 +170,7 @@ public class GitGistRepository implements GistRepository {
 		}
 		metaData.setUpdatedAt(new DateTime());
 		
-		File metaDataFile = new File(this.repositoryFolder, "meta.json");
+		File metaDataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
 	    try {
 			objectMapper.writeValue(metaDataFile, metaData);
 		} catch (IOException e) {
@@ -169,7 +179,7 @@ public class GitGistRepository implements GistRepository {
 	}
 	
 	private GistMetadata getMetaData() {
-		File metaDataFile = new File(this.repositoryFolder, "meta.json");
+		File metaDataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
 		GistMetadata metaData = new GistMetadata();
 		if(metaDataFile.exists()) {
 		    try {

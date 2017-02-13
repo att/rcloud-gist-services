@@ -1,5 +1,7 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,8 +20,8 @@ public class GistRestController {
 	private GistRepositoryService repository;
 	
 	@RequestMapping(value = "/public", method=RequestMethod.GET)
-	public void listGists() {
-		repository.listGists();
+	public List<GistResponse> listGists() {
+		return repository.listGists();
 	}
 	
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.GET)
