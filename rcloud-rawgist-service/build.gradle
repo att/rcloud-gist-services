@@ -22,6 +22,10 @@ dependencies {
   compile 'commons-io:commons-io'
   compile 'org.codehaus.groovy:groovy-all'
   compile 'com.hazelcast:hazelcast'
+  compile 'joda-time:joda-time'
+  compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+
+
 
   compile 'org.ajoberstar:grgit:1.7.2'
 

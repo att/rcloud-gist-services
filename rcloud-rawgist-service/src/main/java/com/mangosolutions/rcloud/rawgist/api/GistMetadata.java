@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.joda.time.DateTime;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,13 +26,11 @@ public class GistMetadata implements Serializable {
 	@JsonProperty("description")
 	private String description;
 
-	// "created_at": "2010-04-14T02:15:15Z",
-	// "updated_at": "2011-06-20T11:34:15Z",
 	@JsonProperty("created_at")
-	private Date createdAt;
+	private DateTime createdAt;
 
 	@JsonProperty("updated_at")
-	private Date updatedAt;
+	private DateTime updatedAt;
 
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -57,22 +57,22 @@ public class GistMetadata implements Serializable {
 	}
 
 	@JsonProperty("created_at")
-	public Date getCreatedAt() {
+	public DateTime getCreatedAt() {
 		return createdAt;
 	}
 
 	@JsonProperty("created_at")
-	public void setCreatedAt(Date createdAt) {
+	public void setCreatedAt(DateTime createdAt) {
 		this.createdAt = createdAt;
 	}
 
 	@JsonProperty("updated_at")
-	public Date getUpdatedAt() {
+	public DateTime getUpdatedAt() {
 		return updatedAt;
 	}
 
 	@JsonProperty("updated_at")
-	public void setUpdatedAt(Date updatedAt) {
+	public void setUpdatedAt(DateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
 

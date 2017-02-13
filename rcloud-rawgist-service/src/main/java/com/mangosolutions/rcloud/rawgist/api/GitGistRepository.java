@@ -3,7 +3,6 @@ package com.mangosolutions.rcloud.rawgist.api;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.joda.time.DateTime;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,11 +40,14 @@ public class GitGistRepository implements GistRepository {
 	private File gitFolder;
 	private String gistId;
 
-	public GitGistRepository(File repositoryFolder, String id) {
+	private ObjectMapper objectMapper;
+
+	public GitGistRepository(File repositoryFolder, String id, ObjectMapper objectMapper) {
 		this.repositoryFolder = repositoryFolder;
 		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
 		this.gistId = id;
 		this.initializeRepository();
+		this.objectMapper = objectMapper;
 	}
 
 	private void initializeRepository() {
@@ -153,14 +156,13 @@ public class GitGistRepository implements GistRepository {
 			metaData.setDescription(description);
 		}
 		if(metaData.getCreatedAt() == null) {
-			metaData.setCreatedAt(new Date());
+			metaData.setCreatedAt(new DateTime());
 		}
-		metaData.setUpdatedAt(new Date());
+		metaData.setUpdatedAt(new DateTime());
 		
 		File metaDataFile = new File(this.repositoryFolder, "meta.json");
-	    final ObjectMapper mapper = new ObjectMapper();
 	    try {
-			mapper.writeValue(metaDataFile, metaData);
+			objectMapper.writeValue(metaDataFile, metaData);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not read metadata file");
 		}
@@ -170,9 +172,8 @@ public class GitGistRepository implements GistRepository {
 		File metaDataFile = new File(this.repositoryFolder, "meta.json");
 		GistMetadata metaData = new GistMetadata();
 		if(metaDataFile.exists()) {
-		    final ObjectMapper mapper = new ObjectMapper();
 		    try {
-				metaData = mapper.readValue(metaDataFile, GistMetadata.class);
+				metaData = objectMapper.readValue(metaDataFile, GistMetadata.class);
 			} catch (IOException e) {
 				throw new RuntimeException("Could not read metadata file");
 			}
@@ -244,6 +245,8 @@ public class GitGistRepository implements GistRepository {
 		GistMetadata metaData = this.getMetaData();
 		response.setDescription(metaData.getDescription());
 		response.setDescription(metaData.getDescription());
+		response.setCreatedAt(metaData.getCreatedAt());
+		response.setUpdatedAt(metaData.getUpdatedAt());
 		response.addAdditionalProperties(metaData.getAdditionalProperties());
 	}
 

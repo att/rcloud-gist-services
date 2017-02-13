@@ -7,6 +7,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.io.FileUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.core.HazelcastInstance;
 
 public class GitGistRepositoryService implements GistRepositoryService {
@@ -18,8 +19,10 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	private GistIdGenerator idGenerator;
 	private HazelcastInstance hazelcastInstance;
 
+	private ObjectMapper objectMapper;
+
 	public GitGistRepositoryService(String repositoryRoot, GistIdGenerator idGenerator,
-			HazelcastInstance hazelcastInstance) throws IOException {
+			HazelcastInstance hazelcastInstance, ObjectMapper objectMapper) throws IOException {
 		this.repositoryRoot = new File(repositoryRoot);
 		if (!this.repositoryRoot.exists()) {
 			FileUtils.forceMkdir(this.repositoryRoot);
@@ -30,6 +33,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		}
 		this.idGenerator = idGenerator;
 		this.hazelcastInstance = hazelcastInstance;
+		this.objectMapper = objectMapper;
 	}
 
 	@Override
@@ -44,7 +48,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, gistId);
+					GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper);
 					return repository.getGist();
 				} finally {
 					lock.unlock();
@@ -61,7 +65,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistResponse createGist(GistRequest request) {
 		String gistId = idGenerator.generateId();
 		File repositoryFolder = getRepositoryFolder(gistId);
-		GistRepository repository = new GitGistRepository(repositoryFolder, gistId);
+		GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper);
 		return repository.createGist(request);
 	}
 
@@ -72,7 +76,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, gistId);
+					GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper);
 					return repository.editGist(request);
 				} finally {
 					lock.unlock();

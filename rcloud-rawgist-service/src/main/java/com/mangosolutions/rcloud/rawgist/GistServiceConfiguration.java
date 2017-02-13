@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
 import com.mangosolutions.rcloud.rawgist.api.GistIdGenerator;
@@ -34,10 +35,13 @@ public class GistServiceConfiguration {
 	@Autowired 
 	private HazelcastInstance hazelcastInstance;
 	
+	@Autowired 
+	private ObjectMapper objectMapper;
+	
 	
 	@Bean
 	public GistRepositoryService getGistRepository() throws IOException {
-		return new GitGistRepositoryService(serviceProperties.getRoot(), this.getGistIdGenerator(), hazelcastInstance);
+		return new GitGistRepositoryService(serviceProperties.getRoot(), this.getGistIdGenerator(), hazelcastInstance, objectMapper);
 	}
 	
 	public GistIdGenerator getGistIdGenerator() {

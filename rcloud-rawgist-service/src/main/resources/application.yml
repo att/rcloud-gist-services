@@ -17,11 +17,15 @@ info:
   stage: dev
 
 spring:
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
   application:
     name: rcloud-rawgist-service
   cloud:
     config:
       enabled: false
+      
 
 security:
   user:
