@@ -1,4 +1,4 @@
-package com.mangosolutions.rcloud.rawgist.api;
+package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +12,8 @@ import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mangosolutions.rcloud.rawgist.model.GistComment;
+import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 
 public class GistCommentRepository {
 

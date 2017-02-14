@@ -1,4 +1,4 @@
-package com.mangosolutions.rcloud.rawgist.api;
+package com.mangosolutions.rcloud.rawgist.model;
 
 import java.util.HashMap;
 import java.util.Map;

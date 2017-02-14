@@ -1,4 +1,4 @@
-package com.mangosolutions.rcloud.rawgist.api;
+package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +31,10 @@ import org.joda.time.DateTime;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mangosolutions.rcloud.rawgist.model.FileContent;
+import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
+import com.mangosolutions.rcloud.rawgist.model.GistRequest;
+import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 public class GitGistRepository implements GistRepository {
 

@@ -1,4 +1,4 @@
-package com.mangosolutions.rcloud.rawgist.api;
+package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +15,10 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.core.HazelcastInstance;
+import com.mangosolutions.rcloud.rawgist.model.GistComment;
+import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
+import com.mangosolutions.rcloud.rawgist.model.GistRequest;
+import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 public class GitGistRepositoryService implements GistRepositoryService {
 

@@ -1,10 +1,8 @@
-package com.mangosolutions.rcloud.rawgist.api;
+package com.mangosolutions.rcloud.rawgist.model;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -14,33 +12,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "description" })
-public class GistMetadata implements Serializable {
+@JsonPropertyOrder({ "description", "public", "files" })
+public class GistRequest implements Serializable {
 
-	@JsonProperty("id")
-	private String id;
-
+	/**
+	 * 
+	 * (Required)
+	 * 
+	 */
 	@JsonProperty("description")
 	private String description;
-
-	@JsonProperty("created_at")
-	private DateTime createdAt;
-
-	@JsonProperty("updated_at")
-	private DateTime updatedAt;
+	/**
+	 * 
+	 * (Required)
+	 * 
+	 */
+	@JsonProperty("public")
+	private Boolean _public;
+	/**
+	 * 
+	 * (Required)
+	 * 
+	 */
+	@JsonProperty("files")
+	private Map<String, FileDefinition> files;
 
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 	private final static long serialVersionUID = -7352290872081419828L;
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-	
 	/**
 	 * 
 	 * (Required)
@@ -61,24 +61,44 @@ public class GistMetadata implements Serializable {
 		this.description = description;
 	}
 
-	@JsonProperty("created_at")
-	public DateTime getCreatedAt() {
-		return createdAt;
+	/**
+	 * 
+	 * (Required)
+	 * 
+	 */
+	@JsonProperty("public")
+	public Boolean getPublic() {
+		return _public;
 	}
 
-	@JsonProperty("created_at")
-	public void setCreatedAt(DateTime createdAt) {
-		this.createdAt = createdAt;
+	/**
+	 * 
+	 * (Required)
+	 * 
+	 */
+	@JsonProperty("public")
+	public void setPublic(Boolean _public) {
+		this._public = _public;
 	}
 
-	@JsonProperty("updated_at")
-	public DateTime getUpdatedAt() {
-		return updatedAt;
+	/**
+	 * 
+	 * (Required)
+	 * 
+	 */
+	@JsonProperty("files")
+	public Map<String, FileDefinition> getFiles() {
+		return files;
 	}
 
-	@JsonProperty("updated_at")
-	public void setUpdatedAt(DateTime updatedAt) {
-		this.updatedAt = updatedAt;
+	/**
+	 * 
+	 * (Required)
+	 * 
+	 */
+	@JsonProperty("files")
+	public void setFiles(Map<String, FileDefinition> files) {
+		this.files = files;
 	}
 
 	@JsonAnyGetter
@@ -90,5 +110,4 @@ public class GistMetadata implements Serializable {
 	public void setAdditionalProperty(String name, Object value) {
 		this.additionalProperties.put(name, value);
 	}
-
 }

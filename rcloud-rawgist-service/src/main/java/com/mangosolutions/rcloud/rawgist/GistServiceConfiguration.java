@@ -16,10 +16,10 @@ import org.springframework.context.annotation.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
-import com.mangosolutions.rcloud.rawgist.api.GistIdGenerator;
-import com.mangosolutions.rcloud.rawgist.api.GistRepositoryService;
-import com.mangosolutions.rcloud.rawgist.api.GitGistRepositoryService;
-import com.mangosolutions.rcloud.rawgist.api.UUIDGistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
+import com.mangosolutions.rcloud.rawgist.repository.GitGistRepositoryService;
+import com.mangosolutions.rcloud.rawgist.repository.UUIDGistIdGenerator;
 
 /**
  * Main Spring configuration

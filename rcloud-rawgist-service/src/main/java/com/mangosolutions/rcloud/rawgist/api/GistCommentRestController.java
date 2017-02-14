@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mangosolutions.rcloud.rawgist.model.GistComment;
+import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
+
 @RestController()
 @RequestMapping(value = "/gists/{gistId}/comments", produces={ MediaType.APPLICATION_JSON_VALUE })
 public class GistCommentRestController {

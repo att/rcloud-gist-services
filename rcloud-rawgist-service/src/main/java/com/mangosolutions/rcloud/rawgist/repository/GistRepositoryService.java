@@ -1,6 +1,11 @@
-package com.mangosolutions.rcloud.rawgist.api;
+package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.util.List;
+
+import com.mangosolutions.rcloud.rawgist.model.GistComment;
+import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
+import com.mangosolutions.rcloud.rawgist.model.GistRequest;
+import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 public interface GistRepositoryService {
 
