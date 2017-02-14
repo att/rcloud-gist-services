@@ -1,5 +1,6 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,31 +20,56 @@ public class GistCommentRestController {
 	@Autowired
 	private GistRepositoryService repository;
 	
+	@Autowired
+	private ControllerUrlResolver resolver;
+	
 	@RequestMapping(method=RequestMethod.GET)
 	public List<GistCommentResponse> getComments(@PathVariable("gistId") String gistId) {
-		return repository.getComments(gistId);
+		List<GistCommentResponse> comments = repository.getComments(gistId);
+		this.decorateUrls(comments, gistId);
+		return comments;
 	}
 	
 	@RequestMapping(value="/{commentId}", method=RequestMethod.GET)
 	public GistCommentResponse getComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId) {
-		return repository.getComment(gistId, commentId);
+		GistCommentResponse response = repository.getComment(gistId, commentId);
+		this.decorateUrls(response, gistId);
+		return response;
 	}
 	
 	@RequestMapping(method=RequestMethod.POST)
 	@ResponseStatus( HttpStatus.CREATED )
 	public GistCommentResponse createComment(@PathVariable("gistId") String gistId, @RequestBody GistComment comment) {
-		return repository.createComment(gistId, comment);
+		GistCommentResponse response = repository.createComment(gistId, comment);
+		this.decorateUrls(response, gistId);
+		return response;
 	}
 	
 	@RequestMapping(value="/{commentId}", method=RequestMethod.PATCH)
 	public GistCommentResponse editComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId, @RequestBody GistComment comment) {
-		return repository.editComment(gistId, commentId, comment);
+		GistCommentResponse response = repository.editComment(gistId, commentId, comment);
+		this.decorateUrls(response, gistId);
+		return response;
 	}
 	
 	@RequestMapping(value="/{commentId}", method=RequestMethod.DELETE)
 	@ResponseStatus( HttpStatus.NO_CONTENT )
 	public void deleteComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId) {
 		repository.deleteComment(gistId, commentId);
+	}
+	
+	private void decorateUrls(Collection<GistCommentResponse> gistCommentResponses, String gistId) {
+		if(gistCommentResponses != null) {
+			for(GistCommentResponse gistResponse: gistCommentResponses) {
+				this.decorateUrls(gistResponse, gistId);
+			}
+		}
+	}
+	
+	private void decorateUrls(GistCommentResponse gistCommentResponse, String gistId) {
+		if(gistCommentResponse != null) {
+			gistCommentResponse.setUrl(resolver.getCommentUrl(gistId, gistCommentResponse.getId()));
+		}
 	}
 	
 }

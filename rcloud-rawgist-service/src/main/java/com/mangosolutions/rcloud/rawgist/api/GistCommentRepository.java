@@ -115,7 +115,7 @@ public class GistCommentRepository {
 	}
 
 	private void saveComments(List<GistCommentResponse> comments) {
-		try {
+		try {	
 			objectMapper.writeValue(commentsFile, comments);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not read metadata file");

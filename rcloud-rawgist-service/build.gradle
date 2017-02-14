@@ -28,6 +28,10 @@ dependencies {
   compile 'org.apache.commons:commons-collections4:4.1'
   compile 'org.ajoberstar:grgit:1.7.2'
 
+  // https://mvnrepository.com/artifact/org.springframework.hateoas/spring-hateoas
+  compile 'org.springframework.hateoas:spring-hateoas' //, version: '0.23.0.RELEASE'
+
+
   testCompile 'junit:junit:4.11'
   testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'
