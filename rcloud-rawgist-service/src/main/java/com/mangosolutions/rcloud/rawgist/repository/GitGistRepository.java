@@ -45,15 +45,17 @@ public class GitGistRepository implements GistRepository {
 	private File repositoryFolder;
 	private File gitFolder;
 	private String gistId;
+	private GistCommentRepository commentRepository;
 
 	private ObjectMapper objectMapper;
 
-	public GitGistRepository(File repositoryFolder, String id, ObjectMapper objectMapper) {
+	public GitGistRepository(File repositoryFolder, String gistId, ObjectMapper objectMapper) {
 		this.repositoryFolder = repositoryFolder;
 		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
-		this.gistId = id;
-		this.initializeRepository();
+		this.gistId = gistId;
 		this.objectMapper = objectMapper;
+		this.commentRepository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+		this.initializeRepository();
 	}
 	
 	public GitGistRepository(File repositoryFolder, ObjectMapper objectMapper) {
@@ -251,6 +253,7 @@ public class GitGistRepository implements GistRepository {
 			}
 		}
 		response.setFiles(files);
+		response.setComments(commentRepository.getComments().size());
 		applyMetadata(response);
 		return response;
 	}
