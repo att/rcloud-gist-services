@@ -30,14 +30,12 @@ public class ZuulRequestUrlResolver {
 		String protocol = null;
 		String host = null;
 		int port = -1;
+		String path = "";
 
 		for (Map.Entry<String, String> entry : zuulRequestHeaders.entrySet()) {
-			if (StringUtils.isNotBlank(protocol) && StringUtils.isNotBlank(host)) {
-				break;
-			}
 			if ("x-forwarded-host".equals(entry.getKey())) {
 				host = entry.getValue();
-				if (host.contains(":")) {
+				if (host.contains(":") && port == -1) {
 					String[] hp = host.split(":");
 					host = hp[0];
 					try {
@@ -51,12 +49,22 @@ public class ZuulRequestUrlResolver {
 				protocol = entry.getValue();
 			}
 			if ("x-forwarded-port".equals(entry.getKey())) {
-				port = Integer.valueOf(entry.getValue());
+				try {
+					port = Integer.valueOf(entry.getValue());
+				} catch (NumberFormatException e) {
+					//ignore
+				}
+			}
+			if("x-forwarded-prefix".equals(entry.getKey())) {
+				String value = entry.getValue();
+				if(StringUtils.isNotBlank(value)) {
+					path = value;
+				}
 			}
 		}
 
 		try {
-			URL url = new URL(protocol, host, port, "");
+			URL url = new URL(protocol, host, port, path);
 			return url.toString();
 		} catch (MalformedURLException e) {
 			logger.warn("Could not convert parameters to a URL protocol: {}, host: {}, port: {}", protocol, host, port);

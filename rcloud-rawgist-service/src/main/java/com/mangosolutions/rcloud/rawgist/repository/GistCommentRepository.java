@@ -113,7 +113,7 @@ public class GistCommentRepository {
 				throw new RuntimeException("Could not read metadata file");
 			}
 		}
-		return comments;
+		return comments == null? new ArrayList<GistCommentResponse>(): comments;
 	}
 
 	private void saveComments(List<GistCommentResponse> comments) {

@@ -72,6 +72,9 @@ ospackage {
 
     //create log directory
     preInstall "mkdir -p /var/log/$pkg.name && chown $pkg.user:root /var/log/$pkg.name"
+    preInstall "mkdir -p /var/$pkg.name && chown $pkg.user:root /var/$pkg.name"
+
+
 
     into(pkg.installPath)
 
