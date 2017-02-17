@@ -35,13 +35,15 @@ public class ZuulRequestUrlResolver {
 		for (Map.Entry<String, String> entry : zuulRequestHeaders.entrySet()) {
 			if ("x-forwarded-host".equals(entry.getKey())) {
 				host = entry.getValue();
-				if (host.contains(":") && port == -1) {
+				if (host.contains(":")) {
 					String[] hp = host.split(":");
 					host = hp[0];
-					try {
-						port = Integer.valueOf(hp[1]);
-					} catch (NumberFormatException e) {
-						// ignore
+					if (port == -1) {
+						try {
+							port = Integer.valueOf(hp[1]);
+						} catch (NumberFormatException e) {
+							// ignore
+						}
 					}
 				}
 			}
@@ -52,12 +54,12 @@ public class ZuulRequestUrlResolver {
 				try {
 					port = Integer.valueOf(entry.getValue());
 				} catch (NumberFormatException e) {
-					//ignore
+					// ignore
 				}
 			}
-			if("x-forwarded-prefix".equals(entry.getKey())) {
+			if ("x-forwarded-prefix".equals(entry.getKey())) {
 				String value = entry.getValue();
-				if(StringUtils.isNotBlank(value)) {
+				if (StringUtils.isNotBlank(value)) {
 					path = value;
 				}
 			}
