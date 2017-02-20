@@ -18,9 +18,11 @@ github:
   api:
     url: https://api.github.com
 
-
-
 #security:
 #  user:
 #    name: admin
 #    password: secret
+
+spring:
+  profiles:
+    active: github #,local
