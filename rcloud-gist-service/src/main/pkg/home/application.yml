@@ -17,6 +17,10 @@ logging:
 github:
   api:
     url: https://api.github.com
+    
+rcloud:
+  gists:
+    url: http://localhost:13020
 
 #security:
 #  user:
@@ -25,4 +29,4 @@ github:
 
 spring:
   profiles:
-    active: github #,local
+    active: github #,rcloudgist

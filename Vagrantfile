@@ -36,7 +36,10 @@ Vagrant.configure(2) do |config|
   config.vm.network "forwarded_port", guest: 80, host: 80
   config.vm.network "forwarded_port", guest: 13010, host: 13110
   config.vm.network "forwarded_port", guest: 13011, host: 13111
-
+  config.vm.network "forwarded_port", guest: 13020, host: 13120
+  config.vm.network "forwarded_port", guest: 13021, host: 13121
+  # SessionKeyServer port
+  config.vm.network "forwarded_port", guest: 4301, host: 4301
   #config.ssh.forward_agent = true
 
 

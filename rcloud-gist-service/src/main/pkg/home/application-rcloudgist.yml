@@ -11,5 +11,6 @@ zuul:
       path: /**
       url: ${github.api.url:https://api.github.com}
     gists:
-     path: /**
-     url: http://localhost:13020/
+      url: ${rcloud.gists.url:http://localhost:13020}
+      stripPrefix: false
+

@@ -81,5 +81,3 @@ ospackage {
     //The following link is for systemd based systems, at the moment the above systemv symlink will suffice
     //link("/etc/systemd/system/" + pkg.name + ".service", pkg.installPath + "/" + pkg.name + ".service")
 }
-
-assemble.dependsOn distRpm

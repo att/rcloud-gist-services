@@ -8,4 +8,5 @@
 rootProject.name = 'rcloud-gist-service'
 
 include 'rcloud-gist-service',
-        'rcloud-rawgist-service'
+        'rcloud-rawgist-service',
+        'rcloud-sessionkey-lib'
