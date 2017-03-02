@@ -23,7 +23,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.ReflectionUtils;
 
-//@Order(ManagementServerProperties.BASIC_AUTH_ORDER)
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -66,9 +65,6 @@ public class ManagementSecurityConfiguration extends WebSecurityConfigurerAdapte
 
 		@Override
 		public void configure(AuthenticationManagerBuilder auth) throws Exception {
-//			if (auth.isConfigured()) {
-//				return;
-//			}
 			User user = this.securityProperties.getUser();
 			if (user.isDefaultPassword()) {
 				logger.info("\n\nUsing default security password: " + user.getPassword() + "\n");
