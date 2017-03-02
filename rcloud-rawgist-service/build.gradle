@@ -28,6 +28,8 @@ dependencies {
   compile 'org.apache.commons:commons-collections4:4.1'
   compile 'org.ajoberstar:grgit:1.7.2'
 
+  compile project(':rcloud-sessionkey-lib')
+
   // https://mvnrepository.com/artifact/org.springframework.hateoas/spring-hateoas
   compile 'org.springframework.hateoas:spring-hateoas' //, version: '0.23.0.RELEASE'
 
