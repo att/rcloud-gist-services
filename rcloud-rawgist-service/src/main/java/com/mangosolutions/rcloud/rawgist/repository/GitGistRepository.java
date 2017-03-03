@@ -63,6 +63,7 @@ public class GitGistRepository implements GistRepository {
 		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
 		this.objectMapper = objectMapper;
 		this.gistId = this.getMetaData().getId();
+		this.commentRepository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
 	}
 
 	private void initializeRepository() {
