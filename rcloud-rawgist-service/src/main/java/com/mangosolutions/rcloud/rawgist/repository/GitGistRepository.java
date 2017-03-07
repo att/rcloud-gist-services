@@ -28,6 +28,7 @@ import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.joda.time.DateTime;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,7 @@ import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.model.Owner;
 
 public class GitGistRepository implements GistRepository {
 
@@ -49,24 +51,21 @@ public class GitGistRepository implements GistRepository {
 
 	private ObjectMapper objectMapper;
 
-	public GitGistRepository(File repositoryFolder, String gistId, ObjectMapper objectMapper) {
-		this.repositoryFolder = repositoryFolder;
-		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
-		this.gistId = gistId;
-		this.objectMapper = objectMapper;
+	public GitGistRepository(File repositoryFolder, String gistId, ObjectMapper objectMapper, UserDetails owner) {
+		this(repositoryFolder, objectMapper);
 		this.commentRepository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
-		this.initializeRepository();
+		this.initializeRepository(owner);
 	}
 	
 	public GitGistRepository(File repositoryFolder, ObjectMapper objectMapper) {
 		this.repositoryFolder = repositoryFolder;
 		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
 		this.objectMapper = objectMapper;
-		this.gistId = this.getMetaData().getId();
+		this.gistId = this.getMetadata().getId();
 		this.commentRepository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
 	}
 
-	private void initializeRepository() {
+	private void initializeRepository(UserDetails userDetails) {
 		if (!repositoryFolder.exists()) {
 			try {
 				FileUtils.forceMkdir(repositoryFolder);
@@ -85,6 +84,8 @@ public class GitGistRepository implements GistRepository {
 				throw new RuntimeException("Could not create gist store.", e);
 			}
 		}
+		
+		this.updateMetadata(userDetails);
 	}
 
 	@Override
@@ -146,7 +147,7 @@ public class GitGistRepository implements GistRepository {
 				commitOp.setMessage("");
 				commitOp.call();
 			}
-			this.saveMetaData(request);
+			this.updateMetadata(request);
 		} catch (IOException e) {
 			//TODO throw new exception
 			throw new RuntimeException("Could not change repository.", e);
@@ -165,37 +166,57 @@ public class GitGistRepository implements GistRepository {
 		}
 	}
 	
-	private void saveMetaData(GistRequest request) {
-		GistMetadata metaData = getMetaData();
-		metaData.setId(this.gistId);
-		String description = request.getDescription();
-		if(description != null) {
-			metaData.setDescription(description);
+	private void updateMetadata(UserDetails owner) {
+		GistMetadata metadata = getMetadata();
+		metadata.setId(this.gistId);
+		if(owner != null && StringUtils.isEmpty(metadata.getOwner())) {
+			metadata.setOwner(owner.getUsername());
 		}
-		if(metaData.getCreatedAt() == null) {
-			metaData.setCreatedAt(new DateTime());
-		}
-		metaData.setUpdatedAt(new DateTime());
-		
-		File metaDataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
+		this.saveMetadata(metadata);
+	}
+	
+	
+	
+	private void saveMetadata(GistMetadata metadata) {
+		File metadataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
 	    try {
-			objectMapper.writeValue(metaDataFile, metaData);
+			objectMapper.writeValue(metadataFile, metadata);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not read metadata file");
 		}
 	}
+
+	private void updateMetadata(GistRequest request) {
+		GistMetadata metadata = getMetadata();
+		metadata.setId(this.gistId);
+		if(request != null) { 
+			String description = request.getDescription();
+			
+			if(description != null) {
+				metadata.setDescription(description);
+			}
+			
+			if(metadata.getCreatedAt() == null) {
+				metadata.setCreatedAt(new DateTime());
+			}
+			
+			metadata.setUpdatedAt(new DateTime());
+			
+		}
+		this.saveMetadata(metadata);
+	}
 	
-	private GistMetadata getMetaData() {
-		File metaDataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
-		GistMetadata metaData = new GistMetadata();
-		if(metaDataFile.exists()) {
+	private GistMetadata getMetadata() {
+		File metadataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
+		GistMetadata metadata = new GistMetadata();
+		if(metadataFile.exists()) {
 		    try {
-				metaData = objectMapper.readValue(metaDataFile, GistMetadata.class);
+				metadata = objectMapper.readValue(metadataFile, GistMetadata.class);
 			} catch (IOException e) {
 				throw new RuntimeException("Could not read metadata file");
 			}
 		}
-		return metaData;
+		return metadata;
 	}
 	
 
@@ -260,12 +281,17 @@ public class GitGistRepository implements GistRepository {
 	}
 
 	private void applyMetadata(GistResponse response) {
-		GistMetadata metaData = this.getMetaData();
-		response.setDescription(metaData.getDescription());
-		response.setDescription(metaData.getDescription());
-		response.setCreatedAt(metaData.getCreatedAt());
-		response.setUpdatedAt(metaData.getUpdatedAt());
-		response.addAdditionalProperties(metaData.getAdditionalProperties());
+		GistMetadata metadata = this.getMetadata();
+		response.setDescription(metadata.getDescription());
+		response.setDescription(metadata.getDescription());
+		response.setCreatedAt(metadata.getCreatedAt());
+		response.setUpdatedAt(metadata.getUpdatedAt());
+		if(!StringUtils.isEmpty(metadata.getOwner())) {
+			Owner owner = new Owner();
+			owner.setLogin(metadata.getOwner());
+			response.setOwner(owner);
+		}
+		response.addAdditionalProperties(metadata.getAdditionalProperties());
 	}
 
 }

@@ -2,6 +2,8 @@ package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.util.List;
 
+import org.springframework.security.core.userdetails.UserDetails;
+
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
@@ -13,7 +15,7 @@ public interface GistRepositoryService {
 	
 	public GistResponse getGist(String gistId);
 	
-	public GistResponse createGist(GistRequest request);
+	public GistResponse createGist(GistRequest request, UserDetails user);
 	
 	public GistResponse editGist(String gistId, GistRequest request);
 	

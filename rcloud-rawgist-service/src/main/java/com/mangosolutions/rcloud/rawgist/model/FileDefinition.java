@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "filename", "content" })
+@JsonPropertyOrder({ "filename", "type", "language", "content" })
 public class FileDefinition {
 
 	@JsonProperty("filename")
@@ -18,8 +18,30 @@ public class FileDefinition {
 	@JsonProperty("content")
 	private String content;
 	
+	@JsonProperty("language")
+	private String language;
+	
+	@JsonProperty("type")
+	private String type;
+	
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+	
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 
 	public String getFilename() {
 		return filename;

@@ -14,11 +14,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "description" })
+@JsonPropertyOrder({ "id", "owner", "description", "created_at", "updated_at"})
 public class GistMetadata implements Serializable {
 
+	private final static long serialVersionUID = -7352290872081419828L;
+	
 	@JsonProperty("id")
 	private String id;
+
+	@JsonProperty("owner")
+	private String owner;
 
 	@JsonProperty("description")
 	private String description;
@@ -31,7 +36,6 @@ public class GistMetadata implements Serializable {
 
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-	private final static long serialVersionUID = -7352290872081419828L;
 
 	public String getId() {
 		return id;
@@ -40,22 +44,21 @@ public class GistMetadata implements Serializable {
 	public void setId(String id) {
 		this.id = id;
 	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
 	
-	/**
-	 * 
-	 * (Required)
-	 * 
-	 */
 	@JsonProperty("description")
 	public String getDescription() {
 		return description;
 	}
 
-	/**
-	 * 
-	 * (Required)
-	 * 
-	 */
 	@JsonProperty("description")
 	public void setDescription(String description) {
 		this.description = description;

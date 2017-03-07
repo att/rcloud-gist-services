@@ -12,6 +12,7 @@ import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.core.HazelcastInstance;
@@ -63,7 +64,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper);
+					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
 					return repository.getGist();
 				} finally {
 					lock.unlock();
@@ -77,10 +78,10 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public GistResponse createGist(GistRequest request) {
+	public GistResponse createGist(GistRequest request, UserDetails activeUser) {
 		String gistId = idGenerator.generateId();
 		File repositoryFolder = getRepositoryFolder(gistId);
-		GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper);
+		GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, activeUser);
 		return repository.createGist(request);
 	}
 
@@ -91,7 +92,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper);
+					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
 					return repository.editGist(request);
 				} finally {
 					lock.unlock();
