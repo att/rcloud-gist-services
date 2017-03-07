@@ -25,6 +25,4 @@ public class GistServiceProperties {
 		this.cache = cacheName;
 	}
 	
-	
-	
 }

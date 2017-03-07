@@ -46,7 +46,7 @@ public class GistResponse implements Serializable
     @JsonProperty("owner")
     private Owner owner;
     @JsonProperty("user")
-    private Object user;
+    private Owner user;
     @JsonProperty("files")
     private Map<String, FileContent> files = new HashMap<String, FileContent>();
     @JsonProperty("truncated")
@@ -124,12 +124,12 @@ public class GistResponse implements Serializable
     }
 
     @JsonProperty("user")
-    public Object getUser() {
+    public Owner getUser() {
         return user;
     }
 
     @JsonProperty("user")
-    public void setUser(Object user) {
+    public void setUser(Owner user) {
         this.user = user;
     }
 

@@ -290,6 +290,7 @@ public class GitGistRepository implements GistRepository {
 			Owner owner = new Owner();
 			owner.setLogin(metadata.getOwner());
 			response.setOwner(owner);
+			response.setUser(owner);
 		}
 		response.addAdditionalProperties(metadata.getAdditionalProperties());
 	}
