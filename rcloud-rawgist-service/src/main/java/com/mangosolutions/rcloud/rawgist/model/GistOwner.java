@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "login"
 })
-public class Owner implements Serializable
+public class GistOwner implements Serializable
 {
 
     @JsonProperty("login")

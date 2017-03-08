@@ -2,7 +2,9 @@
 package com.mangosolutions.rcloud.rawgist.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
@@ -28,7 +30,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "comments",
     "comments_url",
     "created_at",
-    "updated_at"
+    "updated_at",
+    "history"
 })
 public class GistResponse implements Serializable
 {
@@ -44,9 +47,9 @@ public class GistResponse implements Serializable
     @JsonProperty("public")
     private Boolean _public;
     @JsonProperty("owner")
-    private Owner owner;
+    private GistOwner owner;
     @JsonProperty("user")
-    private Owner user;
+    private GistOwner user;
     @JsonProperty("files")
     private Map<String, FileContent> files = new HashMap<String, FileContent>();
     @JsonProperty("truncated")
@@ -59,6 +62,9 @@ public class GistResponse implements Serializable
     private DateTime createdAt;
     @JsonProperty("updated_at")
     private DateTime updatedAt;
+    @JsonProperty("history")
+    private List<GistHistory> history = new ArrayList<>();
+    
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private final static long serialVersionUID = 5239803736959473806L;
@@ -114,22 +120,22 @@ public class GistResponse implements Serializable
     }
 
     @JsonProperty("owner")
-    public Owner getOwner() {
+    public GistOwner getOwner() {
         return owner;
     }
 
     @JsonProperty("owner")
-    public void setOwner(Owner owner) {
+    public void setOwner(GistOwner owner) {
         this.owner = owner;
     }
 
     @JsonProperty("user")
-    public Owner getUser() {
+    public GistOwner getUser() {
         return user;
     }
 
     @JsonProperty("user")
-    public void setUser(Owner user) {
+    public void setUser(GistOwner user) {
         this.user = user;
     }
 
@@ -191,6 +197,17 @@ public class GistResponse implements Serializable
     @JsonProperty("updated_at")
     public void setUpdatedAt(DateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    
+    @JsonProperty("history")
+    public List<GistHistory> getHistory() {
+        return history;
+    }
+
+    @JsonProperty("history")
+    public void setHistory(List<GistHistory> history) {
+        this.history = history;
     }
 
     @JsonAnyGetter

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,9 +35,10 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
+import com.mangosolutions.rcloud.rawgist.model.GistHistory;
+import com.mangosolutions.rcloud.rawgist.model.GistOwner;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
-import com.mangosolutions.rcloud.rawgist.model.Owner;
 
 public class GitGistRepository implements GistRepository {
 
@@ -276,8 +278,15 @@ public class GitGistRepository implements GistRepository {
 		}
 		response.setFiles(files);
 		response.setComments(commentRepository.getComments().size());
+		List<GistHistory> history = getHistory(git);
+		response.setHistory(history);
 		applyMetadata(response);
 		return response;
+	}
+
+	private List<GistHistory> getHistory(Grgit git) {
+		GitHistoryCreator historyCreator = new GitHistoryCreator();
+		return historyCreator.call(git.getRepository());
 	}
 
 	private void applyMetadata(GistResponse response) {
@@ -287,7 +296,7 @@ public class GitGistRepository implements GistRepository {
 		response.setCreatedAt(metadata.getCreatedAt());
 		response.setUpdatedAt(metadata.getUpdatedAt());
 		if(!StringUtils.isEmpty(metadata.getOwner())) {
-			Owner owner = new Owner();
+			GistOwner owner = new GistOwner();
 			owner.setLogin(metadata.getOwner());
 			response.setOwner(owner);
 			response.setUser(owner);

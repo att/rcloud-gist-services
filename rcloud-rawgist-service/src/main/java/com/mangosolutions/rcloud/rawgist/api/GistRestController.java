@@ -38,8 +38,16 @@ public class GistRestController {
 	@Autowired
 	private ControllerUrlResolver resolver;
 	
+	@RequestMapping(method=RequestMethod.GET)
+	public List<GistResponse> listAllGists(@AuthenticationPrincipal User activeUser) {
+		List<GistResponse> responses = repository.listGists();
+		decorateUrls(responses);
+		return responses;
+	}
+	
+	
 	@RequestMapping(value = "/public", method=RequestMethod.GET)
-	public List<GistResponse> listGists(@AuthenticationPrincipal User activeUser) {
+	public List<GistResponse> listPublicGists(@AuthenticationPrincipal User activeUser) {
 		List<GistResponse> responses = repository.listGists();
 		decorateUrls(responses);
 		return responses;
