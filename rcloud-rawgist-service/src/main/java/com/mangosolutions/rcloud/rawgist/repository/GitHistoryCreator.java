@@ -16,7 +16,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
-import com.mangosolutions.rcloud.rawgist.model.GistOwner;
+import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
 import com.mangosolutions.rcloud.rawgist.model.GitChangeStatus;
 
 /**
@@ -90,12 +90,12 @@ public class GitHistoryCreator {
 	private void setCommitDate(GistHistory history, Commit commit) {
 		long timeInSeconds = commit.getTime();
 		DateTime dateTime = new DateTime(timeInSeconds * 1000, DateTimeZone.UTC);
-		history.setCommitedAt(dateTime);
+		history.setCommittedAt(dateTime);
 	}
 
 	private void setUsername(GistHistory history, Commit commit) {
 		Person author = commit.getAuthor();
-		GistOwner user = new GistOwner();
+		GistIdentity user = new GistIdentity();
 		user.setLogin(author.getName());
 		history.setUser(user);
 	}

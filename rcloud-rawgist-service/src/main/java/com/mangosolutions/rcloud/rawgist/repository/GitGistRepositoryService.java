@@ -48,24 +48,24 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public List<GistResponse> listGists() {
+	public List<GistResponse> listGists(UserDetails userDetails) {
 		List<GistResponse> gists = new ArrayList<GistResponse>();
 		for(File file: FileUtils.listFiles(repositoryRoot, FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(GitGistRepository.GIST_META_JSON_FILE)), TrueFileFilter.INSTANCE)) {
 			GistRepository repository = new GitGistRepository(file.getParentFile(), objectMapper);
-			gists.add(repository.getGist());
+			gists.add(repository.getGist(userDetails));
 		}
 		return gists;
 	}
 
 	@Override
-	public GistResponse getGist(String gistId) {
+	public GistResponse getGist(String gistId, UserDetails userDetails) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
 					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
-					return repository.getGist();
+					return repository.getGist(userDetails);
 				} finally {
 					lock.unlock();
 				}
@@ -82,18 +82,18 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		String gistId = idGenerator.generateId();
 		File repositoryFolder = getRepositoryFolder(gistId);
 		GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, activeUser);
-		return repository.createGist(request);
+		return repository.createGist(request, activeUser);
 	}
 
 	@Override
-	public GistResponse editGist(String gistId, GistRequest request) {
+	public GistResponse editGist(String gistId, GistRequest request, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
 					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
-					return repository.editGist(request);
+					return repository.editGist(request, activeUser);
 				} finally {
 					lock.unlock();
 				}
@@ -106,7 +106,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public void deleteGist(String gistId) {
+	public void deleteGist(String gistId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
@@ -138,14 +138,14 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public List<GistCommentResponse> getComments(String gistId) {
+	public List<GistCommentResponse> getComments(String gistId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
-					return repository.getComments();
+					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.getComments(activeUser);
 				} finally {
 					lock.unlock();
 				}
@@ -158,14 +158,14 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public GistCommentResponse getComment(String gistId, long commentId) {
+	public GistCommentResponse getComment(String gistId, long commentId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
-					return repository.getComment(commentId);
+					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.getComment(commentId, activeUser);
 				} finally {
 					lock.unlock();
 				}
@@ -178,14 +178,14 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public GistCommentResponse createComment(String gistId, GistComment comment) {
+	public GistCommentResponse createComment(String gistId, GistComment comment, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
-					return repository.createComment(comment);
+					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.createComment(comment, activeUser);
 				} finally {
 					lock.unlock();
 				}
@@ -198,14 +198,14 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public GistCommentResponse editComment(String gistId, long commentId, GistComment comment) {
+	public GistCommentResponse editComment(String gistId, long commentId, GistComment comment, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
-					return repository.editComment(commentId, comment);
+					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+					return repository.editComment(commentId, comment, activeUser);
 				} finally {
 					lock.unlock();
 				}
@@ -218,14 +218,14 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	@Override
-	public void deleteComment(String gistId, long commentId) {
+	public void deleteComment(String gistId, long commentId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
 					File repositoryFolder = getRepositoryFolder(gistId);
-					GistCommentRepository repository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
-					repository.deleteComment(commentId);
+					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+					repository.deleteComment(commentId, activeUser);
 				} finally {
 					lock.unlock();
 				}
@@ -236,6 +236,4 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
 		}
 	}
-
-
 }

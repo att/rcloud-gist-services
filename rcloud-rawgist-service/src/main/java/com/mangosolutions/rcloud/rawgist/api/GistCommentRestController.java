@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,51 +35,51 @@ public class GistCommentRestController {
 	private ControllerUrlResolver resolver;
 	
 	@RequestMapping(method=RequestMethod.GET)
-	public List<GistCommentResponse> getComments(@PathVariable("gistId") String gistId) {
-		List<GistCommentResponse> comments = repository.getComments(gistId);
-		this.decorateUrls(comments, gistId);
+	public List<GistCommentResponse> getComments(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {
+		List<GistCommentResponse> comments = repository.getComments(gistId, activeUser);
+		this.decorateUrls(comments, gistId, activeUser);
 		return comments;
 	}
 	
 	@RequestMapping(value="/{commentId}", method=RequestMethod.GET)
-	public GistCommentResponse getComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId) {
-		GistCommentResponse response = repository.getComment(gistId, commentId);
-		this.decorateUrls(response, gistId);
+	public GistCommentResponse getComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId, @AuthenticationPrincipal User activeUser) {
+		GistCommentResponse response = repository.getComment(gistId, commentId, activeUser);
+		this.decorateUrls(response, gistId, activeUser);
 		return response;
 	}
 	
 	@RequestMapping(method=RequestMethod.POST)
 	@ResponseStatus( HttpStatus.CREATED )
-	public GistCommentResponse createComment(@PathVariable("gistId") String gistId, @RequestBody GistComment comment) {
-		GistCommentResponse response = repository.createComment(gistId, comment);
-		this.decorateUrls(response, gistId);
+	public GistCommentResponse createComment(@PathVariable("gistId") String gistId, @RequestBody GistComment comment, @AuthenticationPrincipal User activeUser) {
+		GistCommentResponse response = repository.createComment(gistId, comment, activeUser);
+		this.decorateUrls(response, gistId, activeUser);
 		return response;
 	}
 	
 	@RequestMapping(value="/{commentId}", method=RequestMethod.PATCH)
-	public GistCommentResponse editComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId, @RequestBody GistComment comment) {
-		GistCommentResponse response = repository.editComment(gistId, commentId, comment);
-		this.decorateUrls(response, gistId);
+	public GistCommentResponse editComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId, @RequestBody GistComment comment, @AuthenticationPrincipal User activeUser) {
+		GistCommentResponse response = repository.editComment(gistId, commentId, comment, activeUser);
+		this.decorateUrls(response, gistId, activeUser);
 		return response;
 	}
 	
 	@RequestMapping(value="/{commentId}", method=RequestMethod.DELETE)
 	@ResponseStatus( HttpStatus.NO_CONTENT )
-	public void deleteComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId) {
-		repository.deleteComment(gistId, commentId);
+	public void deleteComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId, @AuthenticationPrincipal User activeUser) {
+		repository.deleteComment(gistId, commentId, activeUser);
 	}
 	
-	private void decorateUrls(Collection<GistCommentResponse> gistCommentResponses, String gistId) {
+	private void decorateUrls(Collection<GistCommentResponse> gistCommentResponses, String gistId, User activeUser) {
 		if(gistCommentResponses != null) {
 			for(GistCommentResponse gistResponse: gistCommentResponses) {
-				this.decorateUrls(gistResponse, gistId);
+				this.decorateUrls(gistResponse, gistId, activeUser);
 			}
 		}
 	}
 	
-	private void decorateUrls(GistCommentResponse gistCommentResponse, String gistId) {
+	private void decorateUrls(GistCommentResponse gistCommentResponse, String gistId, User activeUser) {
 		if(gistCommentResponse != null) {
-			gistCommentResponse.setUrl(resolver.getCommentUrl(gistId, gistCommentResponse.getId()));
+			gistCommentResponse.setUrl(resolver.getCommentUrl(gistId, gistCommentResponse.getId(), activeUser));
 		}
 	}
 	

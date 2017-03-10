@@ -40,23 +40,23 @@ public class GistRestController {
 	
 	@RequestMapping(method=RequestMethod.GET)
 	public List<GistResponse> listAllGists(@AuthenticationPrincipal User activeUser) {
-		List<GistResponse> responses = repository.listGists();
-		decorateUrls(responses);
+		List<GistResponse> responses = repository.listGists(activeUser);
+		decorateUrls(responses, activeUser);
 		return responses;
 	}
 	
 	
 	@RequestMapping(value = "/public", method=RequestMethod.GET)
 	public List<GistResponse> listPublicGists(@AuthenticationPrincipal User activeUser) {
-		List<GistResponse> responses = repository.listGists();
-		decorateUrls(responses);
+		List<GistResponse> responses = repository.listGists(activeUser);
+		decorateUrls(responses, activeUser);
 		return responses;
 	}
 	
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.GET)
-	public GistResponse getGist(@PathVariable("gistId") String gistId) {
-		GistResponse response = repository.getGist(gistId); 
-		decorateUrls(response);
+	public GistResponse getGist(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {
+		GistResponse response = repository.getGist(gistId, activeUser); 
+		decorateUrls(response, activeUser);
 		return response;
 	}
 	
@@ -64,35 +64,35 @@ public class GistRestController {
 	@ResponseStatus( HttpStatus.CREATED )
 	public GistResponse createGist(@RequestBody GistRequest request, HttpServletRequest httpRequest, @AuthenticationPrincipal User activeUser) {
 		GistResponse response = repository.createGist(request, activeUser);
-		decorateUrls(response);
+		decorateUrls(response, activeUser);
 		return response;
 	}
 	
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.PATCH)
 	public GistResponse editGist(@PathVariable("gistId") String gistId, @RequestBody GistRequest request, @AuthenticationPrincipal User activeUser) {
-		GistResponse response = repository.editGist(gistId, request);
-		decorateUrls(response);
+		GistResponse response = repository.editGist(gistId, request, activeUser);
+		decorateUrls(response, activeUser);
 		return response;
 	}
 	
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.DELETE)
 	@ResponseStatus( HttpStatus.NO_CONTENT )
-	public void deleteGist(@PathVariable("gistId") String gistId) {
-		repository.deleteGist(gistId);
+	public void deleteGist(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {
+		repository.deleteGist(gistId, activeUser);
 	}
 	
-	private void decorateUrls(Collection<GistResponse> gistResponses) {
+	private void decorateUrls(Collection<GistResponse> gistResponses, User activeUser) {
 		if(gistResponses != null) {
 			for(GistResponse gistResponse: gistResponses) {
-				this.decorateUrls(gistResponse);
+				this.decorateUrls(gistResponse, activeUser);
 			}
 		}
 	}
 	
-	private void decorateUrls(GistResponse gistResponse) {
+	private void decorateUrls(GistResponse gistResponse, User activeUser) {
 		if(gistResponse != null) {
-			gistResponse.setUrl(resolver.getGistUrl(gistResponse.getId()));
-			gistResponse.setCommentsUrl(resolver.getCommentsUrl(gistResponse.getId()));
+			gistResponse.setUrl(resolver.getGistUrl(gistResponse.getId(), activeUser));
+			gistResponse.setCommentsUrl(resolver.getCommentsUrl(gistResponse.getId(), activeUser));
 		}
 	}
 	

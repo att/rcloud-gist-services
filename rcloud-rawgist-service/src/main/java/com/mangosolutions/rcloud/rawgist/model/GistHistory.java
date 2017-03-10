@@ -7,16 +7,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "url", "version", "user", "change_status", "commited_at" })
+@JsonPropertyOrder({ "url", "version", "user", "change_status", "committed_at" })
 public class GistHistory {
 
 	private String url;
 	private String version;
-	private GistOwner user;
+	private GistIdentity user;
 	private GitChangeStatus changeStatus;
 
-	@JsonProperty("created_at")
-	private DateTime commitedAt;
+	@JsonProperty("committed_at")
+	private DateTime committedAt;
 
 	public String getUrl() {
 		return url;
@@ -34,11 +34,11 @@ public class GistHistory {
 		this.version = version;
 	}
 
-	public GistOwner getUser() {
+	public GistIdentity getUser() {
 		return user;
 	}
 
-	public void setUser(GistOwner user) {
+	public void setUser(GistIdentity user) {
 		this.user = user;
 	}
 
@@ -50,14 +50,14 @@ public class GistHistory {
 		this.changeStatus = changeStatus;
 	}
 
-	@JsonProperty("created_at")
-	public DateTime getCommitedAt() {
-		return commitedAt;
+	@JsonProperty("committed_at")
+	public DateTime getCommittedAt() {
+		return committedAt;
 	}
 
-	@JsonProperty("created_at")
-	public void setCommitedAt(DateTime commitedAt) {
-		this.commitedAt = commitedAt;
+	@JsonProperty("committed_at")
+	public void setCommittedAt(DateTime committedAt) {
+		this.committedAt = committedAt;
 	}
 
 }

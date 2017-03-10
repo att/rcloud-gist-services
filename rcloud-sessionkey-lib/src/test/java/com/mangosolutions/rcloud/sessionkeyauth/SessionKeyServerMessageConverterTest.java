@@ -47,7 +47,7 @@ public class SessionKeyServerMessageConverterTest {
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.assertNotNull(response);
-		Assert.assertEquals(SessionKeyServerResult.SUPERCEEDED, response.getResult());
+		Assert.assertEquals(SessionKeyServerResult.SUPERCEDED, response.getResult());
 		Assert.assertEquals("theuser", response.getName());
 		Assert.assertNull(response.getSource());
 	}
@@ -60,7 +60,7 @@ public class SessionKeyServerMessageConverterTest {
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.assertNotNull(response);
-		Assert.assertEquals(SessionKeyServerResult.SUPERCEEDED, response.getResult());
+		Assert.assertEquals(SessionKeyServerResult.SUPERCEDED, response.getResult());
 		Assert.assertEquals("theuser", response.getName());
 		Assert.assertNull(response.getSource());
 	}

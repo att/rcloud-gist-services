@@ -11,24 +11,24 @@ import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 public interface GistRepositoryService {
 
-	public List<GistResponse> listGists();
+	public List<GistResponse> listGists(UserDetails activeUser);
 	
-	public GistResponse getGist(String gistId);
+	public GistResponse getGist(String gistId, UserDetails activeUser);
 	
 	public GistResponse createGist(GistRequest request, UserDetails user);
 	
-	public GistResponse editGist(String gistId, GistRequest request);
+	public GistResponse editGist(String gistId, GistRequest request, UserDetails activeUser);
 	
-	public void deleteGist(String gistId);
+	public void deleteGist(String gistId, UserDetails activeUser);
 	
-	public List<GistCommentResponse> getComments(String gistId);
+	public List<GistCommentResponse> getComments(String gistId, UserDetails activeUser);
 
-	public GistCommentResponse getComment(String gistId, long commentId);
+	public GistCommentResponse getComment(String gistId, long commentId, UserDetails activeUser);
 	
-	public GistCommentResponse createComment(String gistId, GistComment comment);
+	public GistCommentResponse createComment(String gistId, GistComment comment, UserDetails activeUser);
 	
-	public GistCommentResponse  editComment(String gistId, long commentId, GistComment comment);
+	public GistCommentResponse  editComment(String gistId, long commentId, GistComment comment, UserDetails activeUser);
 	
-	public void deleteComment(String gistId, long commentId);
+	public void deleteComment(String gistId, long commentId, UserDetails activeUser);
 	
 }

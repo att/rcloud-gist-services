@@ -12,6 +12,7 @@ base:
 rcloud-dependencies:
   pkg.installed:
     - pkgs:
+      - libpam-dev
       - openjdk-7-jdk
       - gcc
       - g++

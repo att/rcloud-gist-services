@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.activation.MimetypesFileTypeMap;
 
 import org.ajoberstar.grgit.Grgit;
+import org.ajoberstar.grgit.Person;
 import org.ajoberstar.grgit.Repository;
 import org.ajoberstar.grgit.Status;
 import org.ajoberstar.grgit.Status.Changes;
@@ -25,6 +26,7 @@ import org.ajoberstar.grgit.operation.RmOp;
 import org.ajoberstar.grgit.operation.StatusOp;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -36,7 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
-import com.mangosolutions.rcloud.rawgist.model.GistOwner;
+import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
@@ -55,7 +57,8 @@ public class GitGistRepository implements GistRepository {
 
 	public GitGistRepository(File repositoryFolder, String gistId, ObjectMapper objectMapper, UserDetails owner) {
 		this(repositoryFolder, objectMapper);
-		this.commentRepository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+		this.commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+		this.gistId = gistId;
 		this.initializeRepository(owner);
 	}
 	
@@ -64,7 +67,7 @@ public class GitGistRepository implements GistRepository {
 		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
 		this.objectMapper = objectMapper;
 		this.gistId = this.getMetadata().getId();
-		this.commentRepository = new GistCommentRepository(repositoryFolder, gistId, objectMapper);
+		this.commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 	}
 
 	private void initializeRepository(UserDetails userDetails) {
@@ -91,40 +94,40 @@ public class GitGistRepository implements GistRepository {
 	}
 
 	@Override
-	public File getGistRepositoryFolder() {
+	public File getGistRepositoryFolder(UserDetails owner) {
 		return repositoryFolder;
 	}
 
 	@Override
-	public GistResponse getGist() {
+	public GistResponse getGist(UserDetails userDetails) {
 		GistResponse response = null;
 		// create git repository
 		OpenOp openOp = new OpenOp();
 		openOp.setDir(gitFolder);
 		Grgit git = openOp.call();
-		response = buildResponse(git);
+		response = buildResponse(git, userDetails);
 		return response;
 	}
 
 	@Override
-	public GistResponse createGist(GistRequest request) {
+	public GistResponse createGist(GistRequest request, UserDetails userDetails) {
 		OpenOp openOp = new OpenOp();
 		openOp.setDir(gitFolder);
 		Grgit git = openOp.call();
-		saveContent(git, request);
-		return buildResponse(git);
+		saveContent(git, request, userDetails);
+		return buildResponse(git, userDetails);
 	}
 
 	@Override
-	public GistResponse editGist(GistRequest request) {
+	public GistResponse editGist(GistRequest request, UserDetails userDetails) {
 		OpenOp openOp = new OpenOp();
 		openOp.setDir(gitFolder);
 		Grgit git = openOp.call();
-		saveContent(git, request);
-		return buildResponse(git);
+		saveContent(git, request, userDetails);
+		return buildResponse(git, userDetails);
 	}
 	
-	private void saveContent(Grgit git, GistRequest request) {
+	private void saveContent(Grgit git, GistRequest request, UserDetails userDetails) {
 		Map<String, FileDefinition> files = request.getFiles();
 		try {
 			for(Map.Entry<String, FileDefinition> file: files.entrySet()) {
@@ -146,6 +149,9 @@ public class GitGistRepository implements GistRepository {
 			if(!status.isClean()) {
 				stageAllChanges(status, git.getRepository());
 				CommitOp commitOp = new CommitOp(git.getRepository());
+				Person person = new Person(userDetails.getUsername(), "");
+				commitOp.setCommitter(person);
+				commitOp.setAuthor(person);
 				commitOp.setMessage("");
 				commitOp.call();
 			}
@@ -215,7 +221,7 @@ public class GitGistRepository implements GistRepository {
 		    try {
 				metadata = objectMapper.readValue(metadataFile, GistMetadata.class);
 			} catch (IOException e) {
-				throw new RuntimeException("Could not read metadata file");
+				throw new RuntimeException("Could not read metadata file", e);
 			}
 		}
 		return metadata;
@@ -256,7 +262,7 @@ public class GitGistRepository implements GistRepository {
 		return definition == null;
 	}
 	
-	private GistResponse buildResponse(Grgit git) {
+	private GistResponse buildResponse(Grgit git, UserDetails activeUser) {
 		GistResponse response = new GistResponse();
 		
 		response.setId(gistId);
@@ -265,9 +271,12 @@ public class GitGistRepository implements GistRepository {
 		for(File file: fileList) {
 			FileContent content = new FileContent();
 			try {
+				content.setFilename(file.getName());
 				content.setContent(FileUtils.readFileToString(file, CharEncoding.UTF_8));
 				content.setSize(file.length());
 				content.setTruncated(false);
+				//TODO the language
+				content.setLanguage(FilenameUtils.getExtension(file.getName()));
 				//TODO mimetype
 				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
 				files.put(file.getName(), content);
@@ -277,7 +286,7 @@ public class GitGistRepository implements GistRepository {
 			}
 		}
 		response.setFiles(files);
-		response.setComments(commentRepository.getComments().size());
+		response.setComments(commentRepository.getComments(activeUser).size());
 		List<GistHistory> history = getHistory(git);
 		response.setHistory(history);
 		applyMetadata(response);
@@ -296,7 +305,7 @@ public class GitGistRepository implements GistRepository {
 		response.setCreatedAt(metadata.getCreatedAt());
 		response.setUpdatedAt(metadata.getUpdatedAt());
 		if(!StringUtils.isEmpty(metadata.getOwner())) {
-			GistOwner owner = new GistOwner();
+			GistIdentity owner = new GistIdentity();
 			owner.setLogin(metadata.getOwner());
 			response.setOwner(owner);
 			response.setUser(owner);
