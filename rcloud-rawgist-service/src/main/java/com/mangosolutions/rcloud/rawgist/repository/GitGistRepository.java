@@ -153,7 +153,11 @@ public class GitGistRepository implements GistRepository {
 				}
 
 				if (isMove(definition)) {
-					FileUtils.moveFile(new File(gitFolder, fileName), new File(gitFolder, definition.getFilename()));
+					File oldFile = new File(gitFolder, fileName);
+					File newFile = new File(gitFolder, definition.getFilename());
+					if(!oldFile.equals(newFile)) {
+						FileUtils.moveFile(oldFile, newFile);
+					}
 				}
 			}
 			StatusOp statusOp = new StatusOp(git.getRepository());
