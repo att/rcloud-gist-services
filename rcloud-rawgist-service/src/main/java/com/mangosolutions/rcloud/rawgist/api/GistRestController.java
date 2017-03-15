@@ -60,6 +60,15 @@ public class GistRestController {
 		return response;
 	}
 	
+	
+	@RequestMapping(value = "/{gistId}/{commitId}", method=RequestMethod.GET)
+	public GistResponse getGistAtCommit(@PathVariable("gistId") String gistId, @PathVariable("commitId") String commitId, @AuthenticationPrincipal User activeUser) {
+		
+		GistResponse response = repository.getGist(gistId, commitId, activeUser); 
+		decorateUrls(response, activeUser);
+		return response;
+	}
+	
 	@RequestMapping(method=RequestMethod.POST)
 	@ResponseStatus( HttpStatus.CREATED )
 	public GistResponse createGist(@RequestBody GistRequest request, HttpServletRequest httpRequest, @AuthenticationPrincipal User activeUser) {

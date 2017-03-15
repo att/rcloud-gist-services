@@ -12,6 +12,8 @@ public interface GistRepository {
 	File getGistRepositoryFolder(UserDetails userDetails);
 
 	GistResponse getGist(UserDetails userDetails);
+	
+	GistResponse getGist(String commitId, UserDetails userDetails);
 
 	GistResponse createGist(GistRequest request, UserDetails userDetails);
 

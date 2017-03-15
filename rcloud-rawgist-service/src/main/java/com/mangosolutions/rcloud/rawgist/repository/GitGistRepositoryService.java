@@ -76,6 +76,26 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
 		}
 	}
+	
+	@Override
+	public GistResponse getGist(String gistId, String commitId, UserDetails userDetails) {
+		Lock lock = hazelcastInstance.getLock(gistId);
+		try {
+			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+				try {
+					File repositoryFolder = getRepositoryFolder(gistId);
+					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+					return repository.getGist(commitId, userDetails);
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+		}
+	}
 
 	@Override
 	public GistResponse createGist(GistRequest request, UserDetails activeUser) {
@@ -236,4 +256,6 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
 		}
 	}
+
+
 }

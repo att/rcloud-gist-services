@@ -15,6 +15,8 @@ public interface GistRepositoryService {
 	
 	public GistResponse getGist(String gistId, UserDetails activeUser);
 	
+	public GistResponse getGist(String gistId, String commitId, UserDetails activeUser);
+	
 	public GistResponse createGist(GistRequest request, UserDetails user);
 	
 	public GistResponse editGist(String gistId, GistRequest request, UserDetails activeUser);
