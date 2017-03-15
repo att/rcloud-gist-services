@@ -23,11 +23,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
-import com.mangosolutions.rcloud.rawgist.model.GistHistory;
+import com.mangosolutions.rcloud.rawgist.model.GistComment;
+import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+
 
 
 @RunWith(SpringRunner.class)
@@ -35,6 +36,8 @@ import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 public class GitGistRepositoryTest {
 
 	private GitGistRepository repository;
+	
+	private GitGistCommentRepository commentRepository;
 
 	private String gistId;
 	
@@ -53,58 +56,11 @@ public class GitGistRepositoryTest {
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		userDetails = new User("gist_user", "gist_user_pwd", authorities);
 		repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, userDetails);
-	}
-
-	@Test
-	public void createNewGistTest() {
-		String expectedDescription = "This is a cool gist";
-		String expectedFilename = "i_am_file.R";
-		String expectedContent = "I am the content of the file"; 
-		GistResponse response = createGist(expectedDescription, new String[]{expectedFilename, expectedContent});
-		validateResponse(1, expectedDescription, expectedFilename, expectedContent, response);
-		validateHistory(response, 1);
-	}
-
-	
-	@Test
-	public void getGistTest() {
-		String expectedDescription = "This is a cool gist";
-		String expectedFilename = "i_am_file.R";
-		String expectedContent = "I am the content of the file"; 
-		this.createGist(expectedDescription, new String[]{expectedFilename, expectedContent});
-		GistResponse response = repository.getGist(userDetails);
-		validateResponse(1, expectedDescription, expectedFilename, expectedContent, response);
-		validateHistory(response, 1);
+		this.populateTestRepository();
+		commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 	}
 	
-	@Test
-	public void editGistContentTest() {
-		String expectedDescription = "This is a cool gist";
-		String expectedFilename = "i_am_file.R";
-		String initialContent = "I am the content of the file";
-		String updatedContent = "I am new content, this should be different";
-		this.createGist(expectedDescription, new String[]{expectedFilename, initialContent});
-		GistResponse response = this.updateGist(new String[]{expectedFilename, updatedContent});
-		validateResponse(1, expectedDescription, expectedFilename, updatedContent, response);
-		validateHistory(response, 2);
-	}
-	
-	@Test
-	public void addNewGistFileTest() {
-		String expectedDescription = "This is a cool gist";
-		String expectedFilename = "i_am_file_1.R";
-		
-		String initialContent = "I am the content of the file";
-		String newFilename = "i_am_file_2.R";
-		String newContent = "I am the content of a different file";
-		this.createGist(expectedDescription, new String[]{expectedFilename, initialContent});
-		GistResponse response = this.updateGist(new String[]{newFilename, newContent});
-		validateResponse(2, expectedDescription, newFilename, newContent, response);
-		validateHistory(response, 2);
-	}
-	
-	@Test
-	public void deleteGistFileTest() {
+	public void populateTestRepository() {
 		String expectedDescription = "This is a cool gist";
 		String expectedFilename = "i_am_file_1.R";
 		
@@ -113,56 +69,77 @@ public class GitGistRepositoryTest {
 		String newContent = "I am the content of a different file";
 		this.createGist(expectedDescription, new String[]{expectedFilename, initialContent});
 		this.updateGist(new String[]{newFilename, newContent});
-		GistResponse response = this.updateGist(new String[]{expectedFilename});
-		validateResponse(1, expectedDescription, newFilename, newContent, response);
-		validateHistory(response, 3);
-	}
-	
-	
-	@Test
-	public void getGistRevision() {
-		String expectedDescription = "This is a cool gist";
-		String initialFilename = "i_am_file_1.R";
-		
-		String initialContent = "I am the content of the file";
-		String newFilename = "i_am_file_2.R";
-		String newContent = "I am the content of a different file";
-		this.createGist(expectedDescription, new String[]{initialFilename, initialContent});
-		this.updateGist(new String[]{newFilename, newContent});
-		
-		GistResponse response = this.updateGist(new String[]{initialFilename});
-		validateResponse(1, expectedDescription, newFilename, newContent, response);
-		validateHistory(response, 3);
-		
-		GistHistory history = response.getHistory().get(1);
-		String commitId = history.getVersion();
-		response = repository.getGist(commitId, userDetails);
-		validateResponse(2, expectedDescription, initialFilename, initialContent, response);
-		validateResponse(2, expectedDescription, newFilename, newContent, response);
-		validateHistory(response, 2);
 	}
 	
 	@Test
-	public void updateGistWithDifferentUser() {
-		String expectedDescription = "This is a cool gist";
-		String expectedFilename = "i_am_file.R";
-		String initialContent = "I am the content of the file";
-		String updatedContent = "I am new content, this should be different";
-		this.createGist(expectedDescription, new String[]{expectedFilename, initialContent});
-		GistResponse response = this.updateGist(new String[]{expectedFilename, updatedContent});
-		validateResponse(1, expectedDescription, expectedFilename, updatedContent, response);
-		validateHistory(response, 2);
+	public void getEmptyCommentsTest() {
+		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
+		Assert.assertEquals(0, comments.size());
+	}
+
+	@Test
+	public void addCommentTest() {
+		GistComment comment = new GistComment();
+		String expectedComment = "I am a comment"; 
+		comment.setBody(expectedComment);
+		GistCommentResponse response = commentRepository.createComment(comment, this.userDetails);
+		Assert.assertEquals(expectedComment, response.getBody());
+		Assert.assertEquals(Long.valueOf(1), response.getId()); //Slightly fragile makes an assumption about the id of the comments
+		Assert.assertEquals(this.userDetails.getUsername(), response.getUser().getLogin());
+		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
+		Assert.assertEquals(1, comments.size());
+	}
+	
+	@Test
+	public void editCommentTest() {
+		GistComment comment = new GistComment();
+		comment.setBody("initial comment");
+		GistCommentResponse response = commentRepository.createComment(comment, this.userDetails);
+		String expectedComment = "updated comment"; 
+		comment.setBody(expectedComment);
+		response = commentRepository.editComment(response.getId(), comment, this.userDetails);
+		Assert.assertEquals(expectedComment, response.getBody());
+		Assert.assertEquals(Long.valueOf(1), response.getId()); //Slightly fragile makes an assumption about the id of the comments
+		Assert.assertEquals(this.userDetails.getUsername(), response.getUser().getLogin());
+		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
+		Assert.assertEquals(1, comments.size());
+	}
+	
+	@Test
+	public void deleteCommentTest() {
+		GistComment comment = new GistComment();
+		comment.setBody("initial comment");
+		GistCommentResponse response = commentRepository.createComment(comment, this.userDetails);
+		long commentId = response.getId();
+		String expectedComment = "anther comment"; 
+		comment.setBody(expectedComment);
+		response = commentRepository.createComment(comment, this.userDetails);
 		
-		String newFilename = "i_am_file_2.R";
-		String newContent = "I am the content of a different file";
-		
-		GistRequest request = createGistRequest(null, new String[]{newFilename, newContent});
-		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
-		UserDetails userDetails = new User("another_gist_user", "gist_user_pwd", authorities);
-		response = repository.editGist(request, userDetails);
-		validateResponse(2, expectedDescription, newFilename, newContent, response);
-		GistHistory history = response.getHistory().get(0);
-		Assert.assertEquals(userDetails.getUsername(), history.getUser().getLogin());
+		commentRepository.deleteComment(commentId, this.userDetails);
+		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
+		Assert.assertEquals(1, comments.size());
+		response = comments.get(0);
+		Assert.assertEquals(expectedComment, response.getBody());
+		Assert.assertEquals(Long.valueOf(2), response.getId()); //Slightly fragile makes an assumption about the id of the comments
+		Assert.assertEquals(this.userDetails.getUsername(), response.getUser().getLogin());
+	}
+	
+	@Test
+	public void createLotsOfCommentsTest() {
+		String commentBody = "I am a comment, add a number on me";
+		for(int i = 0; i < 1000; i++) {
+			GistComment comment = new GistComment();
+			comment.setBody(commentBody + i);
+			commentRepository.createComment(comment, this.userDetails);
+		}
+		List<GistCommentResponse> comments = commentRepository.getComments(this.userDetails);
+		Assert.assertEquals(1000, comments.size());
+		for(int i = 0; i < comments.size(); i++) {
+			GistCommentResponse response = comments.get(i);
+			String comment = response.getBody();
+			Assert.assertEquals(commentBody + i, comment);
+			Assert.assertEquals(Long.valueOf(i + 1), response.getId());
+		}
 	}
 	
 	private GistResponse updateGist(String[] contents) {
@@ -198,29 +175,6 @@ public class GitGistRepositoryTest {
 		return request;
 	}
 	
-	private void validateHistory(GistResponse response, int expectedHistoryLength) {
-		List<GistHistory> histories = response.getHistory();
-		Assert.assertEquals(expectedHistoryLength, histories.size());
-		for(GistHistory history: histories) {
-			Assert.assertEquals(this.userDetails.getUsername(), history.getUser().getLogin());
-		}
-	}
-
-	private void validateResponse(int files, String expectedDescription, String expectedFilename, String expectedContent,
-			GistResponse response) {
-		String id = response.getId();
-		Assert.assertEquals(this.gistId, id);
-		Assert.assertEquals(Integer.valueOf(0), response.getComments());
-		Assert.assertEquals(expectedDescription, response.getDescription());
-		Map<String, FileContent> gistFiles = response.getFiles();
-		Assert.assertEquals(files, gistFiles.size());
-		FileContent content = gistFiles.get(expectedFilename);
-		Assert.assertNotNull(content);
-		Assert.assertEquals(expectedFilename, content.getFilename());
-		Assert.assertEquals(expectedContent, content.getContent());
-		Assert.assertEquals("R", content.getLanguage());
-		Assert.assertEquals(Long.valueOf(expectedContent.getBytes().length), content.getSize());
-	}
 
 
 }
