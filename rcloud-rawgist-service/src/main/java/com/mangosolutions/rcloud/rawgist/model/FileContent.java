@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
+	"filename",
     "size",
     "raw_url",
     "type",
@@ -35,11 +36,23 @@ public class FileContent implements Serializable
     private Boolean truncated;
     @JsonProperty("content")
     private String content;
+    @JsonProperty("filename")
+    private String filename;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private final static long serialVersionUID = 2081800888788458092L;
 
-    @JsonProperty("size")
+    @JsonProperty("filename")
+    public String getFilename() {
+		return filename;
+	}
+
+    @JsonProperty("filename")
+	public void setFilename(String filename) {
+		this.filename = filename;
+	}
+
+	@JsonProperty("size")
     public Long getSize() {
         return size;
     }
