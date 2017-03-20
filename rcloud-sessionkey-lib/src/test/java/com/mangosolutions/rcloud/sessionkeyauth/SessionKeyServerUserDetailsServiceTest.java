@@ -47,13 +47,13 @@ public class SessionKeyServerUserDetailsServiceTest {
 	}
 	
 	@Test(expected=UsernameNotFoundException.class)
-	public void testSuperceededRequest() {
+	public void testSupercededRequest() {
 		
 		SessionKeyServerUserDetailsService detailsService = new SessionKeyServerUserDetailsService();
 		RestTemplate restTemplate = detailsService.getRestTemplate();
 		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
 		server.expect(requestTo("http://127.0.0.1:4301/valid?token=abc&realm=rcloud")).andExpect(method(HttpMethod.GET))
-				     .andRespond(withSuccess("SUPERCEEDED\ntheuser", MediaType.TEXT_PLAIN));
+				     .andRespond(withSuccess("SUPERCEDED\ntheuser", MediaType.TEXT_PLAIN));
 
 		UserDetails details = detailsService.loadUserByUsername("abc");
 		Assert.fail("User should not have been found: " + details);

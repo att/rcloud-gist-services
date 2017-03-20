@@ -40,9 +40,9 @@ public class SessionKeyServerMessageConverterTest {
 	}
 	
 	@Test
-	public void testSuperceededResponse() throws IOException {
+	public void testSupercededResponse() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
-		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("SUPERCEEDED\ntheuser", "UTF-8"));
+		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("SUPERCEDED\ntheuser", "UTF-8"));
 		
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
@@ -53,9 +53,9 @@ public class SessionKeyServerMessageConverterTest {
 	}
 	
 	@Test
-	public void testSuperceededResponseWithExtraLines() throws IOException {
+	public void testSupercededResponseWithExtraLines() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
-		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("SUPERCEEDED\ntheuser\n\n\n\n\n", "UTF-8"));
+		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("SUPERCEDED\ntheuser\n\n\n\n\n", "UTF-8"));
 		
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
