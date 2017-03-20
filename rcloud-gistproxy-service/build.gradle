@@ -5,13 +5,7 @@
 *
 *******************************************************************************/
 
-repositories {
-  maven {
-    url "http://gitblit.github.io/gitblit-maven/"
-  }
-}
-
-project.description = "RCloud Gist service implementation on raw git repository."
+project.description = "RCloud Gist service providing gist access api."
 
 dependencies {
   compile 'org.springframework.boot:spring-boot-starter'
@@ -19,22 +13,10 @@ dependencies {
   compile 'org.springframework.boot:spring-boot-starter-security'
   compile 'org.springframework.boot:spring-boot-starter-web'
   compile 'org.springframework.cloud:spring-cloud-starter'
-  compile 'commons-io:commons-io'
-  compile 'org.codehaus.groovy:groovy-all'
-  compile 'com.hazelcast:hazelcast'
-  compile 'joda-time:joda-time'
-  compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+  compile 'org.springframework.cloud:spring-cloud-starter-zuul'
+  compile 'com.eclipsesource.minimal-json:minimal-json:0.9.4'
 
-  compile 'org.apache.commons:commons-collections4:4.1'
-  compile 'org.ajoberstar:grgit:1.7.2'
-  compile 'org.eclipse.jgit:org.eclipse.jgit:4.3.1.201605051710-r'
-
-  compile project(':rcloud-sessionkey-lib')
-
-  compile 'org.springframework.hateoas:spring-hateoas'
-
-
-  testCompile 'junit:junit'
+  testCompile 'junit:junit:4.11'
   testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'
 
@@ -48,7 +30,7 @@ ext.pkg = [:]
   pkg.jarPath = pkg.installPath + '/' + pkg.jarName
   pkg.initPath = '/etc/init.d/' + archivesBaseName
   pkg.description = project.description
-  pkg.summary = "RCloud Raw Gist Service"
+  pkg.summary = "RCloud Gist Proxy Service"
   pkg.vendor = "Mango Solutions Ltd."
   pkg.url = projectUrl
   pkg.buildId = new Date().format('yyyyMMddHHmmss')
@@ -74,9 +56,6 @@ ospackage {
 
     //create log directory
     preInstall "mkdir -p /var/log/$pkg.name && chown $pkg.user:root /var/log/$pkg.name"
-    preInstall "mkdir -p /var/$pkg.name && chown $pkg.user:root /var/$pkg.name"
-
-
 
     into(pkg.installPath)
 
@@ -102,5 +81,3 @@ ospackage {
     //The following link is for systemd based systems, at the moment the above systemv symlink will suffice
     //link("/etc/systemd/system/" + pkg.name + ".service", pkg.installPath + "/" + pkg.name + ".service")
 }
-
-assemble.dependsOn distRpm

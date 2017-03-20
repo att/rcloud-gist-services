@@ -5,10 +5,10 @@
 #
 #******************************************************************************/
 server:
-  port: 13020
+  port: 13010
 
 management:
-   port: 13021
+  port: 13011
 
 logging:
   config: logback.xml
@@ -17,10 +17,16 @@ logging:
 github:
   api:
     url: https://api.github.com
-
-
+    
+rcloud:
+  gists:
+    url: http://localhost:13020
 
 #security:
 #  user:
 #    name: admin
 #    password: secret
+
+spring:
+  profiles:
+    active: rcloudgist

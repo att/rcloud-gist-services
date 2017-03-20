@@ -5,10 +5,10 @@
 #
 #*******************************************************************************
 server:
-    port: 13010
+    port: 13020
 
 management:
-  port: 13011
+  port: 13021
   security:
     enabled: true
 
@@ -17,11 +17,15 @@ info:
   stage: dev
 
 spring:
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
   application:
-    name: rcloud-gist-service
+    name: rcloud-rawgist-service
   cloud:
     config:
       enabled: false
+      
 
 security:
   user:
@@ -29,9 +33,5 @@ security:
   basic:
     enabled: false
 
-
-zuul:
-  routes:
-    default:
-      path: /**
-      url: ${github.api.url:https://api.github.com}
+gists:
+  root: /var/rcloud-rawgist-service/gists/
