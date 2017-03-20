@@ -22,14 +22,7 @@ import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 
 @RestController()
-@RequestMapping(value = "/gists", produces={ MediaType.APPLICATION_JSON_VALUE, 
-		"application/vnd.github.raw", 
-		"application/vnd.github.base64",
-		"application/vnd.github.v3.raw", 
-		"application/vnd.github.v3.base64",
-		"application/*+json"
-		},
-		consumes={MediaType.ALL_VALUE})
+@RequestMapping(value = "/gists", produces={ MediaType.APPLICATION_JSON_VALUE })
 public class GistRestController {
 
 	@Autowired

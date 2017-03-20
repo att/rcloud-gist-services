@@ -104,6 +104,11 @@ Vagrant.configure(2) do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
 
+    config.vm.provision "shell", inline: "sudo sed -i 's/http:\/\/fi./http:\/\//g' /etc/apt/sources.list"
+
+  config.vm.provision "shell", inline: "sudo apt-get clean"
+  config.vm.provision "shell", inline: "sudo rm -rf /var/lib/apt/lists/*"
+  config.vm.provision "shell", inline: "sudo apt-get clean"
   config.vm.provision "shell", inline: "sudo apt-get update"
   config.vm.provision "shell", inline: "sudo apt-get install -y curl"
   #config.vm.provision "shell", inline: "sudo /usr/share/debconf/fix_db.pl"

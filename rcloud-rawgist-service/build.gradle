@@ -36,7 +36,7 @@ dependencies {
   compile 'org.springframework.hateoas:spring-hateoas' //, version: '0.23.0.RELEASE'
 
 
-  testCompile 'junit:junit:4.11'
+  testCompile 'junit:junit'
   testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'
 
