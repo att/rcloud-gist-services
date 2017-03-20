@@ -13,25 +13,20 @@ management:
     enabled: true
 
 info:
-  version: 1.0.0
+  version: 0.1.0
   stage: dev
 
 spring:
   application:
-    name: rcloud-gist-service
+    name: rcloud-gistproxy-service
   cloud:
     config:
       enabled: false
+  profiles:
+    active: rcloudgist
 
 security:
   user:
     name: admin
   basic:
     enabled: false
-
-
-zuul:
-  routes:
-    default:
-      path: /**
-      url: ${github.api.url:https://api.github.com}
