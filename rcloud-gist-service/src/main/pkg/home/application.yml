@@ -5,10 +5,10 @@
 #
 #******************************************************************************/
 server:
-    port: 13010
+  port: 13010
 
 management:
-   port: 13011
+  port: 13011
 
 logging:
   config: logback.xml
@@ -29,4 +29,4 @@ rcloud:
 
 spring:
   profiles:
-    active: github #,rcloudgist
+    active: rcloudgist

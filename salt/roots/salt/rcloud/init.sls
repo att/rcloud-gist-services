@@ -47,3 +47,6 @@ rcloud-deploy:
     - name: ./scripts/bootstrapR.sh
     - cwd: /opt/rcloud/rcloud-1.7/
     - creates: /opt/rcloud/rcloud-1.7/conf/rcloud.conf
+
+#TODO add in compilation of the SessionKeyServer
+#session-key-server:
