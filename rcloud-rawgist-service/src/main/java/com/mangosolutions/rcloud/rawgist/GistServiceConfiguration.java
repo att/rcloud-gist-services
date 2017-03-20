@@ -44,6 +44,7 @@ public class GistServiceConfiguration {
 		return new GitGistRepositoryService(serviceProperties.getRoot(), this.getGistIdGenerator(), hazelcastInstance, objectMapper);
 	}
 	
+	@Bean
 	public GistIdGenerator getGistIdGenerator() {
 		return new UUIDGistIdGenerator();
 	}
