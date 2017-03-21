@@ -13,7 +13,7 @@ management:
     enabled: true
 
 info:
-  version: 1.0.0
+  version: 0.1.0
   stage: dev
 
 spring:
@@ -21,11 +21,11 @@ spring:
     serialization:
       write_dates_as_timestamps: false
   application:
-    name: rcloud-rawgist-service
+    name: rcloud-gist-service
   cloud:
     config:
       enabled: false
-      
+
 
 security:
   user:
@@ -34,4 +34,4 @@ security:
     enabled: false
 
 gists:
-  root: /var/rcloud-rawgist-service/gists/
+  root: /var/rcloud-gist-service/gists/
