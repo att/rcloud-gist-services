@@ -9,6 +9,6 @@ public class UUIDGistIdGenerator implements GistIdGenerator {
 	 */
 	@Override
 	public String generateId() {
-		return UUID.randomUUID().toString();
+		return UUID.randomUUID().toString().replace("-", "");
 	}
 }

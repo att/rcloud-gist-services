@@ -45,6 +45,8 @@ import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 public class GitGistRepository implements GistRepository {
 
+	private static final String B64_BINARY_EXTENSION = "b64";
+
 	public static final String GIST_META_JSON_FILE = "gist.json";
 
 	private static final String GIT_REPO_FOLDER_NAME = "repo";
@@ -306,7 +308,10 @@ public class GitGistRepository implements GistRepository {
 				content.setSize(file.length());
 				content.setTruncated(false);
 				// TODO the language
-				content.setLanguage(FilenameUtils.getExtension(file.getName()));
+				String language = FilenameUtils.getExtension(file.getName());
+				if(!B64_BINARY_EXTENSION.equals(language) && !StringUtils.isEmpty(language) ) {
+					content.setLanguage(language);
+				}
 				// TODO mimetype
 				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
 				files.put(file.getName(), content);

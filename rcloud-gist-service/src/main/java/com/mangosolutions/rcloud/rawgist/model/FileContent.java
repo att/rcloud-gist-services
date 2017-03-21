@@ -11,13 +11,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonPropertyOrder({
 	"filename",
+	"type",
+	"language",
+	"raw_url",
     "size",
-    "raw_url",
-    "type",
-    "language",
     "truncated",
     "content"
 })
@@ -29,7 +29,7 @@ public class FileContent implements Serializable
     @JsonProperty("raw_url")
     private String rawUrl;
     @JsonProperty("type")
-    private String type;
+    private String type = "text/plain";
     @JsonProperty("language")
     private String language;
     @JsonProperty("truncated")
@@ -79,7 +79,7 @@ public class FileContent implements Serializable
 
     @JsonProperty("type")
     public void setType(String type) {
-        this.type = type;
+        //this.type = type;
     }
 
     @JsonProperty("language")

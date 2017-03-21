@@ -15,6 +15,7 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Splitter;
 import com.hazelcast.core.HazelcastInstance;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
@@ -22,6 +23,8 @@ import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 public class GitGistRepositoryService implements GistRepositoryService {
+
+	private static final Splitter REPOSITORYID_FOLDER_SPLITTER = Splitter.fixedLength(4);
 
 	private static final String RECYCLE_FOLDER_NAME = ".recycle";
 
@@ -149,9 +152,9 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	private File getRepositoryFolder(String id) {
-		String[] paths = id.split("-");
+		
 		File folder = repositoryRoot;
-		for (String path : paths) {
+		for (String path : REPOSITORYID_FOLDER_SPLITTER.split(id)) {
 			folder = new File(folder, path);
 		}
 		return folder;
