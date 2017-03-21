@@ -1,5 +1,14 @@
 package com.mangosolutions.rcloud.rawgist.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonPropertyOrder({
+    "deletions",
+    "additions",
+    "total"
+})
 public class GitChangeStatus {
 
 	private int deletions;
