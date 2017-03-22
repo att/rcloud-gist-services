@@ -12,6 +12,8 @@ import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,13 +23,18 @@ import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
 
 public class GitGistRepositoryService implements GistRepositoryService {
+
+	private static final int DEFAULT_LOCK_TIMEOUT = 30;
 
 	private static final Splitter REPOSITORYID_FOLDER_SPLITTER = Splitter.fixedLength(4);
 
 	private static final String RECYCLE_FOLDER_NAME = ".recycle";
 
+	private Logger logger = LoggerFactory.getLogger(GitGistRepositoryService.class);
+	
 	private File repositoryRoot;
 	private File recycleRoot;
 	private GistIdGenerator idGenerator;
@@ -64,19 +71,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistResponse getGist(String gistId, UserDetails userDetails) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
 					return repository.getGist(userDetails);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read gist {}, it is currently being updated", 
+						gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read gist {}, it is currently being updated", 
+					gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 	
@@ -84,19 +97,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistResponse getGist(String gistId, String commitId, UserDetails userDetails) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
 					return repository.getGist(commitId, userDetails);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read gist {}, it is currently being updated", 
+						gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read gist {}, it is currently being updated", 
+					gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 
@@ -112,19 +131,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistResponse editGist(String gistId, GistRequest request, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
 					return repository.editGist(request, activeUser);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not update gist {}, it is currently being updated", 
+						gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not update gist {}, it is currently being updated", 
+					gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 
@@ -132,27 +157,47 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public void deleteGist(String gistId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					FileUtils.moveDirectoryToDirectory(repositoryFolder, new File(recycleRoot, gistId), true);
 					FileUtils.forceDelete(repositoryFolder);
 				} catch (IOException e) {
-					throw new RuntimeException("Could not delete gist.", e);
+					GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not delete gist {}, an internal error has occurred", 
+							gistId);
+					logger.error(error.getFormattedMessage());
+					throw new GistRepositoryError(error, e);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not delete gist {}, it is currently being updated", 
+						gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not delete gist {}, it is currently being updated", 
+					gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 
-	private File getRepositoryFolder(String id) {
+	private File getAndValidateRepositoryFolder(String id) {
 		
+		File folder = getRepositoryFolder(id);
+		if(!folder.exists()) {
+			GistError error = new GistError(GistErrorCode.ERR_GIST_NOT_EXIST, "Gist with id {} does not exist", 
+					id);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
+		}
+		return folder;
+	}
+
+	private File getRepositoryFolder(String id) {
 		File folder = repositoryRoot;
 		for (String path : REPOSITORYID_FOLDER_SPLITTER.split(id)) {
 			folder = new File(folder, path);
@@ -164,19 +209,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public List<GistCommentResponse> getComments(String gistId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 					return repository.getComments(activeUser);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read comments for gist {}, it is currently being updated", 
+						gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read comments for gist {}, it is currently being updated", 
+					gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 
@@ -184,19 +235,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistCommentResponse getComment(String gistId, long commentId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 					return repository.getComment(commentId, activeUser);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read comment {} on gist {}, it is currently being updated", 
+						commentId, gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not read comment {} on gist {}, it is currently being updated", 
+					commentId, gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 
@@ -204,19 +261,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistCommentResponse createComment(String gistId, GistComment comment, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 					return repository.createComment(comment, activeUser);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not create gist {} with new comment, it is currently being updated", 
+						gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not create gist {} with new comment, it is currently being updated", 
+					gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 
@@ -224,19 +287,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistCommentResponse editComment(String gistId, long commentId, GistComment comment, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 					return repository.editComment(commentId, comment, activeUser);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not edit comment {} for gist {}, it is currently being updated", 
+						commentId, gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not edit comment {} for gist {}, it is currently being updated", 
+					commentId, gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 
@@ -244,19 +313,25 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public void deleteComment(String gistId, long commentId, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+			if (lock.tryLock(DEFAULT_LOCK_TIMEOUT, TimeUnit.SECONDS)) {
 				try {
-					File repositoryFolder = getRepositoryFolder(gistId);
+					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 					repository.deleteComment(commentId, activeUser);
 				} finally {
 					lock.unlock();
 				}
 			} else {
-				throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not delete comment {} on gist {}, it is currently being updated", 
+						commentId, gistId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Could not acquire write lock for gist " + gistId);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE, "Could not delete comment {} on gist {}, it is currently being updated", 
+					commentId, gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
 		}
 	}
 

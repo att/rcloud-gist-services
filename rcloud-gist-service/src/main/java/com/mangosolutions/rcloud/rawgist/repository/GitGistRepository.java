@@ -32,6 +32,8 @@ import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
@@ -42,9 +44,12 @@ import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
 
 public class GitGistRepository implements GistRepository {
 
+	private static final Logger logger = LoggerFactory.getLogger(GitGistRepository.class);
+	
 	private static final String B64_BINARY_EXTENSION = "b64";
 
 	public static final String GIST_META_JSON_FILE = "gist.json";
@@ -78,18 +83,23 @@ public class GitGistRepository implements GistRepository {
 			try {
 				FileUtils.forceMkdir(repositoryFolder);
 			} catch (IOException e) {
-				throw new RuntimeException("Could not create gist store.", e);
+				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage location for gist {}", 
+						this.gistId);
+				logger.error(error.getFormattedMessage() + " with folder path {}", repositoryFolder);
+				throw new GistRepositoryError(error, e);
 			}
 		}
 
 		if (!gitFolder.exists()) {
 			try {
-				FileUtils.forceMkdir(repositoryFolder);
+				FileUtils.forceMkdir(gitFolder);
 				InitOp initOp = new InitOp();
 				initOp.setDir(gitFolder);
 				initOp.call();
 			} catch (IOException e) {
-				throw new RuntimeException("Could not create gist store.", e);
+				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage for gist {}", this.gistId);
+				logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+				throw new GistRepositoryError(error, e);
 			}
 		}
 
@@ -145,20 +155,38 @@ public class GitGistRepository implements GistRepository {
 		Map<String, FileDefinition> files = request.getFiles();
 		try {
 			for (Map.Entry<String, FileDefinition> file : files.entrySet()) {
-				String fileName = file.getKey();
+				String filename = file.getKey();
 				FileDefinition definition = file.getValue();
 				if (isDelete(definition)) {
-					FileUtils.forceDelete(new File(gitFolder, fileName));
+					try {
+						FileUtils.forceDelete(new File(gitFolder, filename));
+					} catch (IOException e) {
+						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not remove {} from gist {}", filename, this.gistId);
+						logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+						throw new GistRepositoryException(error, e);
+					}
 				}
 				if (isUpdate(definition)) {
-					FileUtils.write(new File(gitFolder, fileName), definition.getContent(), CharEncoding.UTF_8);
+					try {
+						FileUtils.write(new File(gitFolder, filename), definition.getContent(), CharEncoding.UTF_8);
+					} catch (IOException e) {
+						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not update {} for gist {}", filename, this.gistId);
+						logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+						throw new GistRepositoryException(error, e);
+					}
 				}
 
 				if (isMove(definition)) {
-					File oldFile = new File(gitFolder, fileName);
+					File oldFile = new File(gitFolder, filename);
 					File newFile = new File(gitFolder, definition.getFilename());
 					if(!oldFile.equals(newFile)) {
-						FileUtils.moveFile(oldFile, newFile);
+						try {
+							FileUtils.moveFile(oldFile, newFile);
+						} catch (IOException e) {
+							GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not move {} to {} for gist {}", filename, definition.getFilename(), this.gistId);
+							logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+							throw new GistRepositoryException(error, e);
+						}
 					}
 				}
 			}
@@ -174,9 +202,6 @@ public class GitGistRepository implements GistRepository {
 				commitOp.call();
 			}
 			this.updateMetadata(request);
-		} catch (IOException e) {
-			// TODO throw new exception
-			throw new RuntimeException("Could not change repository.", e);
 		} finally {
 			StatusOp statusOp = new StatusOp(git.getRepository());
 			Status status = statusOp.call();
@@ -206,7 +231,9 @@ public class GitGistRepository implements GistRepository {
 		try {
 			objectMapper.writeValue(metadataFile, metadata);
 		} catch (IOException e) {
-			throw new RuntimeException("Could not read metadata file");
+			GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_WRITEABLE, "Could not update metadata for gist {}", this.gistId);
+			logger.error(error.getFormattedMessage() + " with path {}", metadataFile);
+			throw new GistRepositoryError(error, e);
 		}
 	}
 
@@ -237,7 +264,9 @@ public class GitGistRepository implements GistRepository {
 			try {
 				metadata = objectMapper.readValue(metadataFile, GistMetadata.class);
 			} catch (IOException e) {
-				throw new RuntimeException("Could not read metadata file", e);
+				GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_READABLE, "Could not update metadata for gist {}", this.gistId);
+				logger.error(error.getFormattedMessage() + " with path {}", metadataFile);
+				throw new GistRepositoryError(error, e);
 			}
 		}
 		return metadata;
@@ -316,8 +345,9 @@ public class GitGistRepository implements GistRepository {
 				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
 				files.put(file.getName(), content);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				throw new RuntimeException("Could not build response", e);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_READABLE, "Could not read content of {} for gist {}", file.getName(), this.gistId);
+				logger.error(error.getFormattedMessage() + " with path {}", file);
+				throw new GistRepositoryError(error, e);
 			}
 		}
 		response.setFiles(files);

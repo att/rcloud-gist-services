@@ -9,6 +9,8 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -16,12 +18,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
+import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
 
 public class GitGistCommentRepository implements GistCommentRepository {
 
 	public static final String COMMENT_REPOSITORY_FOLDER = "comments";
 
 	public static final String COMMENTS_FILE = "comments.json";
+	
+	private Logger logger = LoggerFactory.getLogger(GitGistCommentRepository.class);
 
 	private File commentRepositoryFolder;
 
@@ -32,16 +37,15 @@ public class GitGistCommentRepository implements GistCommentRepository {
 	private ObjectMapper objectMapper;
 	
 	public GitGistCommentRepository(File gistRepository, String gistId, ObjectMapper objectMapper) {
+		this.gistId = gistId;
 		this.commentRepositoryFolder = new File(gistRepository, COMMENT_REPOSITORY_FOLDER);
 		if (!commentRepositoryFolder.exists()) {
 			try {
 				FileUtils.forceMkdir(commentRepositoryFolder);
 			} catch (IOException e) {
-				throw new RuntimeException(
-						"Could not initialise the comment folder" + commentRepositoryFolder.getAbsolutePath(), e);
+				throw new GistRepositoryError(new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create comment repository for gist {}", this.gistId), e);
 			}
 		}
-		this.gistId = gistId;
 		commentsFile = new File(commentRepositoryFolder, COMMENTS_FILE);
 		this.objectMapper = objectMapper;
 	}
@@ -124,7 +128,11 @@ public class GitGistCommentRepository implements GistCommentRepository {
 				}
 			});
 		}
-		return null;
+		
+		GistError error = new GistError(GistErrorCode.ERR_COMMENT_NOT_EXIST, "Comment with id {} on gist {} does not exist", 
+				this.gistId, id);
+		logger.warn(error.getFormattedMessage());
+		throw new GistRepositoryException(error);
 
 	}
 
@@ -135,7 +143,7 @@ public class GitGistCommentRepository implements GistCommentRepository {
 				comments = objectMapper.readValue(commentsFile, new TypeReference<List<GistCommentResponse>>() {
 				});
 			} catch (IOException e) {
-				throw new RuntimeException("Could not read metadata file");
+				throw new GistRepositoryError(new GistError(GistErrorCode.ERR_COMMENTS_NOT_READABLE, "Could not read metadata for gist {}", this.gistId), e);
 			}
 		}
 		return comments == null? new ArrayList<GistCommentResponse>(): comments;
@@ -145,7 +153,7 @@ public class GitGistCommentRepository implements GistCommentRepository {
 		try {	
 			objectMapper.writeValue(commentsFile, comments);
 		} catch (IOException e) {
-			throw new RuntimeException("Could not read metadata file");
+			throw new GistRepositoryError(new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save metadata for gist {}", this.gistId), e);
 		}
 	}
 
