@@ -20,7 +20,7 @@ management:
    port: 13021
 
 ################################################################################
-# Gist Storage configuration:
+# Gist Repository configuration:
 # root:
 #   Folder location for storing the gists. This needs to be writable by the 
 #   rcloudgistservice user/group.
