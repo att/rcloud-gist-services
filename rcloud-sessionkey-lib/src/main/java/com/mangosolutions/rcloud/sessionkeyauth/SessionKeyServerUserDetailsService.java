@@ -29,12 +29,11 @@ public class SessionKeyServerUserDetailsService implements UserDetailsService {
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionKeyServerUserDetailsService.class);
 
-	private static final String SESSION_KEY_SERVER_DEFAULT_URI = "http://127.0.0.1:4301/valid?token={token}&realm={realm}";
+	private static final String SESSION_KEY_SERVER_DEFAULT_URL = "http://127.0.0.1:4301/valid?token={token}&realm={realm}";
 
-	//TODO I have just made this up, find out what it really is.
 	private static String RCLOUD_SESSION_KEY_SERVER_DEFAULT_REALM = "rcloud";
 	
-	private String sessionKeyServerUrl = SESSION_KEY_SERVER_DEFAULT_URI;
+	private String sessionKeyServerUrl = SESSION_KEY_SERVER_DEFAULT_URL;
 
 	private RestTemplate restTemplate;
 	

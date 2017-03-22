@@ -49,6 +49,10 @@ The following parameters are configurable:
 | `security.user.password` | The username that is required for basic auth access to the management port | If not specified the password is generated at service startup and can be identified in the `/var/log/rcloud-rawgist-service/rcloud-rawgist-service-file.log` file. The following command can be used to find the password. `cat /var/log/rcloud-rawgist-service/rcloud-rawgist-service-file.log &#124; grep "Using default security"`. More information can be found on the [spring boot documentation.](http://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-monitoring.html) |
 | `gists.root` | The location that the gist repositories are stored | `/var/rcloud-gist-service/gists/` |
 | `gists.lockTimeout` | The timeout to acquire a lock on the gist to prevent concurrent modification | `30` |
+| `gists.keyserver.host` | The host for the session key server | `127.0.0.1` |
+| `gists.keyserver.port` | The port for the session key server | `4301` |
+| `gists.keyserver.realm` | The realm for the session key server | `rcloud` |
+| `gists.keyserver.url` | The URL template for the session key server | `http://127.0.0.1:4301/valid?token={token}&realm={realm}` |
 
 ### JVM Configuration
 The startup parameters for the JVM are stored in the conf file in the installation directory, this must have the same name as the jar file.

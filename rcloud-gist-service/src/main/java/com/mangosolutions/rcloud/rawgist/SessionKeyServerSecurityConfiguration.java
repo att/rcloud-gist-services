@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsByNameServiceWra
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.util.StringUtils;
 
 import com.mangosolutions.rcloud.sessionkeyauth.SessionKeyServerUserDetailsService;
 
@@ -24,10 +26,14 @@ import com.mangosolutions.rcloud.sessionkeyauth.SessionKeyServerUserDetailsServi
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
+@EnableConfigurationProperties(SessionKeyServerProperties.class)
 public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-	private final static Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+	private static Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
+	@Autowired
+	private SessionKeyServerProperties keyserverProperties;
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
@@ -47,8 +53,22 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
 	@Bean
 	public UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsServiceWrapper() {
-		UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper = new UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken>();
-		wrapper.setUserDetailsService(new SessionKeyServerUserDetailsService());
+		UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper = 
+				new UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken>();
+		
+		SessionKeyServerUserDetailsService service = new SessionKeyServerUserDetailsService();
+		String serverUrl = keyserverProperties.getUrl();
+		if(!StringUtils.isEmpty(serverUrl)) {
+			logger.info("Setting the session key URL to {}", serverUrl);
+			service.setSessionKeyServerUrl(serverUrl.trim());
+		}
+		String realm = keyserverProperties.getRealm();
+		if(!StringUtils.isEmpty(realm)) {
+			logger.info("Setting the session key URL to {}", serverUrl);
+			service.setRealm(realm.trim());
+		}
+		
+		wrapper.setUserDetailsService(service);
 		return wrapper;
 	}
 

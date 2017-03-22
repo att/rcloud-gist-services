@@ -36,3 +36,8 @@ security:
 gists:
   root: /var/rcloud-gist-service/gists/
   lockTimeout: 30
+  keyserver:
+    host: 127.0.0.1
+    port: 4301
+    realm: rcloud
+    url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
