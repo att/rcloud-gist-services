@@ -75,7 +75,6 @@ configuration file in the installation directory `/opt/rcloud-gist-service/logba
 
 ## TODO
 * Switch to using the git repository for looking things up rather than the file system.
-* Configuration of the Session Key Server location
 * Performance tests
 * Caching
 * Documentation
