@@ -31,28 +31,30 @@ public class GistServiceConfiguration {
 
 	@Autowired
 	private GistServiceProperties serviceProperties;
-	
-	@Autowired 
+
+	@Autowired
 	private HazelcastInstance hazelcastInstance;
-	
-	@Autowired 
+
+	@Autowired
 	private ObjectMapper objectMapper;
-	
-	
+
 	@Bean
 	public GistRepositoryService getGistRepository() throws IOException {
-		return new GitGistRepositoryService(serviceProperties.getRoot(), this.getGistIdGenerator(), hazelcastInstance, objectMapper);
+		GitGistRepositoryService repo = new GitGistRepositoryService(serviceProperties.getRoot(),
+				this.getGistIdGenerator(), hazelcastInstance, objectMapper);
+		repo.setLockTimeout(serviceProperties.getLockTimeout());
+		return repo;
 	}
-	
+
 	@Bean
 	public GistIdGenerator getGistIdGenerator() {
 		return new UUIDGistIdGenerator();
 	}
-	
+
 	@Bean
 	public Config getHazelCastConfig() {
 		Config config = new Config(serviceProperties.getCache());
 		return config;
 	}
-	
+
 }

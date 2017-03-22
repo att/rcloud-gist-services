@@ -20,12 +20,17 @@ management:
    port: 13021
 
 ################################################################################
-# Folder location for storing the gists. Change the value below to change the
-# location of the gists. This needs to be writable by the rcloudgistservice
-# user/group.
+# Gist Storage configuration:
+# root:
+#   Folder location for storing the gists. This needs to be writable by the 
+#   rcloudgistservice user/group.
+# lockTimeout:
+#    Timeout to acquire read/write locks on a gist to prevent concurrent 
+#    modification.
 ################################################################################
 gists:
   root: /var/rcloud-gist-service/gists/
+  lockTimeout: 30
 
 ################################################################################
 # Logging configuration:

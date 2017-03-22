@@ -35,3 +35,4 @@ security:
 
 gists:
   root: /var/rcloud-gist-service/gists/
+  lockTimeout: 30

@@ -8,6 +8,18 @@ public class GistServiceProperties {
 	private String root;
 	
 	private String cache = "gists";
+	
+	private int lockTimeout = 30;
+
+	
+	
+	public int getLockTimeout() {
+		return lockTimeout;
+	}
+
+	public void setLockTimeout(int lockTimeout) {
+		this.lockTimeout = lockTimeout;
+	}
 
 	public String getRoot() {
 		return root;
