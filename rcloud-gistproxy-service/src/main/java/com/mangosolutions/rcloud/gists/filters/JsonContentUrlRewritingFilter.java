@@ -88,7 +88,7 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 		ZuulResponseContent zuulContent = new ZuulResponseContent(context);
 
 		String content = zuulContent.getContent();
-		if (StringUtils.isNotEmpty(content)) {
+		if (StringUtils.isNotBlank(content)) {
 			content = replaceUrls(context, content);
 			zuulContent.setContent(content);
 		}
@@ -138,9 +138,10 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 				}
 			}
 		}
-
-		return jsonRoot.toString(WriterConfig.PRETTY_PRINT);
-
+		
+		String newContents = jsonRoot.toString(WriterConfig.PRETTY_PRINT);
+		logger.debug("contents: {}", newContents);
+		return newContents;
 	}
 
 }

@@ -47,12 +47,12 @@ public class HeaderUrlRewritingFilterTest {
 		List<Pair<String, String>> headers = context.getZuulResponseHeaders();
 		for(Pair<String, String> header: headers) {
 			if(header.first().startsWith("Blacklist")) {
-				Assert.assertTrue(header.second().contains("https://api.github.com"));
+				Assert.assertTrue("expected " + header.second() + " to contain https://api.github.com" , header.second().contains("https://api.github.com"));
 			} else if(filter.getWhitelist().contains(header.first())) {
-				Assert.assertTrue(header.second().contains("http://localhost:8080"));
-				Assert.assertFalse(header.second().contains("https://api.github.com"));
+				Assert.assertTrue("expected " + header.second() + " to contain http://localhost:8080", header.second().contains("http://localhost:8080"));
+				Assert.assertFalse("expected " + header.second() + " to not contain https://api.github.com", header.second().contains("https://api.github.com"));
 			} else {
-				Assert.assertFalse(header.second().contains("https://api.github.com"));
+				Assert.assertFalse("expected " + header.second() + " to not contain https://api.github.com", header.second().contains("https://api.github.com"));
 			}
 		}
 

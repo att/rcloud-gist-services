@@ -2,15 +2,13 @@
 
 # RCloud Gist Service
 
-
-
 ## Overview
 
 The RCloud Gist Service is a Java based service for enabling gist access to various different backend storage systems.
 
 ## Building
 ### Requirements
-* Java 1.8 or above.
+* Java 1.7 or above.
 
 ### Building
 The project uses the gradle build system and contains the gradle wrapper script
@@ -23,11 +21,10 @@ software for the first time maybe slow.
 * Running build with reporting: `gradlew clean build generateProjectReports`
 
 #### Versioning
-The project uses GitFlow, and the .
+The project uses GitFlow.
 
 #### Contributing
 * This project follows GitFlow, all development should be done on feature branches with pull requests to merge into the development branches.
-
 
 #### IDE integration
 #### Eclipse
@@ -37,7 +34,7 @@ There are two mechanisms to load the project into the Eclipse IDE:
 
 
 ## Vagrant
-The Vagrantfile sets up 80% of the environment needed to run rcloud. It takes a long time to finish the provisioning. Once done rcloud will be in `/opt/rcloud/rcloud-1.7/` you will need to setup the `rcloud.conf` file and then call `sudo ./scrtips/fresh_start.sh`. The `bootstrapR.sh` has already been called as part of the provisioning.
+The Vagrantfile sets up 80% of the environment needed to run rcloud. It takes a long time to finish the provisioning. Once done rcloud will be in `/opt/rcloud/rcloud-1.7/` you will need to setup the `rcloud.conf` file and then call `sudo ./scripts/fresh_start.sh`. The `bootstrapR.sh` has already been called as part of the provisioning.
 
 ## Components
 

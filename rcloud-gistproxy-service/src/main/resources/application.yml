@@ -5,10 +5,10 @@
 #
 #*******************************************************************************
 server:
-    port: 13020
+    port: 13010
 
 management:
-  port: 13021
+  port: 13011
   security:
     enabled: true
 
@@ -17,27 +17,16 @@ info:
   stage: dev
 
 spring:
-  jackson:
-    serialization:
-      write_dates_as_timestamps: false
   application:
-    name: rcloud-gist-service
+    name: rcloud-gistproxy-service
   cloud:
     config:
       enabled: false
-
+  profiles:
+    active: rcloudgist
 
 security:
   user:
     name: admin
   basic:
     enabled: false
-
-gists:
-  root: /var/rcloud-gist-service/gists/
-  lockTimeout: 30
-  keyserver:
-    host: 127.0.0.1
-    port: 4301
-    realm: rcloud
-    url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
