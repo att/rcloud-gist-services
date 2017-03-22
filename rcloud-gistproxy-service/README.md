@@ -1,5 +1,7 @@
-# Implementation of the RCloud Gist Service.
-A Java based service to provide GitHub gist functionality to RCloud.
+# RCloud Gist Proxy Service
+A Java based service to proxy and route requests between RCloud and the gist
+backend. By default this is setup to route requests to `/gists` to the
+rcloud-gist-service and all others to GitHub.
 
 ## Building
 The code uses the Gradle build system and includes the gradle wrapper in the root
@@ -13,14 +15,14 @@ the artifacts.
 
 ### Outputs
 The build generates 3 artifacts
-1. An executable jar file created here: `./rcloud-gist-service/build/libs`
-2. An rpm install file created here:  `./rcloud-gist-service/build/distributions`
-3. An deb install file created here:  `./rcloud-gist-service/build/distributions`
+1. An executable jar file created here: `./rcloud-gistproxy-service/build/libs`
+2. An rpm install file created here:  `./rcloud-gistproxy-service/build/distributions`
+3. An deb install file created here:  `./rcloud-gistproxy-service/build/distributions`
 
 ## Installation
 
 The redhat and debian install archives will install the application to
-`/opt/rcloud-gist-service` and create an entry in the `/etc/init.d/` folder
+`/opt/rcloud-gistproxy-service` and create an entry in the `/etc/init.d/` folder
 which can be used to start and stop the service.
 
 ### User and Groups
@@ -29,14 +31,14 @@ The installation creates a user and group for the service called `rcloudgistserv
 ### Debian based systems
 To install the service on debian based systems the following command can be used, you will need to use the correct name for the deb file for the version you are installing.
 
-`sudo dpkg -i ./rcloud-gist-service_0.1.0-20170126123855_all.deb`
+`sudo dpkg -i ./rcloud-gistproxy-service_0.1.0-20170126123855_all.deb`
 
 ## Default ports
 The service uses two ports, one for the gist api and the other for the service management functionality, these can be controlled in configuration. The management port is secured using basic auth.
 
 ## Service Configuration
 
-Configuration is held within the `/opt/rcloud-gist-service/application.yml` file.
+Configuration is held within the `/opt/rcloud-gistproxy-service/application.yml` file.
 The following parameters are configurable:
 
 | Property | Description | Default |
@@ -45,9 +47,9 @@ The following parameters are configurable:
 | `service.port` | The port that the gist api is accessible over | `13010` |
 | `management.port` | The port that the service management api is accessible over | `13011` |
 | `security.user.name` | The username that is required for basic auth access to the management port | `admin` |
-| `security.user.password` | The username that is required for basic auth access to the management port | If not specified the password is generated at service startup and can be identified in the `/var/log/rcloud-gist-service/rcloud-gist-service-file.log` file. The following command can be used to find the password. `cat /var/log/rcloud-gist-service/rcloud-gist-service-file.log &#124; grep "Using default security"`. More information can be found on the [spring boot documentation.](http://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-monitoring.html) |
+| `security.user.password` | The username that is required for basic auth access to the management port | If not specified the password is generated at service startup and can be identified in the `/var/log/rcloud-gistproxy-service/rcloud-gistproxy-service-file.log` file. The following command can be used to find the password. `cat /var/log/rcloud-gistproxy-service/rcloud-gistproxy-service-file.log &#124; grep "Using default security"`. More information can be found on the [spring boot documentation.](http://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-monitoring.html) |
 
-### Java Configuration
+### JVM Configuration
 The startup parameters for the JVM are stored in the conf file in the installation directory, this must have the same name as the jar file.
 
 
@@ -60,12 +62,12 @@ To configure RCloud edit the `rcloud.conf` and change the `api.github.url` value
 
 An System V startup script is installed as part of the installation, thissupports the following commands:
 
-| Command | Example                              |
-|---------|--------------------------------------|
-| start   | `service rcloud-gist-service start`  |
-| stop    | `service rcloud-gist-service stop`   |
-| status  | `service rcloud-gist-service status` |
+| Command | Example                                   |
+|---------|-------------------------------------------|
+| start   | `service rcloud-gistproxy-service start`  |
+| stop    | `service rcloud-gistproxy-service stop`   |
+| status  | `service rcloud-gistproxy-service status` |
 
 ## Logging
 The service uses [Logback](https://logback.qos.ch/), this is controlled by the
-configuration file in the installation directory `/opt/rcloud-gist-service/logback.xml`, this configuration file can be updated and the changes will be reloaded to alter the log output. The service writes log files to `/var/log/rcloud-gist-service/` access to this folder is restricted to `root` group and the `rcloudgistservice` user/group.
+configuration file in the installation directory `/opt/rcloud-gistproxy-service/logback.xml`, this configuration file can be updated and the changes will be reloaded to alter the log output. The service writes log files to `/var/log/rcloud-gistproxy-service/` access to this folder is restricted to `root` group and the `rcloudgistservice` user/group.

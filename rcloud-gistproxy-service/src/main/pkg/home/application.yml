@@ -4,29 +4,59 @@
 # SPDX-License-Identifier:   MIT
 #
 #******************************************************************************/
+################################################################################
+# Application port. Change the value below to change the port this service
+# is listening on.
+################################################################################
 server:
   port: 13010
 
+################################################################################
+# Management port. Change the value below to change the port the management
+# services are listening on.
+################################################################################
 management:
   port: 13011
 
+################################################################################
+# Logging configuration:
+#    config: The logback configuration file for logging.
+#    file: The log file to write the log out to.
+################################################################################
 logging:
   config: logback.xml
   file: /var/log/${spring.application.name}/${spring.application.name}-file.log
 
+################################################################################
+# GitHub proxy settings.
+################################################################################
 github:
   api:
     url: https://api.github.com
-
+################################################################################
+# RCLoud proxy settings
+################################################################################
 rcloud:
   gists:
     url: http://localhost:13020
 
+################################################################################
+# Security information for administrative access.
+# Default user is 'admin' default password is generated on startup and printed
+# out in the log file. To override these settings uncomment the lines below
+# and specify your own password.
+################################################################################
 #security:
 #  user:
 #    name: admin
 #    password: secret
 
+################################################################################
+# Application profiles that change the behaviour. Default is the `rcloudgist`
+# profile that sets up the proxy to route gist requests to the
+# rcloud-gist-service, uncomment the following to change the proxying to proxy
+# every request only to github.
+################################################################################
 #spring:
 #  profiles:
 #    active: github

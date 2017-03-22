@@ -4,22 +4,44 @@
 # SPDX-License-Identifier:   MIT
 #
 #******************************************************************************/
+
+################################################################################
+# Application port. Change the value below to change the port this service
+# is listening on.
+################################################################################
 server:
   port: 13020
 
+################################################################################
+# Management port. Change the value below to change the port the management
+# services are listening on.
+################################################################################
 management:
    port: 13021
 
+################################################################################
+# Folder location for storing the gists. Change the value below to change the
+# location of the gists. This needs to be writable by the rcloudgistservice
+# user/group.
+################################################################################
+gists:
+  root: /var/rcloud-gist-service/gists/
+
+################################################################################
+# Logging configuration:
+#    config: The logback configuration file for logging.
+#    file: The log file to write the log out to.
+################################################################################
 logging:
   config: logback.xml
   file: /var/log/${spring.application.name}/${spring.application.name}-file.log
 
-github:
-  api:
-    url: https://api.github.com
-
-
-
+################################################################################
+# Security information for administrative access.
+# Default user is 'admin' default password is generated on startup and printed
+# out in the log file. To override these settings uncomment the lines below
+# and specify your own password.
+################################################################################
 #security:
 #  user:
 #    name: admin

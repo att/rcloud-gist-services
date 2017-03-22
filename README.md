@@ -2,15 +2,13 @@
 
 # RCloud Gist Service
 
-
-
 ## Overview
 
 The RCloud Gist Service is a Java based service for enabling gist access to various different backend storage systems.
 
 ## Building
 ### Requirements
-* Java 1.8 or above.
+* Java 1.7 or above.
 
 ### Building
 The project uses the gradle build system and contains the gradle wrapper script
@@ -27,7 +25,6 @@ The project uses GitFlow.
 
 #### Contributing
 * This project follows GitFlow, all development should be done on feature branches with pull requests to merge into the development branches.
-
 
 #### IDE integration
 #### Eclipse
