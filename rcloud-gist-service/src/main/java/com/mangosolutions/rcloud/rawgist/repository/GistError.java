@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.Serializable;
@@ -8,10 +14,10 @@ import org.springframework.util.StringUtils;
 public class GistError {
 
 	public enum GistErrorCode {
-	
-		ERR_METADATA_NOT_READABLE, 
-		ERR_METADATA_NOT_WRITEABLE, 
-		ERR_COMMENTS_NOT_READABLE, 
+
+		ERR_METADATA_NOT_READABLE,
+		ERR_METADATA_NOT_WRITEABLE,
+		ERR_COMMENTS_NOT_READABLE,
 		ERR_COMMENTS_NOT_WRITEABLE,
 		ERR_GIST_UPDATE_FAILURE,
 		ERR_GIST_CONTENT_NOT_READABLE,
@@ -20,30 +26,30 @@ public class GistError {
 		ERR_COMMENT_NOT_EXIST,
 		FATAL_GIST_INITIALISATION
 	}
-	
+
 	private static final String PREFIX_FORMAT = "{}: ";
-	
+
 	private GistErrorCode code;
-	
+
 	private String message;
-	
+
 	private Serializable[] params;
-	
+
 	public GistError(GistErrorCode code, String message, Serializable... params) {
 		this.code = code;
 		this.message = message;
 		this.params = params;
 	}
-	
+
 	public GistErrorCode getCode() {
 		return code;
 	}
-	
-	
+
+
 	public String getMessage() {
 		return this.message;
 	}
-	
+
 	public Serializable[] getParams() {
 		return this.params;
 	}
@@ -55,8 +61,8 @@ public class GistError {
 		}
 		return prefix + this.format(message, params);
 	}
-	
-	
+
+
 	private String format(String format, Object... params) {
 		return MessageFormatter.arrayFormat(format, params).getMessage();
 	}
@@ -64,5 +70,5 @@ public class GistError {
 	public String toString() {
 		return this.getFormattedMessage();
 	}
-	
+
 }

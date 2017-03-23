@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
 import org.slf4j.Logger;
@@ -20,12 +26,12 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryException;
 
 @ControllerAdvice
 public class ApplicationErrorsControllerAdvice {
-	
+
 	private final Logger logger = LoggerFactory.getLogger(ApplicationErrorsControllerAdvice.class);
 
     @Autowired
     private ObjectMapper objectMapper;
-    
+
     @ResponseBody
     @ExceptionHandler(GistRepositoryException.class)
     //TODO map this error properly
@@ -40,7 +46,7 @@ public class ApplicationErrorsControllerAdvice {
             throw new RuntimeException(gistError.getFormattedMessage());
         }
     }
-    
+
     @ResponseBody
     @ExceptionHandler(GistRepositoryError.class)
     //TODO map this error properly
@@ -55,7 +61,7 @@ public class ApplicationErrorsControllerAdvice {
             throw new RuntimeException(gistError.getFormattedMessage());
         }
     }
-    
+
     @ResponseBody
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -71,5 +77,5 @@ public class ApplicationErrorsControllerAdvice {
         	return "INTERNAL_SERVER_ERROR" + ex.getMessage();
         }
     }
-	
+
 }

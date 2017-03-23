@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
@@ -49,7 +55,7 @@ import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
 public class GitGistRepository implements GistRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(GitGistRepository.class);
-	
+
 	private static final String B64_BINARY_EXTENSION = "b64";
 
 	public static final String GIST_META_JSON_FILE = "gist.json";
@@ -83,7 +89,7 @@ public class GitGistRepository implements GistRepository {
 			try {
 				FileUtils.forceMkdir(repositoryFolder);
 			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage location for gist {}", 
+				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage location for gist {}",
 						this.gistId);
 				logger.error(error.getFormattedMessage() + " with folder path {}", repositoryFolder);
 				throw new GistRepositoryError(error, e);

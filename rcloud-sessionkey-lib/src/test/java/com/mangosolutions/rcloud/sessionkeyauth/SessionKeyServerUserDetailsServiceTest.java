@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.sessionkeyauth;
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -17,10 +23,10 @@ import org.springframework.web.client.RestTemplate;
 
 
 public class SessionKeyServerUserDetailsServiceTest {
-	
+
 	@Test
 	public void testYesResponse() {
-		
+
 		SessionKeyServerUserDetailsService detailsService = new SessionKeyServerUserDetailsService();
 		RestTemplate restTemplate = detailsService.getRestTemplate();
 		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
@@ -32,10 +38,10 @@ public class SessionKeyServerUserDetailsServiceTest {
 		Assert.assertEquals("theuser", details.getUsername());
 		Assert.assertEquals("abc", details.getPassword());
 	}
-	
+
 	@Test(expected=UsernameNotFoundException.class)
 	public void testNoRequest() {
-		
+
 		SessionKeyServerUserDetailsService detailsService = new SessionKeyServerUserDetailsService();
 		RestTemplate restTemplate = detailsService.getRestTemplate();
 		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
@@ -45,10 +51,10 @@ public class SessionKeyServerUserDetailsServiceTest {
 		UserDetails details = detailsService.loadUserByUsername("abc");
 		Assert.fail("User should not have been found: " + details);
 	}
-	
+
 	@Test(expected=UsernameNotFoundException.class)
 	public void testSupercededRequest() {
-		
+
 		SessionKeyServerUserDetailsService detailsService = new SessionKeyServerUserDetailsService();
 		RestTemplate restTemplate = detailsService.getRestTemplate();
 		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
@@ -58,10 +64,10 @@ public class SessionKeyServerUserDetailsServiceTest {
 		UserDetails details = detailsService.loadUserByUsername("abc");
 		Assert.fail("User should not have been found: " + details);
 	}
-	
+
 	@Test(expected=UsernameNotFoundException.class)
 	public void testNullTokenRequest() {
-		
+
 		SessionKeyServerUserDetailsService detailsService = new SessionKeyServerUserDetailsService();
 		RestTemplate restTemplate = detailsService.getRestTemplate();
 		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
@@ -71,7 +77,7 @@ public class SessionKeyServerUserDetailsServiceTest {
 		UserDetails details = detailsService.loadUserByUsername(null);
 		Assert.fail("User should not have been found: " + details);
 	}
-	
+
 	@Test(expected=HttpClientErrorException.class)
 	public void testServerErrorRequest() {
 		SessionKeyServerUserDetailsService detailsService = new SessionKeyServerUserDetailsService();
@@ -79,9 +85,9 @@ public class SessionKeyServerUserDetailsServiceTest {
 		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
 		server.expect(requestTo("http://127.0.0.1:4301/valid?token=abc&realm=rcloud")).andExpect(method(HttpMethod.GET))
 				     .andRespond(withBadRequest().body("ERR: missing realm").contentType(MediaType.TEXT_PLAIN));
-		
+
 		UserDetails details = detailsService.loadUserByUsername("abc");
 		Assert.fail("User should not have been found: " + details);
 	}
-	
+
 }

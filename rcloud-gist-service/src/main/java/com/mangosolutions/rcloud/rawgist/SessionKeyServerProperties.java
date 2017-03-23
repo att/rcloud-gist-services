@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -6,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class SessionKeyServerProperties {
 
 	private String url = null;//"http://127.0.0.1:4301/valid?token={token}&realm={realm}";
-	
+
 	private String realm = null;//"rcloud";
 
 	public String getUrl() {
@@ -24,7 +30,7 @@ public class SessionKeyServerProperties {
 	public void setRealm(String realm) {
 		this.realm = realm;
 	}
-	
+
 
 
 }

@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.Serializable;
@@ -18,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public class GistMetadata implements Serializable {
 
 	private final static long serialVersionUID = -7352290872081419828L;
-	
+
 	@JsonProperty("id")
 	private String id;
 
@@ -53,7 +59,7 @@ public class GistMetadata implements Serializable {
 		this.owner = owner;
 	}
 
-	
+
 	@JsonProperty("description")
 	public String getDescription() {
 		return description;

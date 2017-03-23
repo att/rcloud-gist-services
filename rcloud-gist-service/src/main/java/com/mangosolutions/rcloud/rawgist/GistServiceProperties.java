@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -6,15 +12,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class GistServiceProperties {
 
 	private String root;
-	
+
 	private String cache = "gists";
-	
+
 	private int lockTimeout = 30;
 
 	private String sessionKeyServerUrl = null;
-	
+
 	private String sessionKeyServerRealm = "rcloud";
-	
+
 	public String getSessionKeyServerRealm() {
 		return sessionKeyServerRealm;
 	}
@@ -54,5 +60,5 @@ public class GistServiceProperties {
 	public void setSessionKeyServerUrl(String sessionKeyServerUrl) {
 		this.sessionKeyServerUrl = sessionKeyServerUrl;
 	}
-	
+
 }

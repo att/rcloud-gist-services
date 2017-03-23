@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.sessionkeyauth;
 
 import java.io.IOException;
@@ -17,7 +23,7 @@ public class SessionKeyServerMessageConverterTest {
 	public void testYesResponse() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
 		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("YES\ntheuser\nthesource\n", "UTF-8"));
-		
+
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.assertNotNull(response);
@@ -25,12 +31,12 @@ public class SessionKeyServerMessageConverterTest {
 		Assert.assertEquals("theuser", response.getName());
 		Assert.assertEquals("thesource", response.getSource());
 	}
-	
+
 	@Test
 	public void testNoResponse() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
 		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("NO", "UTF-8"));
-		
+
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.assertNotNull(response);
@@ -38,12 +44,12 @@ public class SessionKeyServerMessageConverterTest {
 		Assert.assertNull(response.getName());
 		Assert.assertNull(response.getSource());
 	}
-	
+
 	@Test
 	public void testSupercededResponse() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
 		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("SUPERCEDED\ntheuser", "UTF-8"));
-		
+
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.assertNotNull(response);
@@ -51,12 +57,12 @@ public class SessionKeyServerMessageConverterTest {
 		Assert.assertEquals("theuser", response.getName());
 		Assert.assertNull(response.getSource());
 	}
-	
+
 	@Test
 	public void testSupercededResponseWithExtraLines() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
 		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("SUPERCEDED\ntheuser\n\n\n\n\n", "UTF-8"));
-		
+
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		SessionKeyServerResponse response = converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.assertNotNull(response);
@@ -64,48 +70,48 @@ public class SessionKeyServerMessageConverterTest {
 		Assert.assertEquals("theuser", response.getName());
 		Assert.assertNull(response.getSource());
 	}
-	
+
 	@Test
 	public void testNotSupportMapObject() throws IOException {
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		Assert.assertFalse(converter.supports(Map.class));
 	}
-	
+
 	@Test
 	public void testNotSupportSessionKeyServerResponseObject() throws IOException {
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		Assert.assertTrue(converter.supports(SessionKeyServerResponse.class));
 	}
-	
+
 	@Test(expected=HttpMessageNotReadableException.class)
 	public void testBadEnumValue() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
 		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("BANANA\ntheuser", "UTF-8"));
-		
+
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.fail("Should have failed to parse the response enum.");
 	}
-	
+
 	@Test(expected=HttpMessageNotReadableException.class)
 	public void testEmptyBodyContent() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
 		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("", "UTF-8"));
-		
+
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.fail("Should have failed to parse the response enum.");
 	}
-	
+
 	@Test(expected=HttpMessageNotReadableException.class)
 	public void testEmptyBodyLinesContent() throws IOException {
 		HttpInputMessage mockInputMessage = Mockito.mock(HttpInputMessage.class);
 		Mockito.when(mockInputMessage.getBody()).thenReturn(IOUtils.toInputStream("\n\n\n\n\n\n\n", "UTF-8"));
-		
+
 		SessionKeyServerMessageConverter converter = new SessionKeyServerMessageConverter();
 		converter.readInternal(SessionKeyServerResponse.class, mockInputMessage);
 		Assert.fail("Should have failed to parse the response enum.");
 	}
-	
-	
+
+
 }

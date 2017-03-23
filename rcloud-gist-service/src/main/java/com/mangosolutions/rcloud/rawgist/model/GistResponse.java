@@ -1,4 +1,9 @@
-
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.model;
 
 import java.io.Serializable;
@@ -64,7 +69,7 @@ public class GistResponse implements Serializable
     private DateTime updatedAt;
     @JsonProperty("history")
     private List<GistHistory> history = new ArrayList<>();
-    
+
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private final static long serialVersionUID = 5239803736959473806L;
@@ -198,8 +203,8 @@ public class GistResponse implements Serializable
     public void setUpdatedAt(DateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-    
-    
+
+
     @JsonProperty("history")
     public List<GistHistory> getHistory() {
         return history;
@@ -219,7 +224,7 @@ public class GistResponse implements Serializable
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
-    
+
     public void addAdditionalProperties(Map<String, Object> properties) {
         this.additionalProperties.putAll(properties);
     }

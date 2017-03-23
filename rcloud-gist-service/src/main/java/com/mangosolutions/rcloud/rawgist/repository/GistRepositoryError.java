@@ -1,11 +1,17 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 public class GistRepositoryError extends RuntimeException {
 
 	private static final long serialVersionUID = 7221509801637802584L;
-	
+
 	private GistError error;
-	
+
 	public GistRepositoryError(GistError error, Throwable cause) {
 		super(error.getFormattedMessage(), cause);
 		this.error = error;
@@ -14,9 +20,9 @@ public class GistRepositoryError extends RuntimeException {
 	public GistRepositoryError(GistError error) {
 		this(error, null);
 	}
-	
+
 	public GistError getGistError() {
 		return error;
 	}
-	
+
 }

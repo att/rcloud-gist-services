@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
@@ -25,7 +31,7 @@ public class GitGistCommentRepository implements GistCommentRepository {
 	public static final String COMMENT_REPOSITORY_FOLDER = "comments";
 
 	public static final String COMMENTS_FILE = "comments.json";
-	
+
 	private Logger logger = LoggerFactory.getLogger(GitGistCommentRepository.class);
 
 	private File commentRepositoryFolder;
@@ -35,7 +41,7 @@ public class GitGistCommentRepository implements GistCommentRepository {
 	private String gistId;
 
 	private ObjectMapper objectMapper;
-	
+
 	public GitGistCommentRepository(File gistRepository, String gistId, ObjectMapper objectMapper) {
 		this.gistId = gistId;
 		this.commentRepositoryFolder = new File(gistRepository, COMMENT_REPOSITORY_FOLDER);
@@ -128,8 +134,8 @@ public class GitGistCommentRepository implements GistCommentRepository {
 				}
 			});
 		}
-		
-		GistError error = new GistError(GistErrorCode.ERR_COMMENT_NOT_EXIST, "Comment with id {} on gist {} does not exist", 
+
+		GistError error = new GistError(GistErrorCode.ERR_COMMENT_NOT_EXIST, "Comment with id {} on gist {} does not exist",
 				this.gistId, id);
 		logger.warn(error.getFormattedMessage());
 		throw new GistRepositoryException(error);
@@ -150,7 +156,7 @@ public class GitGistCommentRepository implements GistCommentRepository {
 	}
 
 	private void saveComments(List<GistCommentResponse> comments) {
-		try {	
+		try {
 			objectMapper.writeValue(commentsFile, comments);
 		} catch (IOException e) {
 			throw new GistRepositoryError(new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save metadata for gist {}", this.gistId), e);
