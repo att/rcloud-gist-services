@@ -37,6 +37,33 @@ There are two mechanisms to load the project into the Eclipse IDE:
 The Vagrantfile sets up 80% of the environment needed to run rcloud. It takes a long time to finish the provisioning. Once done rcloud will be in `/opt/rcloud/rcloud-1.7/` you will need to setup the `rcloud.conf` file and then call `sudo ./scripts/fresh_start.sh`. The `bootstrapR.sh` has already been called as part of the provisioning.
 
 ## Components
+### RCloud Gist Proxy Service
+A proxy service that routes requests from rcloud conditionally between GitHub
+and the RCloud Gist Service.
+
+### RCloud Gist Service
+An lite implementation of the GitHub gist API.
+
+### Session Key Server Lib
+Java library implementing an integration with Spring Security and the RCloud
+Session Key Server.
+
+## Installation
+The following installation instructions assume that you have rcloud installed,
+and that you have the RCloud SessionKeyServer installed, if not then please
+ensure that are installed first.
+
+1. Ensure that Java is installed, the minimum version is Java 7.
+1. Download the rcloud-gist-service from the [GitHub repository](https://github.com/MangoTheCat/rcloud-gist-services/releases) for your platform.
+1. Install the archive using the appropriate tool e.g. for debian `sudo dpkg -i rcloud-gist-service_0.2.0-20170126172521_all.deb`
+1. Download the rcloud-gistproxy-service from the [GitHub repository](https://github.com/MangoTheCat/rcloud-gist-services/releases) for your platform.
+1. Install the archive using the appropriate tool e.g. for debian `sudo dpkg -i rcloud-gistproxy-service_0.2.0-20170126172521_all.deb`
+1. Start the rcloud-gist-service `sudo service rcloud-gist-service start`
+1. Start the rcloud-gistprox-service `sudo service rcloud-gistproxy-service start`
+1. Update the rcloud.conf to point to the proxy service, set the `github.api.url` value to `http://localhost:13010/` e.g. `github.api.url: http://localhost:13010/`
+1. Start RCloud
+
+The services will have started up with their default configuration. If a different configuration is required, the configuration files can be found in `/opt/rcloud-gist-service/` and `/opt/rcloud-gistproxy-service/`
 
 ## LICENSE & Copyright
 

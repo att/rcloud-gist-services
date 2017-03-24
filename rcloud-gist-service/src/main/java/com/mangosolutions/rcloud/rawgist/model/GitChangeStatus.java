@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,9 +18,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public class GitChangeStatus {
 
 	private int deletions;
-	
+
 	private int additions;
-	
+
 	private int total;
 
 	public int getDeletions() {
@@ -40,6 +46,6 @@ public class GitChangeStatus {
 	public void setTotal(int total) {
 		this.total = total;
 	}
-	
-	
+
+
 }

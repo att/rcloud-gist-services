@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.sessionkeyauth;
 
 import java.net.URI;
@@ -32,11 +38,11 @@ public class SessionKeyServerUserDetailsService implements UserDetailsService {
 	private static final String SESSION_KEY_SERVER_DEFAULT_URL = "http://127.0.0.1:4301/valid?token={token}&realm={realm}";
 
 	private static String RCLOUD_SESSION_KEY_SERVER_DEFAULT_REALM = "rcloud";
-	
+
 	private String sessionKeyServerUrl = SESSION_KEY_SERVER_DEFAULT_URL;
 
 	private RestTemplate restTemplate;
-	
+
 	private String realm = RCLOUD_SESSION_KEY_SERVER_DEFAULT_REALM;
 
 	public SessionKeyServerUserDetailsService() {
@@ -45,7 +51,7 @@ public class SessionKeyServerUserDetailsService implements UserDetailsService {
 		restTemplate = new RestTemplate();
 		restTemplate.setMessageConverters(converters);
 	}
-	
+
 	public SessionKeyServerUserDetailsService(RestTemplate restTemplate) {
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
 		converters.add(new SessionKeyServerMessageConverter());
@@ -56,7 +62,7 @@ public class SessionKeyServerUserDetailsService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String token) throws UsernameNotFoundException {
 		// TODO need a cache to prevent constant lookup
-		
+
 		Map<String, Object> params = buildParams(token);
 		HttpHeaders headers = buildHeaders();
 

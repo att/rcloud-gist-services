@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
 import java.util.Collection;
@@ -27,41 +33,41 @@ public class GistRestController {
 
 	@Autowired
 	private GistRepositoryService repository;
-	
+
 	@Autowired
 	private ControllerUrlResolver resolver;
-	
+
 	@RequestMapping(method=RequestMethod.GET)
 	public List<GistResponse> listAllGists(@AuthenticationPrincipal User activeUser) {
 		List<GistResponse> responses = repository.listGists(activeUser);
 		decorateUrls(responses, activeUser);
 		return responses;
 	}
-	
-	
+
+
 	@RequestMapping(value = "/public", method=RequestMethod.GET)
 	public List<GistResponse> listPublicGists(@AuthenticationPrincipal User activeUser) {
 		List<GistResponse> responses = repository.listGists(activeUser);
 		decorateUrls(responses, activeUser);
 		return responses;
 	}
-	
+
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.GET)
 	public GistResponse getGist(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {
-		GistResponse response = repository.getGist(gistId, activeUser); 
+		GistResponse response = repository.getGist(gistId, activeUser);
 		decorateUrls(response, activeUser);
 		return response;
 	}
-	
-	
+
+
 	@RequestMapping(value = "/{gistId}/{commitId}", method=RequestMethod.GET)
 	public GistResponse getGistAtCommit(@PathVariable("gistId") String gistId, @PathVariable("commitId") String commitId, @AuthenticationPrincipal User activeUser) {
-		
-		GistResponse response = repository.getGist(gistId, commitId, activeUser); 
+
+		GistResponse response = repository.getGist(gistId, commitId, activeUser);
 		decorateUrls(response, activeUser);
 		return response;
 	}
-	
+
 	@RequestMapping(method=RequestMethod.POST)
 	@ResponseStatus( HttpStatus.CREATED )
 	public GistResponse createGist(@RequestBody GistRequest request, HttpServletRequest httpRequest, @AuthenticationPrincipal User activeUser) {
@@ -69,20 +75,20 @@ public class GistRestController {
 		decorateUrls(response, activeUser);
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.PATCH)
 	public GistResponse editGist(@PathVariable("gistId") String gistId, @RequestBody GistRequest request, @AuthenticationPrincipal User activeUser) {
 		GistResponse response = repository.editGist(gistId, request, activeUser);
 		decorateUrls(response, activeUser);
 		return response;
 	}
-	
+
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.DELETE)
 	@ResponseStatus( HttpStatus.NO_CONTENT )
 	public void deleteGist(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {
 		repository.deleteGist(gistId, activeUser);
 	}
-	
+
 	private void decorateUrls(Collection<GistResponse> gistResponses, User activeUser) {
 		if(gistResponses != null) {
 			for(GistResponse gistResponse: gistResponses) {
@@ -90,12 +96,12 @@ public class GistRestController {
 			}
 		}
 	}
-	
+
 	private void decorateUrls(GistResponse gistResponse, User activeUser) {
 		if(gistResponse != null) {
 			gistResponse.setUrl(resolver.getGistUrl(gistResponse.getId(), activeUser));
 			gistResponse.setCommentsUrl(resolver.getCommentsUrl(gistResponse.getId(), activeUser));
 		}
 	}
-	
+
 }

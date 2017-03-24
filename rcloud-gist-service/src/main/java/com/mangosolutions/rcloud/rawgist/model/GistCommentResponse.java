@@ -1,4 +1,9 @@
-
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.model;
 
 import java.io.Serializable;
@@ -23,19 +28,19 @@ public class GistCommentResponse implements Serializable {
 
 	@JsonProperty("url")
 	private String url;
-	
+
 	@JsonProperty("body")
 	private String body;
 
 	@JsonProperty("user")
 	private GistIdentity user;
-	
+
 	@JsonProperty("created_at")
 	private DateTime createdAt;
-	
+
 	@JsonProperty("updated_at")
 	private DateTime updatedAt;
-	
+
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 

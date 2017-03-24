@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
@@ -37,16 +43,16 @@ import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 public class GitGistRepositoryTest {
 
 	private GitGistRepository repository;
-	
+
 	private GitGistCommentRepository commentRepository;
 
 	private String gistId;
-	
+
 	private UserDetails userDetails;
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
-	
+
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
 
@@ -60,18 +66,18 @@ public class GitGistRepositoryTest {
 		this.populateTestRepository();
 		commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
 	}
-	
+
 	public void populateTestRepository() {
 		String expectedDescription = "This is a cool gist";
 		String expectedFilename = "i_am_file_1.R";
-		
+
 		String initialContent = "I am the content of the file";
 		String newFilename = "i_am_file_2.R";
 		String newContent = "I am the content of a different file";
 		this.createGist(expectedDescription, new String[]{expectedFilename, initialContent});
 		this.updateGist(new String[]{newFilename, newContent});
 	}
-	
+
 	@Test
 	public void getEmptyCommentsTest() {
 		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
@@ -81,7 +87,7 @@ public class GitGistRepositoryTest {
 	@Test
 	public void addCommentTest() {
 		GistComment comment = new GistComment();
-		String expectedComment = "I am a comment"; 
+		String expectedComment = "I am a comment";
 		comment.setBody(expectedComment);
 		GistCommentResponse response = commentRepository.createComment(comment, this.userDetails);
 		Assert.assertEquals(expectedComment, response.getBody());
@@ -90,13 +96,13 @@ public class GitGistRepositoryTest {
 		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
 		Assert.assertEquals(1, comments.size());
 	}
-	
+
 	@Test
 	public void editCommentTest() {
 		GistComment comment = new GistComment();
 		comment.setBody("initial comment");
 		GistCommentResponse response = commentRepository.createComment(comment, this.userDetails);
-		String expectedComment = "updated comment"; 
+		String expectedComment = "updated comment";
 		comment.setBody(expectedComment);
 		response = commentRepository.editComment(response.getId(), comment, this.userDetails);
 		Assert.assertEquals(expectedComment, response.getBody());
@@ -105,17 +111,17 @@ public class GitGistRepositoryTest {
 		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
 		Assert.assertEquals(1, comments.size());
 	}
-	
+
 	@Test
 	public void deleteCommentTest() {
 		GistComment comment = new GistComment();
 		comment.setBody("initial comment");
 		GistCommentResponse response = commentRepository.createComment(comment, this.userDetails);
 		long commentId = response.getId();
-		String expectedComment = "anther comment"; 
+		String expectedComment = "anther comment";
 		comment.setBody(expectedComment);
 		response = commentRepository.createComment(comment, this.userDetails);
-		
+
 		commentRepository.deleteComment(commentId, this.userDetails);
 		List<GistCommentResponse> comments = commentRepository.getComments(userDetails);
 		Assert.assertEquals(1, comments.size());
@@ -124,7 +130,7 @@ public class GitGistRepositoryTest {
 		Assert.assertEquals(Long.valueOf(2), response.getId()); //Slightly fragile makes an assumption about the id of the comments
 		Assert.assertEquals(this.userDetails.getUsername(), response.getUser().getLogin());
 	}
-	
+
 	@Test
 	public void createLotsOfCommentsTest() {
 		String commentBody = "I am a comment, add a number on me";
@@ -142,7 +148,7 @@ public class GitGistRepositoryTest {
 			Assert.assertEquals(Long.valueOf(i + 1), response.getId());
 		}
 	}
-	
+
 	private GistResponse updateGist(String[] contents) {
 		GistRequest request = createGistRequest(null, contents);
 		return repository.editGist(request, userDetails);
@@ -175,7 +181,7 @@ public class GitGistRepositoryTest {
 		request.setFiles(files);
 		return request;
 	}
-	
+
 
 
 }
