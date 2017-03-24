@@ -10,6 +10,9 @@ deploy:
     - "./rcloud-gist-service/build/distributions/*.deb"
     - "./rcloud-gist-service/build/distributions/*.rpm"
     - "./rcloud-gist-service/build/libs/*.jar"
+    - "./rcloud-gistproxy-service/build/distributions/*.deb"
+    - "./rcloud-gistproxy-service/build/distributions/*.rpm"
+    - "./rcloud-gistproxy-service/build/libs/*.jar"
   skip_cleanup: true
   on:
     branch: master
