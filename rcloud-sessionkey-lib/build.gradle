@@ -1,0 +1,29 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
+
+project.description = "Spring security integration with RCloud Session Key Server."
+
+dependencies {
+  compile 'org.springframework.security:spring-security-core'
+  compile 'org.springframework.security:spring-security-web'
+
+  compile 'commons-io:commons-io:2.5'
+
+  compile 'org.apache.commons:commons-collections4:4.1'
+
+  compile 'org.slf4j:slf4j-api'
+
+  
+  runtime 'org.slf4j:jcl-over-slf4j'
+
+
+  testCompile 'junit:junit:4.11'
+  testCompile 'org.mockito:mockito-all:1.10.8'
+  testCompile 'org.springframework.boot:spring-boot-starter-test'
+  testCompile 'org.slf4j:slf4j-simple'
+
+}

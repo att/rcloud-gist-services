@@ -2,15 +2,13 @@
 
 # RCloud Gist Service
 
-
-
 ## Overview
 
 The RCloud Gist Service is a Java based service for enabling gist access to various different backend storage systems.
 
 ## Building
 ### Requirements
-* Java 1.8 or above.
+* Java 1.7 or above.
 
 ### Building
 The project uses the gradle build system and contains the gradle wrapper script
@@ -23,11 +21,10 @@ software for the first time maybe slow.
 * Running build with reporting: `gradlew clean build generateProjectReports`
 
 #### Versioning
-The project uses GitFlow, and the .
+The project uses GitFlow.
 
 #### Contributing
 * This project follows GitFlow, all development should be done on feature branches with pull requests to merge into the development branches.
-
 
 #### IDE integration
 #### Eclipse
@@ -37,8 +34,60 @@ There are two mechanisms to load the project into the Eclipse IDE:
 
 
 ## Vagrant
-The Vagrantfile sets up 80% of the environment needed to run rcloud. It takes a long time to finish the provisioning. Once done rcloud will be in `/opt/rcloud/rcloud-1.7/` you will need to setup the `rcloud.conf` file and then call `sudo ./scrtips/fresh_start.sh`. The `bootstrapR.sh` has already been called as part of the provisioning.
+The Vagrantfile sets up 80% of the environment needed to run rcloud. It takes a long time to finish the provisioning. Once done rcloud will be in `/opt/rcloud/rcloud-1.7/` you will need to setup the `rcloud.conf` file and then call `sudo ./scripts/fresh_start.sh`. The `bootstrapR.sh` has already been called as part of the provisioning.
 
 ## Components
+### RCloud Gist Proxy Service
+A proxy service that routes requests from rcloud conditionally between GitHub
+and the RCloud Gist Service.
+
+### RCloud Gist Service
+An lite implementation of the GitHub gist API.
+
+### Session Key Server Lib
+Java library implementing an integration with Spring Security and the RCloud
+Session Key Server.
+
+## Installation
+The following installation instructions assume that you have rcloud installed,
+and that you have the RCloud SessionKeyServer installed, if not then please
+ensure that are installed first.
+
+1. Ensure that Java is installed, the minimum version is Java 7.
+1. Download the rcloud-gist-service from the [GitHub repository](https://github.com/MangoTheCat/rcloud-gist-services/releases) for your platform.
+1. Install the archive using the appropriate tool e.g. for debian `sudo dpkg -i rcloud-gist-service_0.2.0-20170126172521_all.deb`
+1. Download the rcloud-gistproxy-service from the [GitHub repository](https://github.com/MangoTheCat/rcloud-gist-services/releases) for your platform.
+1. Install the archive using the appropriate tool e.g. for debian `sudo dpkg -i rcloud-gistproxy-service_0.2.0-20170126172521_all.deb`
+1. Start the rcloud-gist-service `sudo service rcloud-gist-service start`
+1. Start the rcloud-gistprox-service `sudo service rcloud-gistproxy-service start`
+1. Update the rcloud.conf to point to the proxy service, set the `github.api.url` value to `http://localhost:13010/` e.g. `github.api.url: http://localhost:13010/`
+1. Start RCloud
+
+The services will have started up with their default configuration. If a different configuration is required, the configuration files can be found in `/opt/rcloud-gist-service/` and `/opt/rcloud-gistproxy-service/`
 
 ## LICENSE & Copyright
+
+Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+SPDX-License-Identifier:   MIT
+
+MIT License
+
+Copyright (c) 2017 AT&T Intellectual Property
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

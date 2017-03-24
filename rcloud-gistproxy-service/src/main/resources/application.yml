@@ -1,0 +1,32 @@
+#*******************************************************************************
+# Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+#
+# SPDX-License-Identifier:   MIT
+#
+#*******************************************************************************
+server:
+    port: 13010
+
+management:
+  port: 13011
+  security:
+    enabled: true
+
+info:
+  version: 0.1.0
+  stage: dev
+
+spring:
+  application:
+    name: rcloud-gistproxy-service
+  cloud:
+    config:
+      enabled: false
+  profiles:
+    active: rcloudgist
+
+security:
+  user:
+    name: admin
+  basic:
+    enabled: false

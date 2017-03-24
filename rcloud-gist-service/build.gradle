@@ -1,5 +1,17 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 
-project.description = "RCloud Gist service providing gist access api."
+repositories {
+  maven {
+    url "http://gitblit.github.io/gitblit-maven/"
+  }
+}
+
+project.description = "RCloud Gist service implementation on a git repository."
 
 dependencies {
   compile 'org.springframework.boot:spring-boot-starter'
@@ -7,13 +19,21 @@ dependencies {
   compile 'org.springframework.boot:spring-boot-starter-security'
   compile 'org.springframework.boot:spring-boot-starter-web'
   compile 'org.springframework.cloud:spring-cloud-starter'
-  compile 'org.springframework.cloud:spring-cloud-starter-zuul'
-  compile 'com.eclipsesource.minimal-json:minimal-json:0.9.4'
+  compile 'org.springframework.hateoas:spring-hateoas'
+  compile 'commons-io:commons-io'
+  compile 'org.codehaus.groovy:groovy-all'
+  compile 'com.hazelcast:hazelcast'
+  compile 'joda-time:joda-time'
+  compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+  compile 'org.apache.commons:commons-collections4:4.1'
+  compile 'org.ajoberstar:grgit:1.7.2'
+  compile 'org.eclipse.jgit:org.eclipse.jgit:4.3.1.201605051710-r'
+  compile 'com.google.guava:guava:20.0'
+  compile project(':rcloud-sessionkey-lib')
 
-  testCompile 'junit:junit:4.11'
+  testCompile 'junit:junit'
   testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'
-
 }
 
 
@@ -24,7 +44,7 @@ ext.pkg = [:]
   pkg.jarPath = pkg.installPath + '/' + pkg.jarName
   pkg.initPath = '/etc/init.d/' + archivesBaseName
   pkg.description = project.description
-  pkg.summary = "RCloud Gist Service"
+  pkg.summary = "RCloud Raw Gist Service"
   pkg.vendor = "Mango Solutions Ltd."
   pkg.url = projectUrl
   pkg.buildId = new Date().format('yyyyMMddHHmmss')
@@ -50,11 +70,14 @@ ospackage {
 
     //create log directory
     preInstall "mkdir -p /var/log/$pkg.name && chown $pkg.user:root /var/log/$pkg.name"
+    preInstall "mkdir -p /var/$pkg.name && chown $pkg.user:root /var/$pkg.name"
+
+
 
     into(pkg.installPath)
 
     from(jar.outputs.files) {
-        fileMode 0500
+        fileMode 0770
     }
 
     from('src/main/pkg/home') {
@@ -69,6 +92,7 @@ ospackage {
                 fileName
             }
         }
+        fileMode 0660
     }
     //systemv symlink
     link(pkg.initPath, pkg.jarPath)

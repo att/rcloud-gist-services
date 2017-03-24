@@ -1,20 +1,64 @@
-server:
-    port: 13010
+#*******************************************************************************
+# Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+#
+# SPDX-License-Identifier:   MIT
+#
+#*******************************************************************************
 
-management:
-   port: 13011
+################################################################################
+# Application port. Change the value below to change the port this service
+# is listening on.
+################################################################################
+#server:
+#  port: 13020
 
-logging:
-  config: logback.xml
-  file: /var/log/${spring.application.name}/${spring.application.name}-file.log
+################################################################################
+# Management port. Change the value below to change the port the management
+# services are listening on.
+################################################################################
+#management:
+#   port: 13021
 
-github:
-  api:
-    url: https://api.github.com
+################################################################################
+# Gist Repository configuration:
+# root:
+#   Folder location for storing the gists. This needs to be writable by the 
+#   rcloudgistservice user/group.
+# lockTimeout:
+#    Timeout to acquire read/write locks on a gist to prevent concurrent 
+#    modification.
+# keyserver.host:
+#    The host machine running the Session Key Server
+# keyserver.port:
+#    The port of the Session Key Server
+# keyserver.url:
+#    The URL template for the session key server.
+################################################################################
+#gists:
+#  root: /var/rcloud-gist-service/gists/
+#  lockTimeout: 30
+#  keyserver:
+#    host: 127.0.0.1
+#    port: 4301
+#    realm: rcloud
+#    url: http://${gists.sessionKeyServerHost}:${gists.sessionKeyServerPort}/valid?token={token}&realm={realm}
 
-
-
+################################################################################
+# Security information for administrative access.
+# Default user is 'admin' default password is generated on startup and printed
+# out in the log file. To override these settings uncomment the lines below
+# and specify your own password.
+################################################################################
 #security:
 #  user:
 #    name: admin
 #    password: secret
+
+################################################################################
+# Logging configuration:
+#    config: The logback configuration file for logging.
+#    file: The log file to write the log out to.
+################################################################################
+logging:
+  config: logback.xml
+  file: /var/log/${spring.application.name}/${spring.application.name}-file.log

@@ -1,6 +1,13 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+#*******************************************************************************
+# Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+#
+# SPDX-License-Identifier:   MIT
+#
+#******************************************************************************/
+
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
@@ -29,7 +36,10 @@ Vagrant.configure(2) do |config|
   config.vm.network "forwarded_port", guest: 80, host: 80
   config.vm.network "forwarded_port", guest: 13010, host: 13110
   config.vm.network "forwarded_port", guest: 13011, host: 13111
-
+  config.vm.network "forwarded_port", guest: 13020, host: 13120
+  config.vm.network "forwarded_port", guest: 13021, host: 13121
+  # SessionKeyServer port
+  config.vm.network "forwarded_port", guest: 4301, host: 4301
   #config.ssh.forward_agent = true
 
 
@@ -94,6 +104,11 @@ Vagrant.configure(2) do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
 
+    config.vm.provision "shell", inline: "sudo sed -i 's/http:\/\/fi./http:\/\//g' /etc/apt/sources.list"
+
+  config.vm.provision "shell", inline: "sudo apt-get clean"
+  config.vm.provision "shell", inline: "sudo rm -rf /var/lib/apt/lists/*"
+  config.vm.provision "shell", inline: "sudo apt-get clean"
   config.vm.provision "shell", inline: "sudo apt-get update"
   config.vm.provision "shell", inline: "sudo apt-get install -y curl"
   #config.vm.provision "shell", inline: "sudo /usr/share/debconf/fix_db.pl"
