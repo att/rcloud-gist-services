@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.sessionkeyauth;
 
 import java.io.IOException;
@@ -79,7 +85,7 @@ public class SessionKeyServerMessageConverter extends AbstractHttpMessageConvert
 			return;
 		}
 		response.setSource(source.trim());
-		
+
 	}
 
 	private void parseName(String name, SessionKeyServerResponse response) {

@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.model;
 
 import java.util.HashMap;
@@ -17,16 +23,16 @@ public class FileDefinition {
 
 	@JsonProperty("content")
 	private String content;
-	
+
 	@JsonProperty("language")
 	private String language;
-	
+
 	@JsonProperty("type")
 	private String type;
-	
+
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-	
+
 	public String getLanguage() {
 		return language;
 	}
@@ -66,5 +72,5 @@ public class FileDefinition {
 	public void setAdditionalProperties(Map<String, Object> additionalProperties) {
 		this.additionalProperties = additionalProperties;
 	}
-	
+
 }

@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import java.lang.reflect.Field;
@@ -34,7 +40,7 @@ public class ManagementSecurityConfiguration extends WebSecurityConfigurerAdapte
 
 	@Autowired
 	private SecurityProperties securityProperties;
-	
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.requestMatchers().requestMatchers(new RequestMatcher() {
@@ -58,7 +64,7 @@ public class ManagementSecurityConfiguration extends WebSecurityConfigurerAdapte
 		private final SecurityProperties securityProperties;
 
 		private static final Logger logger = LoggerFactory.getLogger(DefaultInMemoryUserDetailsManagerConfigurer.class);
-		
+
 		DefaultInMemoryUserDetailsManagerConfigurer(SecurityProperties securityProperties) {
 			this.securityProperties = securityProperties;
 		}

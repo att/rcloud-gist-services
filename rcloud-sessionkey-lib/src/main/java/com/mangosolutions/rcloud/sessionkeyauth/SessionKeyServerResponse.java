@@ -1,11 +1,17 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.sessionkeyauth;
 
 public class SessionKeyServerResponse {
 
 	private SessionKeyServerResult result = SessionKeyServerResult.NO;
-	
+
 	private String name = null;
-	
+
 	private String source = null;
 
 	public SessionKeyServerResult getResult() {
@@ -70,7 +76,7 @@ public class SessionKeyServerResponse {
 	public String toString() {
 		return "SessionKeyServerResponse [result=" + result + ", name=" + name + ", source=" + source + "]";
 	}
-	
-	
-	
+
+
+
 }

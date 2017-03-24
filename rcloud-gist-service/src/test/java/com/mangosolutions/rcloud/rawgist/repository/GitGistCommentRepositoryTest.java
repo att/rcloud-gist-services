@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
@@ -38,12 +44,12 @@ public class GitGistCommentRepositoryTest {
 	private GitGistRepository repository;
 
 	private String gistId;
-	
+
 	private UserDetails userDetails;
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
-	
+
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
 
@@ -60,24 +66,24 @@ public class GitGistCommentRepositoryTest {
 	public void createNewGistTest() {
 		String expectedDescription = "This is a cool gist";
 		String expectedFilename = "i_am_file.R";
-		String expectedContent = "I am the content of the file"; 
+		String expectedContent = "I am the content of the file";
 		GistResponse response = createGist(expectedDescription, new String[]{expectedFilename, expectedContent});
 		validateResponse(1, expectedDescription, expectedFilename, expectedContent, response);
 		validateHistory(response, 1);
 	}
 
-	
+
 	@Test
 	public void getGistTest() {
 		String expectedDescription = "This is a cool gist";
 		String expectedFilename = "i_am_file.R";
-		String expectedContent = "I am the content of the file"; 
+		String expectedContent = "I am the content of the file";
 		this.createGist(expectedDescription, new String[]{expectedFilename, expectedContent});
 		GistResponse response = repository.getGist(userDetails);
 		validateResponse(1, expectedDescription, expectedFilename, expectedContent, response);
 		validateHistory(response, 1);
 	}
-	
+
 	@Test
 	public void editGistContentTest() {
 		String expectedDescription = "This is a cool gist";
@@ -89,12 +95,12 @@ public class GitGistCommentRepositoryTest {
 		validateResponse(1, expectedDescription, expectedFilename, updatedContent, response);
 		validateHistory(response, 2);
 	}
-	
+
 	@Test
 	public void addNewGistFileTest() {
 		String expectedDescription = "This is a cool gist";
 		String expectedFilename = "i_am_file_1.R";
-		
+
 		String initialContent = "I am the content of the file";
 		String newFilename = "i_am_file_2.R";
 		String newContent = "I am the content of a different file";
@@ -103,12 +109,12 @@ public class GitGistCommentRepositoryTest {
 		validateResponse(2, expectedDescription, newFilename, newContent, response);
 		validateHistory(response, 2);
 	}
-	
+
 	@Test
 	public void deleteGistFileTest() {
 		String expectedDescription = "This is a cool gist";
 		String expectedFilename = "i_am_file_1.R";
-		
+
 		String initialContent = "I am the content of the file";
 		String newFilename = "i_am_file_2.R";
 		String newContent = "I am the content of a different file";
@@ -118,23 +124,23 @@ public class GitGistCommentRepositoryTest {
 		validateResponse(1, expectedDescription, newFilename, newContent, response);
 		validateHistory(response, 3);
 	}
-	
-	
+
+
 	@Test
 	public void getGistRevision() {
 		String expectedDescription = "This is a cool gist";
 		String initialFilename = "i_am_file_1.R";
-		
+
 		String initialContent = "I am the content of the file";
 		String newFilename = "i_am_file_2.R";
 		String newContent = "I am the content of a different file";
 		this.createGist(expectedDescription, new String[]{initialFilename, initialContent});
 		this.updateGist(new String[]{newFilename, newContent});
-		
+
 		GistResponse response = this.updateGist(new String[]{initialFilename});
 		validateResponse(1, expectedDescription, newFilename, newContent, response);
 		validateHistory(response, 3);
-		
+
 		GistHistory history = response.getHistory().get(1);
 		String commitId = history.getVersion();
 		response = repository.getGist(commitId, userDetails);
@@ -142,7 +148,7 @@ public class GitGistCommentRepositoryTest {
 		validateResponse(2, expectedDescription, newFilename, newContent, response);
 		validateHistory(response, 2);
 	}
-	
+
 	@Test
 	public void updateGistWithDifferentUser() {
 		String expectedDescription = "This is a cool gist";
@@ -153,10 +159,10 @@ public class GitGistCommentRepositoryTest {
 		GistResponse response = this.updateGist(new String[]{expectedFilename, updatedContent});
 		validateResponse(1, expectedDescription, expectedFilename, updatedContent, response);
 		validateHistory(response, 2);
-		
+
 		String newFilename = "i_am_file_2.R";
 		String newContent = "I am the content of a different file";
-		
+
 		GistRequest request = createGistRequest(null, new String[]{newFilename, newContent});
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		UserDetails userDetails = new User("another_gist_user", "gist_user_pwd", authorities);
@@ -165,7 +171,7 @@ public class GitGistCommentRepositoryTest {
 		GistHistory history = response.getHistory().get(0);
 		Assert.assertEquals(userDetails.getUsername(), history.getUser().getLogin());
 	}
-	
+
 	private GistResponse updateGist(String[] contents) {
 		GistRequest request = createGistRequest(null, contents);
 		return repository.editGist(request, userDetails);
@@ -198,7 +204,7 @@ public class GitGistCommentRepositoryTest {
 		request.setFiles(files);
 		return request;
 	}
-	
+
 	private void validateHistory(GistResponse response, int expectedHistoryLength) {
 		List<GistHistory> histories = response.getHistory();
 		Assert.assertEquals(expectedHistoryLength, histories.size());

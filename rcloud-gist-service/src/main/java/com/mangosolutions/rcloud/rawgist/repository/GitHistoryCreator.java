@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.IOException;
@@ -21,11 +27,11 @@ import com.mangosolutions.rcloud.rawgist.model.GitChangeStatus;
 
 /**
  * Creates the history for a gist git repository.
- * 
+ *
  * history contains:
- * 
+ *
  * <pre>
-  
+
   {
       "url": "https://api.github.com/gists/aa5a315d61ae9438b18d/57a7f021a713b1c5a6a199b54cc514735d2d462f",
       "version": "57a7f021a713b1c5a6a199b54cc514735d2d462f",
@@ -39,7 +45,7 @@ import com.mangosolutions.rcloud.rawgist.model.GitChangeStatus;
       },
       "committed_at": "2010-04-14T02:15:15Z"
     }
- * 
+ *
  * </pre>
  *
  */

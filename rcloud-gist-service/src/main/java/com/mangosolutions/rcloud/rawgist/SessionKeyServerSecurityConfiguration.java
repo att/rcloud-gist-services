@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import org.slf4j.Logger;
@@ -33,7 +39,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
 	@Autowired
 	private SessionKeyServerProperties keyserverProperties;
-	
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
@@ -53,9 +59,9 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
 	@Bean
 	public UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsServiceWrapper() {
-		UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper = 
+		UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper =
 				new UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken>();
-		
+
 		SessionKeyServerUserDetailsService service = new SessionKeyServerUserDetailsService();
 		String serverUrl = keyserverProperties.getUrl();
 		if(!StringUtils.isEmpty(serverUrl)) {
@@ -67,7 +73,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 			logger.info("Setting the session key URL to {}", serverUrl);
 			service.setRealm(realm.trim());
 		}
-		
+
 		wrapper.setUserDetailsService(service);
 		return wrapper;
 	}

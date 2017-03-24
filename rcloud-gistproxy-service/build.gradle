@@ -60,7 +60,7 @@ ospackage {
     into(pkg.installPath)
 
     from(jar.outputs.files) {
-        fileMode 0500
+        fileMode 0770
     }
 
     from('src/main/pkg/home') {
@@ -75,6 +75,7 @@ ospackage {
                 fileName
             }
         }
+        fileMode 0660
     }
     //systemv symlink
     link(pkg.initPath, pkg.jarPath)

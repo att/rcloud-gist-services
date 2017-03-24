@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -20,7 +26,7 @@ public class ControllerUrlResolver {
 			}
 		return url;
 	}
-	
+
 	public String getCommentsUrl(String gistId, User activeUser) {
 		String url = null;
 		if(gistId != null) {
@@ -32,7 +38,7 @@ public class ControllerUrlResolver {
 			}
 		return url;
 	}
-	
+
 	public String getCommentUrl(String gistId, Long commentId, User activeUser) {
 		String url = null;
 		if(gistId != null && commentId != null) {
@@ -44,5 +50,5 @@ public class ControllerUrlResolver {
 			}
 		return url;
 	}
-	
+
 }
