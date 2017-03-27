@@ -24,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonPropertyOrder({
     "url",
+    "forks_url",
     "commits_url",
     "id",
     "description",
@@ -45,6 +46,8 @@ public class GistResponse implements Serializable
     private String url;
     @JsonProperty("commits_url")
     private String commitsUrl;
+    @JsonProperty("forks_url")
+    private String forksUrl;
     @JsonProperty("id")
     private String id;
     @JsonProperty("description")
@@ -84,7 +87,17 @@ public class GistResponse implements Serializable
         this.url = url;
     }
 
-    @JsonProperty("commits_url")
+    @JsonProperty("forks_url")
+    public String getForksUrl() {
+		return forksUrl;
+	}
+
+    @JsonProperty("forks_url")
+	public void setForksUrl(String forksUrl) {
+		this.forksUrl = forksUrl;
+	}
+
+	@JsonProperty("commits_url")
     public String getCommitsUrl() {
         return commitsUrl;
     }

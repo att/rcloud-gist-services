@@ -25,4 +25,12 @@ public interface GistRepository {
 
 	GistResponse editGist(GistRequest request, UserDetails userDetails);
 
+	GistResponse fork(GistRepository forkedRepository, UserDetails userDetails);
+
+	String getId();
+
+	void registerFork(GistRepository forkedRepository);
+	
+	GistMetadata getMetadata();
+
 }

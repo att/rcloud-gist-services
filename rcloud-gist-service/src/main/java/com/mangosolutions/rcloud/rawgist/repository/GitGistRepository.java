@@ -8,6 +8,7 @@ package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,6 +47,7 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
+import com.mangosolutions.rcloud.rawgist.model.Fork;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
@@ -111,6 +113,11 @@ public class GitGistRepository implements GistRepository {
 
 		this.updateMetadata(userDetails);
 	}
+	
+	@Override
+	public String getId() {
+		return this.gistId;
+	}
 
 	@Override
 	public File getGistRepositoryFolder(UserDetails owner) {
@@ -146,6 +153,27 @@ public class GitGistRepository implements GistRepository {
 		Grgit git = openOp.call();
 		saveContent(git, request, userDetails);
 		return buildResponse(git, userDetails);
+	}
+	
+	@Override
+	public GistResponse fork(GistRepository originalRepository, UserDetails userDetails) {
+		File originalFolder = originalRepository.getGistRepositoryFolder(userDetails);
+		try {
+			FileUtils.copyDirectory(originalFolder, this.repositoryFolder);
+			OpenOp openOp = new OpenOp();
+			openOp.setDir(gitFolder);
+			Grgit git = openOp.call();
+			//TODO write the fork of information
+			this.updateMetadata(userDetails);
+			originalRepository.registerFork(this);
+			return this.buildResponse(git, userDetails);
+		} catch (IOException e) {
+			GistError error = new GistError(GistErrorCode.ERR_GIST_FORK_FAILURE, "Could not fork gist {} to a new gist with id {}", originalRepository.getId(), this.gistId);
+			logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+			throw new GistRepositoryException(error, e);
+		}
+		
+		
 	}
 
 	@Override
@@ -263,7 +291,7 @@ public class GitGistRepository implements GistRepository {
 		this.saveMetadata(metadata);
 	}
 
-	private GistMetadata getMetadata() {
+	public GistMetadata getMetadata() {
 		File metadataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
 		GistMetadata metadata = new GistMetadata();
 		if (metadataFile.exists()) {
@@ -383,5 +411,27 @@ public class GitGistRepository implements GistRepository {
 		}
 		response.addAdditionalProperties(metadata.getAdditionalProperties());
 	}
+
+	@Override
+	public void registerFork(GistRepository forkedRepository) {
+		this.updateForkInformation(forkedRepository);
+	}
+
+	private void updateForkInformation(GistRepository forkedRepository) {
+		GistMetadata metadata = this.getMetadata();
+		GistMetadata forksMetadata = forkedRepository.getMetadata();
+		Fork fork = new Fork();
+		fork.setCreatedAt(forksMetadata.getCreatedAt());
+		fork.setUpdatedAt(forksMetadata.getUpdatedAt());
+		fork.setId(forksMetadata.getId());
+		String forkOwner = forksMetadata.getOwner(); 
+		GistIdentity forkOwnerIdentity = new GistIdentity();
+		forkOwnerIdentity.setLogin(forkOwner);
+		fork.setUser(forkOwnerIdentity);
+		metadata.addFork(fork);
+		this.saveMetadata(metadata);
+	}
+
+
 
 }
