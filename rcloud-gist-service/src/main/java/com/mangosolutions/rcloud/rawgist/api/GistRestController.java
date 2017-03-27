@@ -6,14 +6,18 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,7 +79,36 @@ public class GistRestController {
 		decorateUrls(response, activeUser);
 		return response;
 	}
-
+	
+	@RequestMapping(value = "/{gistId}/forks", method=RequestMethod.POST)
+	@ResponseStatus( HttpStatus.CREATED )
+	public ResponseEntity<GistResponse> forkGist(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {
+		//TODO need to add Location header to response for the new Gist
+		GistResponse response = repository.forkGist(gistId, activeUser);
+		String location = resolver.getGistUrl(response.getId(), activeUser);
+		HttpHeaders headers = new HttpHeaders();
+		  try {
+			headers.setLocation(new URI(location));
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  decorateUrls(response, activeUser);
+		ResponseEntity<GistResponse> responseEntity = new ResponseEntity<>(response, headers, HttpStatus.CREATED);
+		
+		return responseEntity;
+	}
+	
+	/**
+	 * Legacy github mapping
+	 */
+	@RequestMapping(value = "/{gistId}/fork", method=RequestMethod.POST)
+	@ResponseStatus( HttpStatus.CREATED )
+	@Deprecated
+	public ResponseEntity<GistResponse> legacyForkGist(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {
+		return this.forkGist(gistId, activeUser);
+	}
+	
 	@RequestMapping(value = "/{gistId}", method=RequestMethod.PATCH)
 	public GistResponse editGist(@PathVariable("gistId") String gistId, @RequestBody GistRequest request, @AuthenticationPrincipal User activeUser) {
 		GistResponse response = repository.editGist(gistId, request, activeUser);
@@ -101,6 +134,7 @@ public class GistRestController {
 		if(gistResponse != null) {
 			gistResponse.setUrl(resolver.getGistUrl(gistResponse.getId(), activeUser));
 			gistResponse.setCommentsUrl(resolver.getCommentsUrl(gistResponse.getId(), activeUser));
+			gistResponse.setForksUrl(resolver.getForksUrl(gistResponse.getId(), activeUser));
 		}
 	}
 

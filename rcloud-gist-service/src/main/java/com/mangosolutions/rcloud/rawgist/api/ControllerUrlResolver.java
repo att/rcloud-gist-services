@@ -50,5 +50,17 @@ public class ControllerUrlResolver {
 			}
 		return url;
 	}
+	
+	public String getForksUrl(String gistId, User activeUser) {
+		String url = null;
+		if(gistId != null) {
+			url = linkTo(
+					methodOn(GistRestController.class)
+					.forkGist(gistId, activeUser))
+					.withSelfRel()
+					.getHref();
+			}
+		return url;
+	}
 
 }

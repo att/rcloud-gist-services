@@ -8,6 +8,7 @@ package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.util.List;
 
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
@@ -38,5 +39,7 @@ public interface GistRepositoryService {
 	public GistCommentResponse  editComment(String gistId, long commentId, GistComment comment, UserDetails activeUser);
 
 	public void deleteComment(String gistId, long commentId, UserDetails activeUser);
+
+	public GistResponse forkGist(String gistId, User activeUser);
 
 }
