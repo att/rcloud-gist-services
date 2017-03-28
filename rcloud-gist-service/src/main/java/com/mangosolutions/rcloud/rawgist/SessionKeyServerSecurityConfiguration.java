@@ -40,6 +40,8 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	@Autowired
 	private SessionKeyServerProperties keyserverProperties;
 
+	
+	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
@@ -56,12 +58,9 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.authenticationProvider(preauthAuthProvider());
 	}
-
-	@Bean
-	public UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsServiceWrapper() {
-		UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper =
-				new UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken>();
-
+	
+	@Bean 
+	public SessionKeyServerUserDetailsService getSessionKeyServerUserDetailsService() {
 		SessionKeyServerUserDetailsService service = new SessionKeyServerUserDetailsService();
 		String serverUrl = keyserverProperties.getUrl();
 		if(!StringUtils.isEmpty(serverUrl)) {
@@ -73,8 +72,15 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 			logger.info("Setting the session key URL to {}", serverUrl);
 			service.setRealm(realm.trim());
 		}
+		return service;
+	}
 
-		wrapper.setUserDetailsService(service);
+	@Bean
+	public UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsServiceWrapper() {
+		UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper =
+				new UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken>();
+
+		wrapper.setUserDetailsService(this.getSessionKeyServerUserDetailsService());
 		return wrapper;
 	}
 
