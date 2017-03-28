@@ -56,5 +56,11 @@ caches:
     evictionPolicy: LRU
     ttl: 300
     evictionCheck: 500
+  - 
+    name: 'comments'
+    evictionPercentage: 25
+    evictionPolicy: LRU
+    ttl: 300
+    evictionCheck: 500
     
     
