@@ -42,9 +42,16 @@ gists:
     realm: rcloud
     url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
     
+#TOO update the caches with better default values.
 caches:
   - 
     name: 'sessionkeys'
+    evictionPercentage: 25
+    evictionPolicy: LRU
+    ttl: 300
+    evictionCheck: 500
+  - 
+    name: 'gists'
     evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
