@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,7 @@ public class SessionKeyServerUserDetailsService implements UserDetailsService {
 	}
 
 	@Override
+	@Cacheable(value="sessionkeys")
 	public UserDetails loadUserByUsername(String token) throws UsernameNotFoundException {
 		// TODO need a cache to prevent constant lookup
 
