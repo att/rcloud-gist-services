@@ -21,6 +21,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
@@ -60,7 +61,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	}
 	
 	@Bean 
-	public SessionKeyServerUserDetailsService getSessionKeyServerUserDetailsService() {
+	public UserDetailsService getSessionKeyServerUserDetailsService() {
 		SessionKeyServerUserDetailsService service = new SessionKeyServerUserDetailsService();
 		String serverUrl = keyserverProperties.getUrl();
 		if(!StringUtils.isEmpty(serverUrl)) {
