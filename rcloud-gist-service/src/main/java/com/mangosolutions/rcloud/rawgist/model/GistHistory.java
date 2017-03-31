@@ -6,6 +6,8 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.model;
 
+import java.io.Serializable;
+
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -14,8 +16,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonPropertyOrder({ "url", "version", "user", "change_status", "committed_at" })
-public class GistHistory {
+public class GistHistory implements Serializable {
 
+	private static final long serialVersionUID = 7346102204021167017L;
+	
 	private String url;
 	private String version;
 	private GistIdentity user;

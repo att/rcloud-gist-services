@@ -6,6 +6,8 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.model;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -15,7 +17,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "additions",
     "total"
 })
-public class GitChangeStatus {
+public class GitChangeStatus implements Serializable {
+
+	private static final long serialVersionUID = -1548916401329014408L;
 
 	private int deletions;
 

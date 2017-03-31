@@ -20,6 +20,7 @@ import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -140,6 +141,35 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		return repository.createGist(request, activeUser);
 	}
 
+	@Override
+	public GistResponse forkGist(String gistToForkId, User activeUser) {
+		Lock lock = hazelcastInstance.getLock(gistToForkId);
+		try {
+			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
+				try {
+					File forkedGistRepositoryFolder = getAndValidateRepositoryFolder(gistToForkId);
+					GistRepository forkedRepository = new GitGistRepository(forkedGistRepositoryFolder, objectMapper);
+					String gistId = idGenerator.generateId();
+					File repositoryFolder = getRepositoryFolder(gistId);
+					GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, activeUser);
+					return repository.fork(forkedRepository, activeUser);
+				} finally {
+					lock.unlock();
+				}
+			} else {
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
+						"Could not read gist {}, it is currently being updated", gistToForkId);
+				logger.error(error.getFormattedMessage());
+				throw new GistRepositoryException(error);
+			}
+		} catch (InterruptedException e) {
+			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
+					"Could not read gist {}, it is currently being updated", gistToForkId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryException(error);
+		}
+	}
+	
 	@Override
 	public GistResponse editGist(String gistId, GistRequest request, UserDetails activeUser) {
 		Lock lock = hazelcastInstance.getLock(gistId);
@@ -351,5 +381,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			throw new GistRepositoryException(error);
 		}
 	}
+
+	
 
 }

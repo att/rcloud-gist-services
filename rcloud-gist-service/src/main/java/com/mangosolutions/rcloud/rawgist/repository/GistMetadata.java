@@ -7,7 +7,9 @@
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
@@ -18,9 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.mangosolutions.rcloud.rawgist.model.Fork;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "id", "owner", "description", "created_at", "updated_at"})
+@JsonPropertyOrder({ "id", "owner", "description", "created_at", "updated_at", "forks"})
 public class GistMetadata implements Serializable {
 
 	private final static long serialVersionUID = -7352290872081419828L;
@@ -39,6 +42,9 @@ public class GistMetadata implements Serializable {
 
 	@JsonProperty("updated_at")
 	private DateTime updatedAt;
+	
+	@JsonProperty("forks")
+	private List<Fork> forks = new ArrayList<>();
 
 	@JsonIgnore
 	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -90,6 +96,16 @@ public class GistMetadata implements Serializable {
 		this.updatedAt = updatedAt;
 	}
 
+	@JsonProperty("forks")
+	public List<Fork> getForks() {
+		return forks;
+	}
+
+	@JsonProperty("forks")
+	public void setForks(List<Fork> forks) {
+		this.forks = forks;
+	}
+
 	@JsonAnyGetter
 	public Map<String, Object> getAdditionalProperties() {
 		return this.additionalProperties;
@@ -98,6 +114,10 @@ public class GistMetadata implements Serializable {
 	@JsonAnySetter
 	public void setAdditionalProperty(String name, Object value) {
 		this.additionalProperties.put(name, value);
+	}
+
+	public void addFork(Fork fork) {
+		this.forks.add(fork);
 	}
 
 }

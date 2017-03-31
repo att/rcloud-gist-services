@@ -130,8 +130,6 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 							memberString = memberString.replace(targetUrl, zuulUrl);
 							value.asObject().set(name, memberString);
 						}
-
-
 					} else {
 						jsonValues.add(memberValue);
 					}
@@ -139,8 +137,13 @@ public class JsonContentUrlRewritingFilter extends ZuulFilter {
 			}
 		}
 		
-		String newContents = jsonRoot.toString(WriterConfig.PRETTY_PRINT);
-		logger.debug("contents: {}", newContents);
+		String newContents = null;
+		if(logger.isDebugEnabled()) {
+			newContents = jsonRoot.toString(WriterConfig.PRETTY_PRINT);
+			logger.debug("contents: {}", newContents);
+		} else {
+			newContents = jsonRoot.toString(WriterConfig.MINIMAL);
+		}
 		return newContents;
 	}
 

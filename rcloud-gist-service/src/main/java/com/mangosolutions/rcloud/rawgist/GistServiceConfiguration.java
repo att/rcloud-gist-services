@@ -10,12 +10,14 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.spring.cache.HazelcastCacheManager;
 import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 import com.mangosolutions.rcloud.rawgist.repository.GitGistRepositoryService;
@@ -57,4 +59,9 @@ public class GistServiceConfiguration {
 		return config;
 	}
 
+	@Bean
+    public CacheManager cacheManager() {
+        return new HazelcastCacheManager(hazelcastInstance); // (3)
+    }
+	
 }
