@@ -53,15 +53,5 @@ public class GistServiceConfiguration {
 		return new UUIDGistIdGenerator();
 	}
 
-	@Bean
-	public Config getHazelCastConfig() {
-		Config config = new Config(serviceProperties.getCache());
-		return config;
-	}
-
-	@Bean
-    public CacheManager cacheManager() {
-        return new HazelcastCacheManager(hazelcastInstance); // (3)
-    }
 	
 }
