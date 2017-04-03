@@ -9,8 +9,6 @@ package com.mangosolutions.rcloud.rawgist.repository;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
-
 
 public class GistErrorTest {
 

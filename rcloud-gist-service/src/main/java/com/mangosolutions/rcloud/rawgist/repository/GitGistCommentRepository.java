@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
-import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
 
 public class GitGistCommentRepository implements GistCommentRepository {
 

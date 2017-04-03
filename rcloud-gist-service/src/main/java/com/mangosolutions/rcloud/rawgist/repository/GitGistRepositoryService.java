@@ -30,7 +30,6 @@ import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
-import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
 
 public class GitGistRepositoryService implements GistRepositoryService {
 
@@ -49,6 +48,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	private GistIdGenerator idGenerator;
 	private HazelcastInstance hazelcastInstance;
 	private ObjectMapper objectMapper;
+	private GistSecurityManager securityManager;
 
 	public GitGistRepositoryService(String repositoryRoot, GistIdGenerator idGenerator,
 			HazelcastInstance hazelcastInstance, ObjectMapper objectMapper) throws IOException {
@@ -69,167 +69,203 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		this.lockTimeout = timeout;
 	}
 
+	public GistSecurityManager getSecurityManager() {
+		return securityManager;
+	}
+
+	public void setSecurityManager(GistSecurityManager securityManager) {
+		this.securityManager = securityManager;
+	}
+
 	@Override
-	public List<GistResponse> listGists(UserDetails userDetails) {
+	public List<GistResponse> listGists(UserDetails user) {
 		List<GistResponse> gists = new ArrayList<GistResponse>();
 		for (File file : FileUtils.listFiles(repositoryRoot,
 				FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(GitGistRepository.GIST_META_JSON_FILE)),
 				TrueFileFilter.INSTANCE)) {
 			GistRepository repository = new GitGistRepository(file.getParentFile(), objectMapper);
-			gists.add(repository.getGist(userDetails));
+			if(this.securityManager.canRead(repository, user)) {
+				gists.add(repository.getGist(user));
+			}
 		}
 		return gists;
 	}
 
 	@Override
-	public GistResponse getGist(String gistId, UserDetails userDetails) {
-		Lock lock = hazelcastInstance.getLock(gistId);
+	public GistResponse getGist(String gistId, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
 		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
-					return repository.getGist(userDetails);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not read gist {}, it is currently being updated", gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not read gist {}, it is currently being updated", gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureReadable(repository, user);
+			return repository.getGist(user);
+		} finally {
+			lock.unlock();
 		}
 	}
 
 	@Override
-	public GistResponse getGist(String gistId, String commitId, UserDetails userDetails) {
-		Lock lock = hazelcastInstance.getLock(gistId);
+	public GistResponse getGist(String gistId, String commitId, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
 		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
-					return repository.getGist(commitId, userDetails);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not read gist {}, it is currently being updated", gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not read gist {}, it is currently being updated", gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureReadable(repository, user);
+			return repository.getGist(commitId, user);
+		} finally {
+			lock.unlock();
 		}
 	}
 
 	@Override
-	public GistResponse createGist(GistRequest request, UserDetails activeUser) {
+	public GistResponse createGist(GistRequest request, UserDetails user) {
 		String gistId = idGenerator.generateId();
 		File repositoryFolder = getRepositoryFolder(gistId);
-		GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, activeUser);
-		return repository.createGist(request, activeUser);
+		GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, user);
+		return repository.createGist(request, user);
 	}
 
 	@Override
-	public GistResponse forkGist(String gistToForkId, User activeUser) {
-		Lock lock = hazelcastInstance.getLock(gistToForkId);
+	public GistResponse forkGist(String gistToForkId, User user) {
+		Lock lock = acquireGistLock(gistToForkId);
 		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File forkedGistRepositoryFolder = getAndValidateRepositoryFolder(gistToForkId);
-					GistRepository forkedRepository = new GitGistRepository(forkedGistRepositoryFolder, objectMapper);
-					String gistId = idGenerator.generateId();
-					File repositoryFolder = getRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, activeUser);
-					return repository.fork(forkedRepository, activeUser);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not read gist {}, it is currently being updated", gistToForkId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not read gist {}, it is currently being updated", gistToForkId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
+			File forkedGistRepositoryFolder = getAndValidateRepositoryFolder(gistToForkId);
+			GistRepository forkedRepository = new GitGistRepository(forkedGistRepositoryFolder, objectMapper);
+			this.ensureReadable(forkedRepository, user);
+			String gistId = idGenerator.generateId();
+			File repositoryFolder = getRepositoryFolder(gistId);
+			GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, user);
+			return repository.fork(forkedRepository, user);
+		} finally {
+			lock.unlock();
 		}
 	}
-	
+
 	@Override
-	public GistResponse editGist(String gistId, GistRequest request, UserDetails activeUser) {
+	public GistResponse editGist(String gistId, GistRequest request, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureWritable(repository, user);
+			return repository.editGist(request, user);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+
+
+	@Override
+	public void deleteGist(String gistId, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureWritable(repository, user);
+			FileUtils.moveDirectoryToDirectory(repositoryFolder, new File(recycleRoot, gistId), true);
+			FileUtils.forceDelete(repositoryFolder);
+		} catch (IOException e) {
+			GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
+					"Could not delete gist {}, an internal error has occurred", gistId);
+			logger.error(error.getFormattedMessage());
+			throw new GistRepositoryError(error, e);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+
+
+	@Override
+	public List<GistCommentResponse> getComments(String gistId, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureReadable(gistRepository, user);
+			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			return repository.getComments(user);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public GistCommentResponse getComment(String gistId, long commentId, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureReadable(gistRepository, user);
+			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			return repository.getComment(commentId, user);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public GistCommentResponse createComment(String gistId, GistComment comment, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureWritable(gistRepository, user);
+			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			return repository.createComment(comment, user);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public GistCommentResponse editComment(String gistId, long commentId, GistComment comment, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureWritable(gistRepository, user);
+			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			return repository.editComment(commentId, comment, user);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	@Override
+	public void deleteComment(String gistId, long commentId, UserDetails user) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			this.ensureWritable(gistRepository, user);
+			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			repository.deleteComment(commentId, user);
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	private Lock acquireGistLock(String gistId) {
 		Lock lock = hazelcastInstance.getLock(gistId);
 		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
-					return repository.editGist(request, activeUser);
-				} finally {
-					lock.unlock();
-				}
-			} else {
+			if (!lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
 				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not update gist {}, it is currently being updated", gistId);
+						"Could not access gist {}, it is currently being updated", gistId);
 				logger.error(error.getFormattedMessage());
 				throw new GistRepositoryException(error);
 			}
 		} catch (InterruptedException e) {
 			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not update gist {}, it is currently being updated", gistId);
+					"Could not acess gist {}, it is currently being updated", gistId);
 			logger.error(error.getFormattedMessage());
 			throw new GistRepositoryException(error);
 		}
-	}
-
-	@Override
-	public void deleteGist(String gistId, UserDetails activeUser) {
-		Lock lock = hazelcastInstance.getLock(gistId);
-		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					FileUtils.moveDirectoryToDirectory(repositoryFolder, new File(recycleRoot, gistId), true);
-					FileUtils.forceDelete(repositoryFolder);
-				} catch (IOException e) {
-					GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
-							"Could not delete gist {}, an internal error has occurred", gistId);
-					logger.error(error.getFormattedMessage());
-					throw new GistRepositoryError(error, e);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not delete gist {}, it is currently being updated", gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not delete gist {}, it is currently being updated", gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
-		}
+		return lock;
 	}
 
 	private File getAndValidateRepositoryFolder(String id) {
-
 		File folder = getRepositoryFolder(id);
 		if (!folder.exists()) {
 			GistError error = new GistError(GistErrorCode.ERR_GIST_NOT_EXIST, "Gist with id {} does not exist", id);
@@ -246,142 +282,22 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		}
 		return folder;
 	}
-
-	@Override
-	public List<GistCommentResponse> getComments(String gistId, UserDetails activeUser) {
-		Lock lock = hazelcastInstance.getLock(gistId);
-		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId,
-							objectMapper);
-					return repository.getComments(activeUser);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not read comments for gist {}, it is currently being updated", gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not read comments for gist {}, it is currently being updated", gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
-		}
-	}
-
-	@Override
-	public GistCommentResponse getComment(String gistId, long commentId, UserDetails activeUser) {
-		Lock lock = hazelcastInstance.getLock(gistId);
-		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId,
-							objectMapper);
-					return repository.getComment(commentId, activeUser);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not read comment {} on gist {}, it is currently being updated", commentId, gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not read comment {} on gist {}, it is currently being updated", commentId, gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
-		}
-	}
-
-	@Override
-	public GistCommentResponse createComment(String gistId, GistComment comment, UserDetails activeUser) {
-		Lock lock = hazelcastInstance.getLock(gistId);
-		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId,
-							objectMapper);
-					return repository.createComment(comment, activeUser);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not create gist {} with new comment, it is currently being updated", gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not create gist {} with new comment, it is currently being updated", gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
-		}
-	}
-
-	@Override
-	public GistCommentResponse editComment(String gistId, long commentId, GistComment comment, UserDetails activeUser) {
-		Lock lock = hazelcastInstance.getLock(gistId);
-		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId,
-							objectMapper);
-					return repository.editComment(commentId, comment, activeUser);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not edit comment {} for gist {}, it is currently being updated", commentId, gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not edit comment {} for gist {}, it is currently being updated", commentId, gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
-		}
-	}
-
-	@Override
-	public void deleteComment(String gistId, long commentId, UserDetails activeUser) {
-		Lock lock = hazelcastInstance.getLock(gistId);
-		try {
-			if (lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
-				try {
-					File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-					GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId,
-							objectMapper);
-					repository.deleteComment(commentId, activeUser);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-						"Could not delete comment {} on gist {}, it is currently being updated", commentId, gistId);
-				logger.error(error.getFormattedMessage());
-				throw new GistRepositoryException(error);
-			}
-		} catch (InterruptedException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_AVAILABLE,
-					"Could not delete comment {} on gist {}, it is currently being updated", commentId, gistId);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
-		}
-	}
-
 	
-
+	private void ensureReadable(GistRepository repository, UserDetails user) {
+		if (!this.securityManager.canRead(repository, user)) {
+			GistError error = new GistError(GistErrorCode.ERR_ACL_READ_DENIED,
+					"You do not have permission to read the gist with id {}.", repository.getId());
+			logger.error(error.getFormattedMessage());
+			throw new GistAccessDeniedException(error);
+		}
+	}
+	
+	private void ensureWritable(GistRepository repository, UserDetails user) {
+		if (!this.securityManager.canWrite(repository, user)) {
+			GistError error = new GistError(GistErrorCode.ERR_ACL_WRITE_DENIED,
+					"You do not have permission to alter the gist with id {}.", repository.getId());
+			logger.error(error.getFormattedMessage());
+			throw new GistAccessDeniedException(error);
+		}
+	}
 }

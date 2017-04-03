@@ -20,6 +20,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spring.cache.HazelcastCacheManager;
 import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
+import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
 import com.mangosolutions.rcloud.rawgist.repository.GitGistRepositoryService;
 import com.mangosolutions.rcloud.rawgist.repository.UUIDGistIdGenerator;
 
@@ -39,12 +40,16 @@ public class GistServiceConfiguration {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	@Autowired
+	private GistSecurityManager securityManager;
 
 	@Bean
 	public GistRepositoryService getGistRepository() throws IOException {
 		GitGistRepositoryService repo = new GitGistRepositoryService(serviceProperties.getRoot(),
 				this.getGistIdGenerator(), hazelcastInstance, objectMapper);
 		repo.setLockTimeout(serviceProperties.getLockTimeout());
+		repo.setSecurityManager(securityManager);
 		return repo;
 	}
 
