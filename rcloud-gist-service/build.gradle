@@ -5,12 +5,6 @@
 *
 *******************************************************************************/
 
-repositories {
-  maven {
-    url "http://gitblit.github.io/gitblit-maven/"
-  }
-}
-
 project.description = "RCloud Gist service implementation on a git repository."
 
 dependencies {
@@ -38,7 +32,7 @@ dependencies {
   testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'
   testCompile 'org.springframework.security:spring-security-test'
-  
+
 }
 
 
