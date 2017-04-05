@@ -21,7 +21,7 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	 */
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-		String principal = request.getHeader(principalRequestParameter);
+		String principal = request.getParameter(principalRequestParameter);
 
 		if (principal == null && exceptionIfHeaderMissing) {
 			throw new PreAuthenticatedCredentialsNotFoundException(principalRequestParameter
@@ -39,7 +39,7 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	@Override
 	protected Object getPreAuthenticatedCredentials(HttpServletRequest request) {
 		if (credentialsRequestParameter != null) {
-			return request.getHeader(credentialsRequestParameter);
+			return request.getParameter(credentialsRequestParameter);
 		}
 
 		return "N/A";
