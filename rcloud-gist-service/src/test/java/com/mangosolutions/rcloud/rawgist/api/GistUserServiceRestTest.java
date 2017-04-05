@@ -28,6 +28,9 @@ import com.mangosolutions.rcloud.rawgist.Application;
 @WebAppConfiguration
 public class GistUserServiceRestTest {
 
+	public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
+	public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");
+	
 	private MockMvc mvc;
 	
 	@Autowired
@@ -39,12 +42,29 @@ public class GistUserServiceRestTest {
     }
 	
 	@Test
-	@WithMockUser("ram") 
-    public void testGetUserWithJson() throws Exception {
+	@WithMockUser("mock_user") 
+    public void testGetUserWithApplicationJsonMediaType() throws Exception {
 		ResultActions resultActions = mvc.perform(get("/user")
 	            .accept(MediaType.APPLICATION_JSON_UTF8))
 	            .andExpect(status().isOk())
-	            .andExpect(jsonPath("$.login", is("ram")));
+	            .andExpect(jsonPath("$.login", is("mock_user")));
+    }
+
+	@Test
+	@WithMockUser("mock_user") 
+    public void testGetUserWithGithubBetaMediaType() throws Exception {
+		ResultActions resultActions = mvc.perform(get("/user")
+	            .accept(GITHUB_BETA_MEDIA_TYPE))
+	            .andExpect(status().isOk())
+	            .andExpect(jsonPath("$.login", is("mock_user")));
     }
 	
+	@Test
+	@WithMockUser("mock_user") 
+    public void testGetUserWithGithubV3MediaType() throws Exception {
+		ResultActions resultActions = mvc.perform(get("/user")
+	            .accept(GITHUB_V3_MEDIA_TYPE))
+	            .andExpect(status().isOk())
+	            .andExpect(jsonPath("$.login", is("mock_user")));
+    }
 }
