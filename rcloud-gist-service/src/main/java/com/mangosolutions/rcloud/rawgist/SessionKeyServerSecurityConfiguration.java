@@ -40,8 +40,6 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
 	@Autowired
 	private SessionKeyServerProperties keyserverProperties;
-
-	
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -70,7 +68,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 		}
 		String realm = keyserverProperties.getRealm();
 		if(!StringUtils.isEmpty(realm)) {
-			logger.info("Setting the session key URL to {}", serverUrl);
+			logger.info("Setting the session key realm to {}", realm);
 			service.setRealm(realm.trim());
 		}
 		return service;
@@ -93,10 +91,10 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	}
 
 	@Bean
-	public RequestHeaderAuthenticationFilter ssoFilter() throws Exception {
-		RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
+	public RequestParameterAuthenticationFilter ssoFilter() throws Exception {
+		RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
 		filter.setAuthenticationManager(authenticationManager());
-		filter.setPrincipalRequestHeader("x-sessionkey-token");
+		filter.setPrincipalRequestParameter(keyserverProperties.getToken());
 		return filter;
 	}
 
