@@ -22,5 +22,3 @@ deploy:
     branch: master
     repo: MangoTheCat/rcloud-gist-services
     tags: true
-after_script:
-  - cat /home/travis/build/MangoTheCat/rcloud-gist-services/rcloud-gist-service/build/test-results/TEST-com.mangosolutions.rcloud.rawgist.ContextStartStopTest.xml
