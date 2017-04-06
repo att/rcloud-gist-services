@@ -84,7 +84,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 				FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(GitGistRepository.GIST_META_JSON_FILE)),
 				TrueFileFilter.INSTANCE)) {
 			GistRepository repository = new GitGistRepository(file.getParentFile(), objectMapper);
-			if(this.securityManager.canRead(repository, user)) {
+			if(this.securityManager.canWrite(repository, user)) {
 				gists.add(repository.getGist(user));
 			}
 		}

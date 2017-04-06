@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.mangosolutions.rcloud.rawgist.model.Fork;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "id", "owner", "description", "created_at", "updated_at", "forks"})
+@JsonPropertyOrder({ "id", "owner", "description", "public", "created_at", "updated_at", "forks"})
 public class GistMetadata implements Serializable {
 
 	private final static long serialVersionUID = -7352290872081419828L;
@@ -36,6 +36,9 @@ public class GistMetadata implements Serializable {
 
 	@JsonProperty("description")
 	private String description;
+	
+	@JsonProperty("public")
+	private boolean _public = true;
 
 	@JsonProperty("created_at")
 	private DateTime createdAt;
@@ -74,6 +77,16 @@ public class GistMetadata implements Serializable {
 	@JsonProperty("description")
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	
+	@JsonProperty("public")
+	public boolean isPublic() {
+		return _public;
+	}
+
+	@JsonProperty("public")
+	public void setPublic(boolean _public) {
+		this._public = _public;
 	}
 
 	@JsonProperty("created_at")

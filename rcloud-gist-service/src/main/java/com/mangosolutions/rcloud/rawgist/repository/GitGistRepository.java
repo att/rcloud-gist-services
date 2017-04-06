@@ -282,9 +282,12 @@ public class GitGistRepository implements GistRepository {
 			if (metadata.getCreatedAt() == null) {
 				metadata.setCreatedAt(new DateTime());
 			}
+			
+			if(request.getPublic() != null) {
+				metadata.setPublic(request.getPublic());
+			}
 
 			metadata.setUpdatedAt(new DateTime());
-
 		}
 		this.saveMetadata(metadata);
 	}
@@ -401,6 +404,7 @@ public class GitGistRepository implements GistRepository {
 		response.setDescription(metadata.getDescription());
 		response.setCreatedAt(metadata.getCreatedAt());
 		response.setUpdatedAt(metadata.getUpdatedAt());
+		response.setPublic(metadata.isPublic());
 		if (!StringUtils.isEmpty(metadata.getOwner())) {
 			GistIdentity owner = new GistIdentity();
 			owner.setLogin(metadata.getOwner());

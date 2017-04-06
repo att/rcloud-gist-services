@@ -13,6 +13,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -41,6 +43,8 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 		"application/vnd.github.v3+json" })
 public class GistRestController {
 
+	private final Logger logger = LoggerFactory.getLogger(GistRestController.class);
+	
 	@Autowired
 	private GistRepositoryService repository;
 
@@ -99,8 +103,7 @@ public class GistRestController {
 		try {
 			headers.setLocation(new URI(location));
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Unable to set the location header with value {} for fork with id {} with error {}.", location, gistId, e.getMessage());
 		}
 		decorateUrls(response, activeUser);
 		ResponseEntity<GistResponse> responseEntity = new ResponseEntity<>(response, headers, HttpStatus.CREATED);
