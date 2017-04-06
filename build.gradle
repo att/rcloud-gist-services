@@ -77,6 +77,10 @@ subprojects {
     all*.exclude module: "spring-boot-starter-tomcat"
   }
 
+  test {
+    testLogging.showStandardStreams = true
+  }
+
   task sourcesJar(type: Jar, dependsOn: classes) {
       classifier = 'sources'
       from sourceSets.main.allSource

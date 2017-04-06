@@ -41,6 +41,12 @@ gists:
     port: 4301
     realm: rcloud
     url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
+    token: access_token
+  mediatypes:
+     - application/vnd.github.beta+json
+     - application/vnd.github.beta
+     - application/vnd.github.v3+json
+     - application/vnd.github.v3
     
 #TOO update the caches with better default values.
 caches:

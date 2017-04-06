@@ -31,7 +31,10 @@ import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 
 @RestController()
-@RequestMapping(value = "/gists/{gistId}/comments", produces={ MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/gists/{gistId}/comments", produces={ 
+		MediaType.APPLICATION_JSON_VALUE,
+		"application/vnd.github.beta+json",
+		"application/vnd.github.v3+json" })
 @CacheConfig(cacheNames="comments")
 public class GistCommentRestController {
 

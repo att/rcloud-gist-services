@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.config.Config;
@@ -59,14 +60,12 @@ public class GistServiceConfiguration {
 	}
 
 	@Bean
-	public Config getHazelCastConfig() {
-		Config config = new Config(serviceProperties.getCache());
-		return config;
+	public CommonsRequestLoggingFilter requestLoggingFilter() {
+	    CommonsRequestLoggingFilter crlf = new CommonsRequestLoggingFilter();
+	    crlf.setIncludeClientInfo(true);
+	    crlf.setIncludeQueryString(true);
+	    crlf.setIncludePayload(true);
+	    return crlf;
 	}
-
-	@Bean
-    public CacheManager cacheManager() {
-        return new HazelcastCacheManager(hazelcastInstance); // (3)
-    }
 	
 }
