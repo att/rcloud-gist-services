@@ -26,7 +26,7 @@ import com.mangosolutions.rcloud.rawgist.Application;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @WebAppConfiguration
-public class GistUserServiceRestTest {
+public class UserRestControllerTest {
 
 	public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
 	public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");

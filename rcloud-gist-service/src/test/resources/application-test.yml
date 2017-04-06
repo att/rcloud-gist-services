@@ -1,0 +1,72 @@
+#*******************************************************************************
+# Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+#
+# SPDX-License-Identifier:   MIT
+#
+#*******************************************************************************
+server:
+    port: 13020
+
+management:
+  port: 13021
+  security:
+    enabled: true
+
+info:
+  version: 0.1.0
+  stage: dev
+
+spring:
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
+  application:
+    name: rcloud-gist-service
+  cloud:
+    config:
+      enabled: false
+
+
+security:
+  user:
+    name: admin
+  basic:
+    enabled: false
+
+gists:
+  root: ${java.io.tmpdir}/gists/
+  lockTimeout: 30
+  keyserver:
+    host: 127.0.0.1
+    port: 4301
+    realm: rcloud
+    url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
+    token: access_token
+  mediatypes:
+     - application/vnd.github.beta+json
+     - application/vnd.github.beta
+     - application/vnd.github.v3+json
+     - application/vnd.github.v3
+    
+#TOO update the caches with better default values.
+caches:
+  - 
+    name: 'sessionkeys'
+    evictionPercentage: 25
+    evictionPolicy: LRU
+    ttl: 300
+    evictionCheck: 500
+  - 
+    name: 'gists'
+    evictionPercentage: 25
+    evictionPolicy: LRU
+    ttl: 300
+    evictionCheck: 500
+  - 
+    name: 'comments'
+    evictionPercentage: 25
+    evictionPolicy: LRU
+    ttl: 300
+    evictionCheck: 500
+    
+    
