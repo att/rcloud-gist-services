@@ -151,9 +151,9 @@ public class GistRestControllerTest {
 				.accept(GITHUB_BETA_MEDIA_TYPE)
 				.contentType(GITHUB_BETA_MEDIA_TYPE)
 			)
-			.andExpect(status().isForbidden())
+			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-//			.andExpect(jsonPath("$.id", is(this.defaultGistId)))
+			.andExpect(jsonPath("$.id", is(this.defaultGistId)))
 			.andReturn();
 	}
 	

@@ -9,6 +9,7 @@ package com.mangosolutions.rcloud.rawgist.api;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -52,15 +53,15 @@ public class GistRestController {
 	private ControllerUrlResolver resolver;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public List<GistResponse> listAllGists(@AuthenticationPrincipal User activeUser) {
+	public List<GistResponse> listAllGistsForUser(@AuthenticationPrincipal User activeUser) {
 		List<GistResponse> responses = repository.listGists(activeUser);
 		decorateUrls(responses, activeUser);
 		return responses;
 	}
 
 	@RequestMapping(value = "/public", method = RequestMethod.GET)
-	public List<GistResponse> listPublicGists(@AuthenticationPrincipal User activeUser) {
-		List<GistResponse> responses = repository.listGists(activeUser);
+	public List<GistResponse> listAllPublicGists(@AuthenticationPrincipal User activeUser) {
+		List<GistResponse> responses = Collections.emptyList();//repository.listPublicGists(activeUser);
 		decorateUrls(responses, activeUser);
 		return responses;
 	}

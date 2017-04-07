@@ -84,7 +84,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 				FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(GitGistRepository.GIST_META_JSON_FILE)),
 				TrueFileFilter.INSTANCE)) {
 			GistRepository repository = new GitGistRepository(file.getParentFile(), objectMapper);
-			if(this.securityManager.canWrite(repository, user)) {
+			if(this.securityManager.isOwner(repository, user)) {
 				gists.add(repository.getGist(user));
 			}
 		}
@@ -129,13 +129,13 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistResponse forkGist(String gistToForkId, User user) {
 		Lock lock = acquireGistLock(gistToForkId);
 		try {
-			File forkedGistRepositoryFolder = getAndValidateRepositoryFolder(gistToForkId);
-			GistRepository forkedRepository = new GitGistRepository(forkedGistRepositoryFolder, objectMapper);
-			this.ensureReadable(forkedRepository, user);
+			File gistToForkRepositoryFolder = getAndValidateRepositoryFolder(gistToForkId);
+			GistRepository gistToForkRepository = new GitGistRepository(gistToForkRepositoryFolder, objectMapper);
+			this.ensureReadable(gistToForkRepository, user);
 			String gistId = idGenerator.generateId();
 			File repositoryFolder = getRepositoryFolder(gistId);
 			GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, user);
-			return repository.fork(forkedRepository, user);
+			return repository.fork(gistToForkRepository, user);
 		} finally {
 			lock.unlock();
 		}

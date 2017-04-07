@@ -36,6 +36,7 @@ security:
 gists:
   root: /var/rcloud-gist-service/gists/
   lockTimeout: 30
+  security: permissive
   keyserver:
     host: 127.0.0.1
     port: 4301
