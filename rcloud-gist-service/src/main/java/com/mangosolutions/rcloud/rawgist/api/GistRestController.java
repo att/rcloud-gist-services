@@ -60,10 +60,8 @@ public class GistRestController {
 	}
 
 	@RequestMapping(value = "/public", method = RequestMethod.GET)
-	public List<GistResponse> listAllPublicGists(@AuthenticationPrincipal User activeUser) {
-		List<GistResponse> responses = Collections.emptyList();//repository.listPublicGists(activeUser);
-		decorateUrls(responses, activeUser);
-		return responses;
+	public List<GistResponse> listAllPublicGists() {
+		return Collections.emptyList();
 	}
 
 	@RequestMapping(value = "/{gistId}", method = RequestMethod.GET)
