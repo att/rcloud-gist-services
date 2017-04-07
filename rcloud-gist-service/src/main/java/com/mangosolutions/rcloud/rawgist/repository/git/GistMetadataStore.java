@@ -33,7 +33,7 @@ public class GistMetadataStore implements MetadataStore {
 	}
 
 	@Override
-	@Cacheable(value = "metadata", key = "#store.getAbsolutePath()")
+	@Cacheable(value = "metadatastore", key = "#store.getAbsolutePath()")
 	public GistMetadata load(File store) {
 		GistMetadata metadata = null;
 		if(store.exists()) {
@@ -51,7 +51,7 @@ public class GistMetadataStore implements MetadataStore {
 	}
 
 	@Override
-	@CachePut(cacheNames = "metadata", key = "#store.getAbsolutePath()")
+	@CachePut(cacheNames = "metadatastore", key = "#store.getAbsolutePath()")
 	public GistMetadata save(File store, GistMetadata metadata) {
 		try {
 			objectMapper.writeValue(store, metadata);

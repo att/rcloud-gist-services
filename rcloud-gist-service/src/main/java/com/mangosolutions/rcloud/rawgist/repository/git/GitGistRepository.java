@@ -71,9 +71,12 @@ public class GitGistRepository implements GistRepository, Serializable {
 	
 	private CommentStore commentStore;
 
-	public GitGistRepository(File repositoryFolder, MetadataStore metadataStore, CommentStore commentStore) {
+	private HistoryStore historyStore;
+
+	public GitGistRepository(File repositoryFolder, MetadataStore metadataStore, CommentStore commentStore, HistoryStore historyStore) {
 		this.metadataStore = metadataStore;
 		this.commentStore = commentStore;
+		this.historyStore = historyStore;
 		InitRepositoryLayoutOperation op = new InitRepositoryLayoutOperation(repositoryFolder);
 		this.layout = op.call();
 	}
@@ -341,8 +344,14 @@ public class GitGistRepository implements GistRepository, Serializable {
 	}
 
 	private List<GistHistory> getHistory(Grgit git) {
-		GitHistoryCreator historyCreator = new GitHistoryCreator();
-		return historyCreator.call(git.getRepository());
+		String gistId = this.getId();
+		List<GistHistory> history = historyStore.load(gistId);
+		GitHistoryOperation historyOperation = new GitHistoryOperation();
+		historyOperation.setRepository(git.getRepository());
+		historyOperation.setknownHistory(history);
+		history = historyOperation.call();
+		historyStore.save(gistId, history);
+		return history;
 	}
 
 	private void applyMetadata(GistResponse response) {

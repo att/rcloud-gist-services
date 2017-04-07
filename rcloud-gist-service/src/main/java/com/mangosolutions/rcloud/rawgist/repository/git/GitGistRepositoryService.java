@@ -95,7 +95,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public List<GistResponse> listGists(UserDetails user) {
 		List<GistResponse> gists = new ArrayList<GistResponse>();
 		for (File file : FileUtils.listFiles(repositoryRoot,
-				FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(RepositoryLayout.GIST_META_JSON_FILE)),
+				FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(RepositoryLayout.GIST_META_FILE)),
 				TrueFileFilter.INSTANCE)) {
 			GistRepository repository = repositoryFactory.getRepository(file.getParentFile());
 			if(this.securityManager.isOwner(repository, user)) {

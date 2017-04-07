@@ -95,7 +95,7 @@ public class GistRestControllerPerformanceTest {
 	private double[] addFilesToGist(String gistId, int historySize) throws Exception {
 		double[] durations = new double[historySize];
 		
-		for(int i = 0; i < historySize; i++) {
+		for(int i = -1; i < historySize; i++) {
 			String fileName = i + "otherfile.txt";
 			String fileContent = "Some content for " + i;
 			String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
@@ -113,7 +113,9 @@ public class GistRestControllerPerformanceTest {
 				.andReturn();
 			long end = System.currentTimeMillis();
 			double diff = end - start;
-			durations[i] = diff;
+			if(i >= 0) {
+				durations[i] = diff;
+			}
 		}
 		return durations;
 		

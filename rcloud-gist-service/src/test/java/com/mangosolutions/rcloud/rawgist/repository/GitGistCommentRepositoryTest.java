@@ -35,6 +35,7 @@ import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistHistoryStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
 
@@ -70,7 +71,7 @@ public class GitGistCommentRepositoryTest {
 		metadataStore.setObjectMapper(objectMapper);
 		commentStore = new GistCommentStore();
 		commentStore.setObjectMapper(objectMapper);
-		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore);
+		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore, new GistHistoryStore());
 	}
 
 	@Test

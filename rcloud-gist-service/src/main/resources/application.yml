@@ -81,5 +81,11 @@ caches:
     evictionPolicy: LRU
     ttl: 300
     evictionCheck: 500
+  - 
+    name: 'historystore'
+    evictionPercentage: 25
+    evictionPolicy: LRU
+    ttl: 300
+    evictionCheck: 500
     
     

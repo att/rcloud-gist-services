@@ -7,9 +7,9 @@ public class RepositoryLayout implements Serializable {
 	
 	private static final long serialVersionUID = 6380460397113981325L;
 
-	public static final String GIST_META_JSON_FILE = "gist.json";
+	public static final String GIST_META_FILE = "gist.json";
 	
-	public static final String GIST_REPO_FOLDER_NAME = "repo";
+	public static final String GIST_REPOSITORY_FOLDER = "repo";
 	
 	public static final String COMMENT_REPOSITORY_FOLDER = "comments";
 	
@@ -29,8 +29,8 @@ public class RepositoryLayout implements Serializable {
 		rootFolder = root;
 		commentsFolder = new File(root, COMMENT_REPOSITORY_FOLDER);
 		commentsFile = new File(commentsFolder, COMMENTS_FILE);
-		gistFolder = new File(root, GIST_REPO_FOLDER_NAME);
-		metadataFile = new File(rootFolder, GIST_META_JSON_FILE);
+		gistFolder = new File(root, GIST_REPOSITORY_FOLDER);
+		metadataFile = new File(rootFolder, GIST_META_FILE);
 	}
 
 	public File getCommentsFolder() {
