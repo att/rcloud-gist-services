@@ -1,6 +1,6 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,7 +20,6 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,6 +40,8 @@ import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GitGistRepositoryService;
+
+import net.minidev.json.JSONArray;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -157,6 +159,82 @@ public class GistRestControllerTest {
 			.andReturn();
 	}
 	
+	@Test
+	@WithMockUser("mock_user")
+	public void testGetGistHistory() throws Exception {
+		int historySize = 30;
+		int historyIndex = 10;
+		String historyVersion = null;
+		{
+			MvcResult result = mvc
+				.perform(
+					get("/gists/" + this.defaultGistId)
+					.accept(GITHUB_BETA_MEDIA_TYPE)
+					.contentType(GITHUB_BETA_MEDIA_TYPE)
+				)
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.id", is(this.defaultGistId)))
+				.andExpect(jsonPath("$.history.length()", is(1)))
+				.andExpect(jsonPath("$.files.length()", is(1)))
+				.andReturn();
+			addFilesToGist(this.defaultGistId, historySize);
+		}
+		{
+			MvcResult result = mvc
+				.perform(
+					get("/gists/" + this.defaultGistId)
+					.accept(GITHUB_BETA_MEDIA_TYPE)
+					.contentType(GITHUB_BETA_MEDIA_TYPE)
+				)
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.id", is(this.defaultGistId)))
+				.andExpect(jsonPath("$.history.length()", is(historySize + 1)))
+				.andExpect(jsonPath("$.files.length()", is(historySize + 1)))
+				.andReturn();
+			String response = result.getResponse().getContentAsString();
+			historyVersion = JsonPath.read(response, "$.history[" + historyIndex + "].version");
+		}
+		{
+			MvcResult result = mvc
+				.perform(
+					get("/gists/" + this.defaultGistId + "/" + historyVersion)
+					.accept(GITHUB_BETA_MEDIA_TYPE)
+					.contentType(GITHUB_BETA_MEDIA_TYPE)
+				)
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+				.andExpect(jsonPath("$.id", is(this.defaultGistId)))
+				.andExpect(jsonPath("$.files.length()", is(historySize + 1 - historyIndex)))
+				.andReturn();
+			String response = result.getResponse().getContentAsString();
+			System.out.println(response);
+			Map<?,?> files = JsonPath.read(response, "$.files");
+			Assert.assertEquals(historySize + 1 - historyIndex, files.size());
+		}
+	}
+	
+	private void addFilesToGist(String gistId, int historySize) throws Exception {
+		for(int i = 0; i < historySize; i++) {
+			String fileName = i + "otherfile.txt";
+			String fileContent = "Some content for " + i;
+			String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+			String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+			MvcResult result = mvc
+				.perform(
+					patch("/gists/" + gistId)
+					.accept(GITHUB_BETA_MEDIA_TYPE)
+					.contentType(GITHUB_BETA_MEDIA_TYPE)
+					.content(payload)
+				)
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+				.andReturn();
+		}
+		
+	}
+
 	private String createGist(String user, String description, String fileName, String fileContent) throws Exception {
 		GistRequest request = new GistRequest();
 		request.setDescription(description);
