@@ -1,10 +1,13 @@
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
+import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
 
 public class SimpleGistSecurityManager implements GistSecurityManager {
 

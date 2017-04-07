@@ -4,7 +4,7 @@
 * SPDX-License-Identifier:   MIT
 *
 *******************************************************************************/
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.IOException;
 import java.util.ArrayList;

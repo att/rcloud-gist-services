@@ -4,9 +4,11 @@
 * SPDX-License-Identifier:   MIT
 *
 *******************************************************************************/
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.util.UUID;
+
+import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
 
 public class UUIDGistIdGenerator implements GistIdGenerator {
 

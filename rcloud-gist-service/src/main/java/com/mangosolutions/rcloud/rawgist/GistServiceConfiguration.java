@@ -19,12 +19,13 @@ import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hazelcast.core.HazelcastInstance;
 import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryFactory;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
-import com.mangosolutions.rcloud.rawgist.repository.GitGistRepositoryService;
-import com.mangosolutions.rcloud.rawgist.repository.PermissiveGistSecurityManager;
-import com.mangosolutions.rcloud.rawgist.repository.SimpleGistSecurityManager;
-import com.mangosolutions.rcloud.rawgist.repository.UUIDGistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepositoryService;
+import com.mangosolutions.rcloud.rawgist.repository.git.PermissiveGistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.git.SimpleGistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
 
 /**
  * Main Spring configuration
@@ -45,12 +46,16 @@ public class GistServiceConfiguration {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	@Autowired 
+	private GistRepositoryFactory repositoryFactory;
+	
 	@Bean
 	public GistRepositoryService getGistRepository() throws IOException {
 		GitGistRepositoryService repo = new GitGistRepositoryService(serviceProperties.getRoot(),
-				this.getGistIdGenerator(), hazelcastInstance, objectMapper);
+				this.getGistIdGenerator(), hazelcastInstance);
 		repo.setLockTimeout(serviceProperties.getLockTimeout());
 		repo.setSecurityManager(getGistSecurityManager());
+		repo.setGistRepositoryFactory(repositoryFactory);
 		return repo;
 	}
 	

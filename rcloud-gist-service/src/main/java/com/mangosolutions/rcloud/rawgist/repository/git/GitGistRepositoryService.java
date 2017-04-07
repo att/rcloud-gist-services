@@ -4,7 +4,7 @@
 * SPDX-License-Identifier:   MIT
 *
 *******************************************************************************/
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,13 +23,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.hazelcast.core.HazelcastInstance;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.GistAccessDeniedException;
+import com.mangosolutions.rcloud.rawgist.repository.GistCommentRepository;
+import com.mangosolutions.rcloud.rawgist.repository.GistError;
+import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
+import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryException;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryFactory;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
+import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
 
 public class GitGistRepositoryService implements GistRepositoryService {
 
@@ -47,11 +57,12 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	private File recycleRoot;
 	private GistIdGenerator idGenerator;
 	private HazelcastInstance hazelcastInstance;
-	private ObjectMapper objectMapper;
 	private GistSecurityManager securityManager;
+	private GistRepositoryFactory repositoryFactory;
+	
 
 	public GitGistRepositoryService(String repositoryRoot, GistIdGenerator idGenerator,
-			HazelcastInstance hazelcastInstance, ObjectMapper objectMapper) throws IOException {
+			HazelcastInstance hazelcastInstance) throws IOException {
 		this.repositoryRoot = new File(repositoryRoot);
 		if (!this.repositoryRoot.exists()) {
 			FileUtils.forceMkdir(this.repositoryRoot);
@@ -62,7 +73,10 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		}
 		this.idGenerator = idGenerator;
 		this.hazelcastInstance = hazelcastInstance;
-		this.objectMapper = objectMapper;
+	}
+	
+	public void setGistRepositoryFactory(GistRepositoryFactory repositoryFactory) {
+		this.repositoryFactory = repositoryFactory;
 	}
 
 	public void setLockTimeout(int timeout) {
@@ -81,9 +95,9 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public List<GistResponse> listGists(UserDetails user) {
 		List<GistResponse> gists = new ArrayList<GistResponse>();
 		for (File file : FileUtils.listFiles(repositoryRoot,
-				FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(GitGistRepository.GIST_META_JSON_FILE)),
+				FileFilterUtils.and(FileFileFilter.FILE, new NameFileFilter(RepositoryLayout.GIST_META_JSON_FILE)),
 				TrueFileFilter.INSTANCE)) {
-			GistRepository repository = new GitGistRepository(file.getParentFile(), objectMapper);
+			GistRepository repository = repositoryFactory.getRepository(file.getParentFile());
 			if(this.securityManager.isOwner(repository, user)) {
 				gists.add(repository.getGist(user));
 			}
@@ -96,7 +110,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureReadable(repository, user);
 			return repository.getGist(user);
 		} finally {
@@ -109,7 +123,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureReadable(repository, user);
 			return repository.getGist(commitId, user);
 		} finally {
@@ -121,8 +135,8 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	public GistResponse createGist(GistRequest request, UserDetails user) {
 		String gistId = idGenerator.generateId();
 		File repositoryFolder = getRepositoryFolder(gistId);
-		GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, user);
-		return repository.createGist(request, user);
+		GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
+		return repository.createGist(request, gistId, user);
 	}
 
 	@Override
@@ -130,12 +144,12 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistToForkId);
 		try {
 			File gistToForkRepositoryFolder = getAndValidateRepositoryFolder(gistToForkId);
-			GistRepository gistToForkRepository = new GitGistRepository(gistToForkRepositoryFolder, objectMapper);
+			GistRepository gistToForkRepository = repositoryFactory.getRepository(gistToForkRepositoryFolder);
 			this.ensureReadable(gistToForkRepository, user);
 			String gistId = idGenerator.generateId();
 			File repositoryFolder = getRepositoryFolder(gistId);
-			GistRepository repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, user);
-			return repository.fork(gistToForkRepository, user);
+			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
+			return repository.fork(gistToForkRepository, gistId, user);
 		} finally {
 			lock.unlock();
 		}
@@ -146,7 +160,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureWritable(repository, user);
 			return repository.editGist(request, user);
 		} finally {
@@ -154,14 +168,12 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		}
 	}
 
-
-
 	@Override
 	public void deleteGist(String gistId, UserDetails user) {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository repository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureWritable(repository, user);
 			FileUtils.moveDirectoryToDirectory(repositoryFolder, new File(recycleRoot, gistId), true);
 			FileUtils.forceDelete(repositoryFolder);
@@ -175,16 +187,14 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		}
 	}
 
-
-
 	@Override
 	public List<GistCommentResponse> getComments(String gistId, UserDetails user) {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository gistRepository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureReadable(gistRepository, user);
-			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			GistCommentRepository repository = gistRepository.getCommentRepository();
 			return repository.getComments(user);
 		} finally {
 			lock.unlock();
@@ -196,9 +206,9 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository gistRepository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureReadable(gistRepository, user);
-			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			GistCommentRepository repository = gistRepository.getCommentRepository();
 			return repository.getComment(commentId, user);
 		} finally {
 			lock.unlock();
@@ -210,9 +220,9 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository gistRepository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureWritable(gistRepository, user);
-			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			GistCommentRepository repository = gistRepository.getCommentRepository();
 			return repository.createComment(comment, user);
 		} finally {
 			lock.unlock();
@@ -224,9 +234,9 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository gistRepository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureWritable(gistRepository, user);
-			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			GistCommentRepository repository = gistRepository.getCommentRepository();
 			return repository.editComment(commentId, comment, user);
 		} finally {
 			lock.unlock();
@@ -238,9 +248,9 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		Lock lock = acquireGistLock(gistId);
 		try {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
-			GistRepository gistRepository = new GitGistRepository(repositoryFolder, objectMapper);
+			GistRepository gistRepository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureWritable(gistRepository, user);
-			GistCommentRepository repository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+			GistCommentRepository repository = gistRepository.getCommentRepository();
 			repository.deleteComment(commentId, user);
 		} finally {
 			lock.unlock();
@@ -282,6 +292,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		}
 		return folder;
 	}
+	
 	
 	private void ensureReadable(GistRepository repository, UserDetails user) {
 		if (!this.securityManager.canRead(repository, user)) {

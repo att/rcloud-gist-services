@@ -4,55 +4,40 @@
 * SPDX-License-Identifier:   MIT
 *
 *******************************************************************************/
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.List;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
-import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
+import com.mangosolutions.rcloud.rawgist.repository.GistCommentRepository;
+import com.mangosolutions.rcloud.rawgist.repository.GistError;
+import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryException;
 
-public class GitGistCommentRepository implements GistCommentRepository {
+public class GitGistCommentRepository implements GistCommentRepository, Serializable {
 
-	public static final String COMMENT_REPOSITORY_FOLDER = "comments";
+	private static final long serialVersionUID = 414766810805325462L;
 
-	public static final String COMMENTS_FILE = "comments.json";
-
-	private Logger logger = LoggerFactory.getLogger(GitGistCommentRepository.class);
-
-	private File commentRepositoryFolder;
+	private static final Logger logger = LoggerFactory.getLogger(GitGistCommentRepository.class);
 
 	private File commentsFile;
 
-	private String gistId;
+	private CommentStore commentStore;
 
-	private ObjectMapper objectMapper;
-
-	public GitGistCommentRepository(File gistRepository, String gistId, ObjectMapper objectMapper) {
-		this.gistId = gistId;
-		this.commentRepositoryFolder = new File(gistRepository, COMMENT_REPOSITORY_FOLDER);
-		if (!commentRepositoryFolder.exists()) {
-			try {
-				FileUtils.forceMkdir(commentRepositoryFolder);
-			} catch (IOException e) {
-				throw new GistRepositoryError(new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create comment repository for gist {}", this.gistId), e);
-			}
-		}
-		commentsFile = new File(commentRepositoryFolder, COMMENTS_FILE);
-		this.objectMapper = objectMapper;
+	public GitGistCommentRepository(File commentsFile, CommentStore commentStore) {
+		this.commentsFile = commentsFile;
+		this.commentStore = commentStore;
 	}
 
 	/* (non-Javadoc)
@@ -134,32 +119,18 @@ public class GitGistCommentRepository implements GistCommentRepository {
 			});
 		}
 
-		GistError error = new GistError(GistErrorCode.ERR_COMMENT_NOT_EXIST, "Comment with id {} on gist {} does not exist",
-				this.gistId, id);
+		GistError error = new GistError(GistErrorCode.ERR_COMMENT_NOT_EXIST, "Comment with id {} does not exist", id);
 		logger.warn(error.getFormattedMessage());
 		throw new GistRepositoryException(error);
 
 	}
 
 	private List<GistCommentResponse> loadComments() {
-		List<GistCommentResponse> comments = new ArrayList<>();
-		if (commentsFile.exists()) {
-			try {
-				comments = objectMapper.readValue(commentsFile, new TypeReference<List<GistCommentResponse>>() {
-				});
-			} catch (IOException e) {
-				throw new GistRepositoryError(new GistError(GistErrorCode.ERR_COMMENTS_NOT_READABLE, "Could not read metadata for gist {}", this.gistId), e);
-			}
-		}
-		return comments == null? new ArrayList<GistCommentResponse>(): comments;
+		return this.commentStore.load(this.commentsFile);
 	}
 
 	private void saveComments(List<GistCommentResponse> comments) {
-		try {
-			objectMapper.writeValue(commentsFile, comments);
-		} catch (IOException e) {
-			throw new GistRepositoryError(new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save metadata for gist {}", this.gistId), e);
-		}
+		this.commentStore.save(this.commentsFile, comments);
 	}
 
 }

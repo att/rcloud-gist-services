@@ -34,6 +34,9 @@ import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
 
 
 
@@ -44,7 +47,7 @@ public class GitGistRepositoryTest {
 
 	private GitGistRepository repository;
 
-	private GitGistCommentRepository commentRepository;
+	private GistCommentRepository commentRepository;
 
 	private String gistId;
 
@@ -52,6 +55,10 @@ public class GitGistRepositoryTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	private GistMetadataStore metadataStore;
+	
+	private GistCommentStore commentStore;
 
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
@@ -62,9 +69,13 @@ public class GitGistRepositoryTest {
 		gistId = UUID.randomUUID().toString();
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		userDetails = new User("gist_user", "gist_user_pwd", authorities);
-		repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, userDetails);
+		metadataStore = new GistMetadataStore();
+		metadataStore.setObjectMapper(objectMapper);
+		commentStore = new GistCommentStore();
+		commentStore.setObjectMapper(objectMapper);
+		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore);
 		this.populateTestRepository();
-		commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+		commentRepository = repository.getCommentRepository();
 	}
 
 	public void populateTestRepository() {
@@ -156,7 +167,7 @@ public class GitGistRepositoryTest {
 
 	private GistResponse createGist(String description, String[]... contents) {
 		GistRequest request = createGistRequest(description, contents);
-		return repository.createGist(request, userDetails);
+		return repository.createGist(request, this.gistId, userDetails);
 	}
 
 	private GistRequest createGistRequest(String description, String[]... contents) {

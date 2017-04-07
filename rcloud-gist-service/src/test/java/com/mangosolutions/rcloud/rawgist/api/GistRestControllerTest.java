@@ -39,7 +39,7 @@ import com.mangosolutions.rcloud.rawgist.Application;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
-import com.mangosolutions.rcloud.rawgist.repository.GitGistRepositoryService;
+import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepositoryService;
 
 import net.minidev.json.JSONArray;
 

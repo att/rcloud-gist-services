@@ -1,6 +1,8 @@
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
 
 public class PermissiveGistSecurityManager extends SimpleGistSecurityManager {
 
