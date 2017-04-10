@@ -52,37 +52,25 @@ gists:
 caches:
   - 
     name: 'sessionkeys'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
   - 
     name: 'gists'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
   - 
     name: 'comments'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
   - 
     name: 'commentstore'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
   - 
     name: 'metadatatore'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
   - 
     name: 'historystore'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500

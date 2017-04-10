@@ -1,15 +1,20 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -34,6 +39,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 import com.jayway.jsonpath.JsonPath;
 import com.mangosolutions.rcloud.rawgist.Application;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
@@ -41,12 +50,10 @@ import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepositoryService;
 
-import net.minidev.json.JSONArray;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @WebAppConfiguration
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+//@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 @ActiveProfiles({"test", "default"})
 public class GistRestControllerTest {
 
@@ -58,21 +65,17 @@ public class GistRestControllerTest {
 	private String defaultGistId;
 	
 	@Autowired
-	private GitGistRepositoryService service;
-
-	@Autowired
 	private WebApplicationContext webApplicationContext;
+	
+	@Autowired
+	private GistTestHelper gistTestHelper;
 
 	@Before
 	public void setup() throws Exception {
 		this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
-		//delete all the gists
-		String tmpdir = System.getProperty("java.io.tmpdir");
-		File gistFolder = new File(tmpdir + "/gists");
-		FileUtils.forceDelete(gistFolder);
-		FileUtils.forceMkdir(gistFolder);
-		FileUtils.forceMkdir(new File(gistFolder, ".recycle"));
-		defaultGistId = createGist("mock_user", "The default gist", "file1.txt", "This is some default content");
+		gistTestHelper.clearGistRepository();
+		defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt", "This is some default content");
+		gistTestHelper.emptyHazelcast();
 	}
 
 	@Test
@@ -235,21 +238,7 @@ public class GistRestControllerTest {
 		
 	}
 
-	private String createGist(String user, String description, String fileName, String fileContent) throws Exception {
-		GistRequest request = new GistRequest();
-		request.setDescription(description);
-		request.setPublic(false);
 
-		Map<String, FileDefinition> files = new HashMap<>();
-		FileDefinition def = new FileDefinition();
-		def.setContent(fileContent);
-		files.put(fileName, def);
-		request.setFiles(files);
-		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
-		UserDetails userDetails = new User(user, "gist_user_pwd", authorities);
-		GistResponse response = this.service.createGist(request, userDetails);
-		return response.getId();
-	}
 	
 	
 	private String buildMessage(String format, Object... params) {

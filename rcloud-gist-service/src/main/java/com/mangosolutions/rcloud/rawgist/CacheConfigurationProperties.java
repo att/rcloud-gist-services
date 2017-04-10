@@ -28,22 +28,14 @@ public class CacheConfigurationProperties {
 	public static class GistCacheConfiguration { 
 		
 		private String name;
-        private int evictionPercentage = 25;
         private EvictionPolicy evictionPolicy = EvictionPolicy.LFU;
         private int ttl = 300;
-        private int evictionCheck = 500;
 		
         public String getName() {
 			return name;
 		}
 		public void setName(String name) {
 			this.name = name;
-		}
-		public int getEvictionPercentage() {
-			return evictionPercentage;
-		}
-		public void setEvictionPercentage(int evictionPercentage) {
-			this.evictionPercentage = evictionPercentage;
 		}
 		public EvictionPolicy getEvictionPolicy() {
 			return evictionPolicy;
@@ -57,13 +49,6 @@ public class CacheConfigurationProperties {
 		public void setTtl(int ttl) {
 			this.ttl = ttl;
 		}
-		public int getEvictionCheck() {
-			return evictionCheck;
-		}
-		public void setEvictionCheck(int evictionCheck) {
-			this.evictionCheck = evictionCheck;
-		}
-
     }
 	
 

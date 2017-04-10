@@ -59,10 +59,8 @@ public class CacheConfiguration {
 			logger.warn("Altering existing configuration of cache config {}", mapConfigs.get(cacheName));
 		}
 		MapConfig mapConfig = new MapConfig(cacheName);//config.getMapConfig(cacheConfig.getName());
-		mapConfig.setEvictionPercentage(cacheConfig.getEvictionPercentage());
 		mapConfig.setEvictionPolicy(cacheConfig.getEvictionPolicy());
 		mapConfig.setTimeToLiveSeconds(cacheConfig.getTtl());
-		mapConfig.setMinEvictionCheckMillis(cacheConfig.getEvictionCheck());
 		config.addMapConfig(mapConfig);
 		logger.info("Configured cache {} with with settings: {}", cacheName, mapConfig);
 	}
