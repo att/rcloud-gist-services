@@ -26,6 +26,8 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +43,7 @@ import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
 
 
 @RunWith(SpringRunner.class)
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @AutoConfigureJsonTesters
 @JsonTest
 public class GitGistCommentRepositoryTest {

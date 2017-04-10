@@ -53,7 +53,7 @@ import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepositoryService
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @WebAppConfiguration
-//@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @ActiveProfiles({"test", "default"})
 public class GistRestControllerTest {
 
