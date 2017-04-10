@@ -1,5 +1,9 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -10,10 +14,13 @@ import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
@@ -64,6 +71,20 @@ public class GistTestHelper {
 		UserDetails userDetails = new User(user, "gist_user_pwd", authorities);
 		GistResponse response = this.service.createGist(request, userDetails);
 		return response.getId();
+	}
+
+	public void warmupWebService(MockMvc mvc, String gistId) throws Exception {
+		for(int i = 0; i < 10; i++) {
+			MvcResult result = mvc
+				.perform(
+					get("/gists/" + gistId)
+					.accept(MediaType.APPLICATION_JSON_UTF8)
+					.contentType(MediaType.APPLICATION_JSON_UTF8)
+				)
+				.andExpect(status().isOk())
+				.andReturn();
+		}
+		
 	}
 	
 }

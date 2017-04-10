@@ -5,9 +5,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import org.apache.commons.math3.stat.StatUtils;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +26,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.jayway.jsonpath.JsonPath;
 import com.mangosolutions.rcloud.rawgist.Application;
+
 
 
 
@@ -52,14 +56,16 @@ public class GistRestControllerPerformanceTest {
 		this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
 		
 		gistTestHelper.clearGistRepository();
-		defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt", "This is some default content");
 		gistTestHelper.emptyHazelcast();
+		defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt", "This is some default content");
+		gistTestHelper.warmupWebService(this.mvc, defaultGistId);
 	}
 	
 	@Test
 	@WithMockUser("mock_user")
 	public void testConsistentGistWriteSpeed() throws Exception {
 		int historySize = 300;
+//		int historySize = 10;
 		double[] durations = addFilesToGist(this.defaultGistId, historySize);
 		StandardDeviation stdDev = new StandardDeviation();
 		
@@ -77,7 +83,7 @@ public class GistRestControllerPerformanceTest {
 	private double[] addFilesToGist(String gistId, int historySize) throws Exception {
 		double[] durations = new double[historySize];
 		
-		for(int i = -1; i < historySize; i++) {
+		for(int i = 0; i < historySize; i++) {
 			String fileName = i + "otherfile.txt";
 			String fileContent = "Some content for " + i;
 			String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
@@ -98,6 +104,10 @@ public class GistRestControllerPerformanceTest {
 			if(i >= 0) {
 				durations[i] = diff;
 			}
+			String content = result.getResponse().getContentAsString();
+			Map<Object, Object> files = JsonPath.read(content, "$.files");
+			// +2 as there is already a file on the gist from the setup				
+			Assert.assertEquals(i + 2, files.keySet().size());
 		}
 		return durations;
 		

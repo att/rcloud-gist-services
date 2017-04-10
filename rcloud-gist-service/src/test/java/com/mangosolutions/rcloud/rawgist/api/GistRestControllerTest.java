@@ -9,14 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,9 +19,6 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -39,16 +30,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
 import com.jayway.jsonpath.JsonPath;
 import com.mangosolutions.rcloud.rawgist.Application;
-import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
-import com.mangosolutions.rcloud.rawgist.model.GistRequest;
-import com.mangosolutions.rcloud.rawgist.model.GistResponse;
-import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepositoryService;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
