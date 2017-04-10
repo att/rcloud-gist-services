@@ -99,7 +99,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 				TrueFileFilter.INSTANCE)) {
 			GistRepository repository = repositoryFactory.getRepository(file.getParentFile());
 			if(this.securityManager.isOwner(repository, user)) {
-				gists.add(repository.getGist(user));
+				gists.add(repository.readGist(user));
 			}
 		}
 		return gists;
@@ -112,7 +112,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureReadable(repository, user);
-			return repository.getGist(user);
+			return repository.readGist(user);
 		} finally {
 			lock.unlock();
 		}
@@ -125,7 +125,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureReadable(repository, user);
-			return repository.getGist(commitId, user);
+			return repository.readGist(commitId, user);
 		} finally {
 			lock.unlock();
 		}
@@ -149,7 +149,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			String gistId = idGenerator.generateId();
 			File repositoryFolder = getRepositoryFolder(gistId);
 			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
-			return repository.fork(gistToForkRepository, gistId, user);
+			return repository.forkGist(gistToForkRepository, gistId, user);
 		} finally {
 			lock.unlock();
 		}
@@ -162,7 +162,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
 			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
 			this.ensureWritable(repository, user);
-			return repository.editGist(request, user);
+			return repository.updateGist(request, user);
 		} finally {
 			lock.unlock();
 		}

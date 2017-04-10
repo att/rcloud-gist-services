@@ -94,7 +94,7 @@ public class GitGistCommentRepositoryTest {
 		String expectedFilename = "i_am_file.R";
 		String expectedContent = "I am the content of the file";
 		this.createGist(expectedDescription, new String[]{expectedFilename, expectedContent});
-		GistResponse response = repository.getGist(userDetails);
+		GistResponse response = repository.readGist(userDetails);
 		validateResponse(1, expectedDescription, expectedFilename, expectedContent, response);
 		validateHistory(response, 1);
 	}
@@ -158,7 +158,7 @@ public class GitGistCommentRepositoryTest {
 
 		GistHistory history = response.getHistory().get(1);
 		String commitId = history.getVersion();
-		response = repository.getGist(commitId, userDetails);
+		response = repository.readGist(commitId, userDetails);
 		validateResponse(2, expectedDescription, initialFilename, initialContent, response);
 		validateResponse(2, expectedDescription, newFilename, newContent, response);
 		validateHistory(response, 2);
@@ -181,7 +181,7 @@ public class GitGistCommentRepositoryTest {
 		GistRequest request = createGistRequest(null, new String[]{newFilename, newContent});
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		UserDetails userDetails = new User("another_gist_user", "gist_user_pwd", authorities);
-		response = repository.editGist(request, userDetails);
+		response = repository.updateGist(request, userDetails);
 		validateResponse(2, expectedDescription, newFilename, newContent, response);
 		GistHistory history = response.getHistory().get(0);
 		Assert.assertEquals(userDetails.getUsername(), history.getUser().getLogin());
@@ -189,7 +189,7 @@ public class GitGistCommentRepositoryTest {
 
 	private GistResponse updateGist(String[] contents) {
 		GistRequest request = createGistRequest(null, contents);
-		return repository.editGist(request, userDetails);
+		return repository.updateGist(request, userDetails);
 	}
 
 	private GistResponse createGist(String description, String[]... contents) {

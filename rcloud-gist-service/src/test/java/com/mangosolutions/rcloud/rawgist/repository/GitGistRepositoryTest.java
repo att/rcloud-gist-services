@@ -166,7 +166,7 @@ public class GitGistRepositoryTest {
 
 	private GistResponse updateGist(String[] contents) {
 		GistRequest request = createGistRequest(null, contents);
-		return repository.editGist(request, userDetails);
+		return repository.updateGist(request, userDetails);
 	}
 
 	private GistResponse createGist(String description, String[]... contents) {
