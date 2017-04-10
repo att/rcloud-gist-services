@@ -34,15 +34,14 @@ security:
     enabled: false
 
 gists:
-  root: /var/rcloud-gist-service/gists/
+  root: ${java.io.tmpdir}/gists/
   lockTimeout: 30
-  security: permissive
   keyserver:
     host: 127.0.0.1
     port: 4301
     realm: rcloud
     url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
-  token: access_token
+    token: access_token
   mediatypes:
      - application/vnd.github.beta+json
      - application/vnd.github.beta
@@ -75,5 +74,3 @@ caches:
     name: 'historystore'
     evictionPolicy: LRU
     ttl: 300
-    
-    

@@ -36,7 +36,7 @@ import com.mangosolutions.rcloud.sessionkeyauth.SessionKeyServerUserDetailsServi
 @EnableConfigurationProperties(SessionKeyServerProperties.class)
 public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-	private static Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+	private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
 	@Autowired
 	private SessionKeyServerProperties keyserverProperties;

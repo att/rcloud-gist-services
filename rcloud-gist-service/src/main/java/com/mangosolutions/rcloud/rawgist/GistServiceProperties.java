@@ -13,7 +13,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "gists")
 public class GistServiceProperties {
-
+	
+	public static String STRICT_SECURITY_MANAGER = "strict";
+	
+	private String security = "permissive";
+	
 	private String root;
 
 	private String cache = "gists";
@@ -72,6 +76,14 @@ public class GistServiceProperties {
 
 	public void setMediatypes(List<String> mediatypes) {
 		this.mediatypes = mediatypes;
+	}
+
+	public String getSecurity() {
+		return security;
+	}
+
+	public void setSecurity(String securityManager) {
+		this.security = securityManager;
 	}
 
 }

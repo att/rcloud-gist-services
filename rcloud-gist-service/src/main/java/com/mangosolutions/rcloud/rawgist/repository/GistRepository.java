@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadata;
 
 public interface GistRepository {
 
@@ -21,16 +22,18 @@ public interface GistRepository {
 
 	GistResponse getGist(String commitId, UserDetails userDetails);
 
-	GistResponse createGist(GistRequest request, UserDetails userDetails);
+	GistResponse createGist(GistRequest request, String gistId, UserDetails userDetails);
 
 	GistResponse editGist(GistRequest request, UserDetails userDetails);
 
-	GistResponse fork(GistRepository forkedRepository, UserDetails userDetails);
+	GistResponse fork(GistRepository forkedRepository, String gistId, UserDetails userDetails);
 
 	String getId();
 
 	void registerFork(GistRepository forkedRepository);
 	
 	GistMetadata getMetadata();
+	
+	GistCommentRepository getCommentRepository();
 
 }

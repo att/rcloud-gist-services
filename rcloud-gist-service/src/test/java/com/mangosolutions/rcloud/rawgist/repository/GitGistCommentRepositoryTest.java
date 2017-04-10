@@ -26,6 +26,8 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,9 +36,14 @@ import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistHistoryStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
 
 
 @RunWith(SpringRunner.class)
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @AutoConfigureJsonTesters
 @JsonTest
 public class GitGistCommentRepositoryTest {
@@ -49,6 +56,10 @@ public class GitGistCommentRepositoryTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	private GistMetadataStore metadataStore;
+	
+	private GistCommentStore commentStore;
 
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
@@ -59,7 +70,11 @@ public class GitGistCommentRepositoryTest {
 		gistId = UUID.randomUUID().toString();
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		userDetails = new User("gist_user", "gist_user_pwd", authorities);
-		repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, userDetails);
+		metadataStore = new GistMetadataStore();
+		metadataStore.setObjectMapper(objectMapper);
+		commentStore = new GistCommentStore();
+		commentStore.setObjectMapper(objectMapper);
+		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore, new GistHistoryStore());
 	}
 
 	@Test
@@ -179,7 +194,7 @@ public class GitGistCommentRepositoryTest {
 
 	private GistResponse createGist(String description, String[]... contents) {
 		GistRequest request = createGistRequest(description, contents);
-		return repository.createGist(request, userDetails);
+		return repository.createGist(request, this.gistId, userDetails);
 	}
 
 	private GistRequest createGistRequest(String description, String[]... contents) {

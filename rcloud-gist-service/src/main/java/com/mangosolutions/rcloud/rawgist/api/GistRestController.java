@@ -9,10 +9,13 @@ package com.mangosolutions.rcloud.rawgist.api;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -41,6 +44,8 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 		"application/vnd.github.v3+json" })
 public class GistRestController {
 
+	private final Logger logger = LoggerFactory.getLogger(GistRestController.class);
+	
 	@Autowired
 	private GistRepositoryService repository;
 
@@ -48,17 +53,15 @@ public class GistRestController {
 	private ControllerUrlResolver resolver;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public List<GistResponse> listAllGists(@AuthenticationPrincipal User activeUser) {
+	public List<GistResponse> listAllGistsForUser(@AuthenticationPrincipal User activeUser) {
 		List<GistResponse> responses = repository.listGists(activeUser);
 		decorateUrls(responses, activeUser);
 		return responses;
 	}
 
 	@RequestMapping(value = "/public", method = RequestMethod.GET)
-	public List<GistResponse> listPublicGists(@AuthenticationPrincipal User activeUser) {
-		List<GistResponse> responses = repository.listGists(activeUser);
-		decorateUrls(responses, activeUser);
-		return responses;
+	public List<GistResponse> listAllPublicGists() {
+		return Collections.emptyList();
 	}
 
 	@RequestMapping(value = "/{gistId}", method = RequestMethod.GET)
@@ -99,8 +102,7 @@ public class GistRestController {
 		try {
 			headers.setLocation(new URI(location));
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Unable to set the location header with value {} for fork with id {} with error {}.", location, gistId, e.getMessage());
 		}
 		decorateUrls(response, activeUser);
 		ResponseEntity<GistResponse> responseEntity = new ResponseEntity<>(response, headers, HttpStatus.CREATED);

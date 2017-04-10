@@ -4,7 +4,7 @@
 * SPDX-License-Identifier:   MIT
 *
 *******************************************************************************/
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,6 @@ import org.ajoberstar.grgit.operation.AddOp;
 import org.ajoberstar.grgit.operation.CheckoutOp;
 import org.ajoberstar.grgit.operation.CleanOp;
 import org.ajoberstar.grgit.operation.CommitOp;
-import org.ajoberstar.grgit.operation.InitOp;
 import org.ajoberstar.grgit.operation.OpenOp;
 import org.ajoberstar.grgit.operation.ResetOp;
 import org.ajoberstar.grgit.operation.ResetOp.Mode;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.Fork;
@@ -52,76 +50,46 @@ import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
-import com.mangosolutions.rcloud.rawgist.repository.GistError.GistErrorCode;
+import com.mangosolutions.rcloud.rawgist.repository.GistCommentRepository;
+import com.mangosolutions.rcloud.rawgist.repository.GistError;
+import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryException;
 
-public class GitGistRepository implements GistRepository {
+public class GitGistRepository implements GistRepository, Serializable {
+
+	private static final long serialVersionUID = -8235501365399798269L;
 
 	private static final Logger logger = LoggerFactory.getLogger(GitGistRepository.class);
 
 	private static final String B64_BINARY_EXTENSION = "b64";
 
-	public static final String GIST_META_JSON_FILE = "gist.json";
+	private RepositoryLayout layout;
+	
+	private MetadataStore metadataStore;
+	
+	private CommentStore commentStore;
 
-	private static final String GIT_REPO_FOLDER_NAME = "repo";
+	private HistoryStore historyStore;
 
-	private File repositoryFolder;
-	private File gitFolder;
-	private String gistId;
-	private GistCommentRepository commentRepository;
-
-	private ObjectMapper objectMapper;
-
-	public GitGistRepository(File repositoryFolder, String gistId, ObjectMapper objectMapper, UserDetails owner) {
-		this(repositoryFolder, objectMapper);
-		this.commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
-		this.gistId = gistId;
-		this.initializeRepository(owner);
+	public GitGistRepository(File repositoryFolder, MetadataStore metadataStore, CommentStore commentStore, HistoryStore historyStore) {
+		this.metadataStore = metadataStore;
+		this.commentStore = commentStore;
+		this.historyStore = historyStore;
+		InitRepositoryLayoutOperation op = new InitRepositoryLayoutOperation(repositoryFolder);
+		this.layout = op.call();
 	}
-
-	public GitGistRepository(File repositoryFolder, ObjectMapper objectMapper) {
-		this.repositoryFolder = repositoryFolder;
-		this.gitFolder = new File(repositoryFolder, GIT_REPO_FOLDER_NAME);
-		this.objectMapper = objectMapper;
-		this.gistId = this.getMetadata().getId();
-		this.commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
-	}
-
-	private void initializeRepository(UserDetails userDetails) {
-		if (!repositoryFolder.exists()) {
-			try {
-				FileUtils.forceMkdir(repositoryFolder);
-			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage location for gist {}",
-						this.gistId);
-				logger.error(error.getFormattedMessage() + " with folder path {}", repositoryFolder);
-				throw new GistRepositoryError(error, e);
-			}
-		}
-
-		if (!gitFolder.exists()) {
-			try {
-				FileUtils.forceMkdir(gitFolder);
-				InitOp initOp = new InitOp();
-				initOp.setDir(gitFolder);
-				initOp.call();
-			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage for gist {}", this.gistId);
-				logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
-				throw new GistRepositoryError(error, e);
-			}
-		}
-
-		this.updateMetadata(userDetails);
-	}
+	
 	
 	@Override
 	public String getId() {
-		return this.gistId;
+		return this.getMetadata().getId();
 	}
 
 	@Override
 	public File getGistRepositoryFolder(UserDetails owner) {
-		return repositoryFolder;
+		return layout.getRootFolder();
 	}
 
 	@Override
@@ -129,7 +97,7 @@ public class GitGistRepository implements GistRepository {
 		GistResponse response = null;
 		// create git repository
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(gitFolder);
+		openOp.setDir(layout.getGistFolder());
 		Grgit git = openOp.call();
 		response = buildResponse(git, userDetails);
 		return response;
@@ -140,36 +108,36 @@ public class GitGistRepository implements GistRepository {
 		GistResponse response = null;
 		// create git repository
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(gitFolder);
+		openOp.setDir(layout.getGistFolder());
 		Grgit git = openOp.call();
 		response = buildResponse(git, commitId, userDetails);
 		return response;
 	}
 
 	@Override
-	public GistResponse createGist(GistRequest request, UserDetails userDetails) {
+	public GistResponse createGist(GistRequest request, String gistId, UserDetails userDetails) {
+		this.updateMetadata(userDetails, gistId);
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(gitFolder);
+		openOp.setDir(layout.getGistFolder());
 		Grgit git = openOp.call();
 		saveContent(git, request, userDetails);
 		return buildResponse(git, userDetails);
 	}
 	
 	@Override
-	public GistResponse fork(GistRepository originalRepository, UserDetails userDetails) {
+	public GistResponse fork(GistRepository originalRepository, String gistId, UserDetails userDetails) {
 		File originalFolder = originalRepository.getGistRepositoryFolder(userDetails);
 		try {
-			FileUtils.copyDirectory(originalFolder, this.repositoryFolder);
+			FileUtils.copyDirectory(originalFolder, layout.getRootFolder());
 			OpenOp openOp = new OpenOp();
-			openOp.setDir(gitFolder);
+			openOp.setDir(layout.getGistFolder());
 			Grgit git = openOp.call();
-			//TODO write the fork of information
-			this.updateMetadata(userDetails);
+			this.updateMetadata(userDetails, gistId);
 			originalRepository.registerFork(this);
 			return this.buildResponse(git, userDetails);
 		} catch (IOException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_FORK_FAILURE, "Could not fork gist {} to a new gist with id {}", originalRepository.getId(), this.gistId);
-			logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+			GistError error = new GistError(GistErrorCode.ERR_GIST_FORK_FAILURE, "Could not fork gist {} to a new gist with id {}", originalRepository.getId(), this.getId());
+			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
 			throw new GistRepositoryException(error, e);
 		}
 		
@@ -179,7 +147,7 @@ public class GitGistRepository implements GistRepository {
 	@Override
 	public GistResponse editGist(GistRequest request, UserDetails userDetails) {
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(gitFolder);
+		openOp.setDir(layout.getGistFolder());
 		Grgit git = openOp.call();
 		saveContent(git, request, userDetails);
 		return buildResponse(git, userDetails);
@@ -193,32 +161,32 @@ public class GitGistRepository implements GistRepository {
 				FileDefinition definition = file.getValue();
 				if (isDelete(definition)) {
 					try {
-						FileUtils.forceDelete(new File(gitFolder, filename));
+						FileUtils.forceDelete(new File(layout.getGistFolder(), filename));
 					} catch (IOException e) {
-						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not remove {} from gist {}", filename, this.gistId);
-						logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not remove {} from gist {}", filename, this.getId());
+						logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
 						throw new GistRepositoryException(error, e);
 					}
 				}
 				if (isUpdate(definition)) {
 					try {
-						FileUtils.write(new File(gitFolder, filename), definition.getContent(), CharEncoding.UTF_8);
+						FileUtils.write(new File(layout.getGistFolder(), filename), definition.getContent(), CharEncoding.UTF_8);
 					} catch (IOException e) {
-						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not update {} for gist {}", filename, this.gistId);
-						logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not update {} for gist {}", filename, this.getId());
+						logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
 						throw new GistRepositoryException(error, e);
 					}
 				}
 
 				if (isMove(definition)) {
-					File oldFile = new File(gitFolder, filename);
-					File newFile = new File(gitFolder, definition.getFilename());
+					File oldFile = new File(layout.getGistFolder(), filename);
+					File newFile = new File(layout.getGistFolder(), definition.getFilename());
 					if(!oldFile.equals(newFile)) {
 						try {
 							FileUtils.moveFile(oldFile, newFile);
 						} catch (IOException e) {
-							GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not move {} to {} for gist {}", filename, definition.getFilename(), this.gistId);
-							logger.error(error.getFormattedMessage() + " with folder path {}", gitFolder);
+							GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE, "Could not move {} to {} for gist {}", filename, definition.getFilename(), this.getId());
+							logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
 							throw new GistRepositoryException(error, e);
 						}
 					}
@@ -251,9 +219,9 @@ public class GitGistRepository implements GistRepository {
 		}
 	}
 
-	private void updateMetadata(UserDetails owner) {
+	private void updateMetadata(UserDetails owner, String gistId) {
 		GistMetadata metadata = getMetadata();
-		metadata.setId(this.gistId);
+		metadata.setId(gistId);
 		if (owner != null && StringUtils.isEmpty(metadata.getOwner())) {
 			metadata.setOwner(owner.getUsername());
 		}
@@ -261,19 +229,11 @@ public class GitGistRepository implements GistRepository {
 	}
 
 	private void saveMetadata(GistMetadata metadata) {
-		File metadataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
-		try {
-			objectMapper.writeValue(metadataFile, metadata);
-		} catch (IOException e) {
-			GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_WRITEABLE, "Could not update metadata for gist {}", this.gistId);
-			logger.error(error.getFormattedMessage() + " with path {}", metadataFile);
-			throw new GistRepositoryError(error, e);
-		}
+		metadataStore.save(this.layout.getMetadataFile(), metadata);
 	}
 
 	private void updateMetadata(GistRequest request) {
 		GistMetadata metadata = getMetadata();
-		metadata.setId(this.gistId);
 		if (request != null) {
 			String description = request.getDescription();
 
@@ -284,26 +244,18 @@ public class GitGistRepository implements GistRepository {
 			if (metadata.getCreatedAt() == null) {
 				metadata.setCreatedAt(new DateTime());
 			}
+			
+			if(request.getPublic() != null) {
+				metadata.setPublic(request.getPublic());
+			}
 
 			metadata.setUpdatedAt(new DateTime());
-
 		}
 		this.saveMetadata(metadata);
 	}
 
 	public GistMetadata getMetadata() {
-		File metadataFile = new File(this.repositoryFolder, GIST_META_JSON_FILE);
-		GistMetadata metadata = new GistMetadata();
-		if (metadataFile.exists()) {
-			try {
-				metadata = objectMapper.readValue(metadataFile, GistMetadata.class);
-			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_READABLE, "Could not update metadata for gist {}", this.gistId);
-				logger.error(error.getFormattedMessage() + " with path {}", metadataFile);
-				throw new GistRepositoryError(error, e);
-			}
-		}
-		return metadata;
+		return metadataStore.load(layout.getMetadataFile());
 	}
 
 	private void stageAllChanges(Status status, Repository repository) {
@@ -359,9 +311,8 @@ public class GitGistRepository implements GistRepository {
 	private GistResponse buildResponse(Grgit git, UserDetails activeUser) {
 		GistResponse response = new GistResponse();
 
-		response.setId(gistId);
 		Map<String, FileContent> files = new LinkedHashMap<String, FileContent>();
-		Collection<File> fileList = FileUtils.listFiles(gitFolder, FileFileFilter.FILE, FileFilterUtils
+		Collection<File> fileList = FileUtils.listFiles(layout.getGistFolder(), FileFileFilter.FILE, FileFilterUtils
 				.and(TrueFileFilter.INSTANCE, FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".git"))));
 		for (File file : fileList) {
 			FileContent content = new FileContent();
@@ -379,13 +330,13 @@ public class GitGistRepository implements GistRepository {
 				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
 				files.put(file.getName(), content);
 			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_READABLE, "Could not read content of {} for gist {}", file.getName(), this.gistId);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_READABLE, "Could not read content of {} for gist {}", file.getName(), this.getId());
 				logger.error(error.getFormattedMessage() + " with path {}", file);
 				throw new GistRepositoryError(error, e);
 			}
 		}
 		response.setFiles(files);
-		response.setComments(commentRepository.getComments(activeUser).size());
+		response.setComments(this.getCommentRepository().getComments(activeUser).size());
 		List<GistHistory> history = getHistory(git);
 		response.setHistory(history);
 		applyMetadata(response);
@@ -393,16 +344,25 @@ public class GitGistRepository implements GistRepository {
 	}
 
 	private List<GistHistory> getHistory(Grgit git) {
-		GitHistoryCreator historyCreator = new GitHistoryCreator();
-		return historyCreator.call(git.getRepository());
+		String gistId = this.getId();
+		List<GistHistory> history = historyStore.load(gistId);
+		GitHistoryOperation historyOperation = new GitHistoryOperation();
+		historyOperation.setRepository(git.getRepository());
+		historyOperation.setknownHistory(history);
+		history = historyOperation.call();
+		historyStore.save(gistId, history);
+		return history;
 	}
 
 	private void applyMetadata(GistResponse response) {
+		
 		GistMetadata metadata = this.getMetadata();
+		response.setId(metadata.getId());
 		response.setDescription(metadata.getDescription());
 		response.setDescription(metadata.getDescription());
 		response.setCreatedAt(metadata.getCreatedAt());
 		response.setUpdatedAt(metadata.getUpdatedAt());
+		response.setPublic(metadata.isPublic());
 		if (!StringUtils.isEmpty(metadata.getOwner())) {
 			GistIdentity owner = new GistIdentity();
 			owner.setLogin(metadata.getOwner());
@@ -430,6 +390,13 @@ public class GitGistRepository implements GistRepository {
 		fork.setUser(forkOwnerIdentity);
 		metadata.addFork(fork);
 		this.saveMetadata(metadata);
+	}
+
+
+
+	@Override
+	public GistCommentRepository getCommentRepository() {
+		return new GitGistCommentRepository(this.layout.getCommentsFile(), this.commentStore);
 	}
 
 
