@@ -56,73 +56,96 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 		Map<String, FileDefinition> files = this.gistRequest.getFiles();
 		String gistId = this.getGistId();
 		try {
-			for (Map.Entry<String, FileDefinition> file : files.entrySet()) {
-				String filename = file.getKey();
-				FileDefinition definition = file.getValue();
-				if (isDelete(definition)) {
-					try {
-						FileUtils.forceDelete(new File(layout.getGistFolder(), filename));
-					} catch (IOException e) {
-						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
-								"Could not remove {} from gist {}", filename, gistId);
-						logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
-						throw new GistRepositoryException(error, e);
-					}
-				}
-				if (isUpdate(definition)) {
-					try {
-						FileUtils.write(new File(layout.getGistFolder(), filename), definition.getContent(),
-								CharEncoding.UTF_8);
-					} catch (IOException e) {
-						GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
-								"Could not update {} for gist {}", filename, gistId);
-						logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
-						throw new GistRepositoryException(error, e);
-					}
-				}
-
-				if (isMove(definition)) {
-					File oldFile = new File(layout.getGistFolder(), filename);
-					File newFile = new File(layout.getGistFolder(), definition.getFilename());
-					if (!oldFile.equals(newFile)) {
-						try {
-							FileUtils.moveFile(oldFile, newFile);
-						} catch (IOException e) {
-							GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
-									"Could not move {} to {} for gist {}", filename, definition.getFilename(),
-									gistId);
-							logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
-							throw new GistRepositoryException(error, e);
-						}
-					}
-				}
-			}
-			StatusOp statusOp = new StatusOp(git.getRepository());
-			Status status = statusOp.call();
-			if (!status.isClean()) {
-				stageAllChanges(status, git.getRepository());
-				CommitOp commitOp = new CommitOp(git.getRepository());
-				Person person = new Person(userDetails.getUsername(), "");
-				commitOp.setCommitter(person);
-				commitOp.setAuthor(person);
-				commitOp.setMessage("");
-				commitOp.call();
-			}
+			applyFileChanges(layout, files, gistId);
+			commitChanges(git, userDetails);
 			this.updateMetadata(this.gistRequest);
 		} finally {
-			StatusOp statusOp = new StatusOp(git.getRepository());
-			Status status = statusOp.call();
-			if (!status.isClean()) {
-				// clean and then reset
-				CleanOp cleanOp = new CleanOp(git.getRepository());
-				cleanOp.call();
-				ResetOp resetOp = new ResetOp(git.getRepository());
-				resetOp.setMode(Mode.HARD);
-				resetOp.call();
-			}
-
+			cleanRepository(git);
 		}
 
+	}
+
+	private void cleanRepository(Grgit git) {
+		StatusOp statusOp = new StatusOp(git.getRepository());
+		Status status = statusOp.call();
+		if (!status.isClean()) {
+			// clean and then reset
+			CleanOp cleanOp = new CleanOp(git.getRepository());
+			cleanOp.call();
+			ResetOp resetOp = new ResetOp(git.getRepository());
+			resetOp.setMode(Mode.HARD);
+			resetOp.call();
+		}
+	}
+
+	private void applyFileChanges(RepositoryLayout layout, Map<String, FileDefinition> files, String gistId) {
+		for (Map.Entry<String, FileDefinition> file : files.entrySet()) {
+			String filename = file.getKey();
+			FileDefinition definition = file.getValue();
+			if (isDelete(definition)) {
+				deleteFile(layout, gistId, filename);
+			}
+			if (isUpdate(definition)) {
+				updateFile(layout, gistId, filename, definition);
+			}
+
+			if (isMove(definition)) {
+				moveFile(layout, gistId, filename, definition);
+			}
+		}
+	}
+
+	private void commitChanges(Grgit git, UserDetails userDetails) {
+		StatusOp statusOp = new StatusOp(git.getRepository());
+		Status status = statusOp.call();
+		if (!status.isClean()) {
+			stageAllChanges(status, git.getRepository());
+			CommitOp commitOp = new CommitOp(git.getRepository());
+			Person person = new Person(userDetails.getUsername(), "");
+			commitOp.setCommitter(person);
+			commitOp.setAuthor(person);
+			commitOp.setMessage("");
+			commitOp.call();
+		}
+	}
+
+	private void moveFile(RepositoryLayout layout, String gistId, String filename, FileDefinition definition) {
+		File oldFile = new File(layout.getGistFolder(), filename);
+		File newFile = new File(layout.getGistFolder(), definition.getFilename());
+		if (!oldFile.equals(newFile)) {
+			try {
+				FileUtils.moveFile(oldFile, newFile);
+			} catch (IOException e) {
+				GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
+						"Could not move {} to {} for gist {}", filename, definition.getFilename(),
+						gistId);
+				logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
+				throw new GistRepositoryException(error, e);
+			}
+		}
+	}
+
+	private void updateFile(RepositoryLayout layout, String gistId, String filename, FileDefinition definition) {
+		try {
+			FileUtils.write(new File(layout.getGistFolder(), filename), definition.getContent(),
+					CharEncoding.UTF_8);
+		} catch (IOException e) {
+			GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
+					"Could not update {} for gist {}", filename, gistId);
+			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
+			throw new GistRepositoryException(error, e);
+		}
+	}
+
+	private void deleteFile(RepositoryLayout layout, String gistId, String filename) {
+		try {
+			FileUtils.forceDelete(new File(layout.getGistFolder(), filename));
+		} catch (IOException e) {
+			GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
+					"Could not remove {} from gist {}", filename, gistId);
+			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
+			throw new GistRepositoryException(error, e);
+		}
 	}
 
 	private void stageAllChanges(Status status, Repository repository) {
