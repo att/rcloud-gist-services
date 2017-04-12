@@ -56,7 +56,7 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 
 	private Repository repository;
 
-	private List<GistHistory> knownHistory;
+	private String commitId;
 
 	public Repository getRepository() {
 		return repository;
@@ -75,30 +75,24 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 	//TODO need to check that this is the right way.
 	private List<GistHistory> map(Repository repository, List<Commit> commits) {
 		List<GistHistory> histories = new ArrayList<>();
-		String lastKnownCommitId = getLastKnownCommitId();
+		boolean recordHistory = commitId == null;
 		for (Commit logCommit : commits) {
 			try {
-				if(!lastKnownCommitId.equals(logCommit.getId())) {
+				if(commitId != null && logCommit.getId().equals(commitId)) {
+					recordHistory = true;
+				}
+				if(recordHistory) {
 					GistHistory history = create(repository, logCommit);
 					histories.add(history);
-				} else {
-					break;
+					
 				}
 			} catch (GitAPIException | IOException e) {
 				logger.error(String.format("Could not extract diff of commit %s.", logCommit.getId()), e);
 			}
 		}
-		histories.addAll(this.knownHistory);
 		return histories;
 	}
 
-	private String getLastKnownCommitId() {
-		String lastKnownCommit = "";
-		if(!this.knownHistory.isEmpty()) {
-			lastKnownCommit = this.knownHistory.get(0).getVersion();
-		}
-		return lastKnownCommit;
-	}
 
 	private GistHistory create(Repository repository, Commit logCommit) throws GitAPIException, IOException {
 		ShowOp showOp = new ShowOp(repository);
@@ -137,8 +131,9 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 		history.setVersion(logCommit.getId());
 	}
 
-	public void setknownHistory(List<GistHistory> history) {
-		this.knownHistory = history;
+	public void setCommitId(String commitId) {
+		this.commitId = commitId;
 	}
+
 
 }

@@ -126,7 +126,7 @@ public class GitGistRepository implements GistRepository, Serializable {
 	}
 
 	private GistResponse readGistInternal(String commitId, UserDetails activeUser) {
-		ReadHistoricalGistOperation op = new ReadHistoricalGistOperation();
+		ReadGistOperation op = new ReadGistOperation();
 		op.setGistId(this.getId());
 		op.setCommentRepository(this.getCommentRepository());
 		op.setHistoryStore(this.historyStore);

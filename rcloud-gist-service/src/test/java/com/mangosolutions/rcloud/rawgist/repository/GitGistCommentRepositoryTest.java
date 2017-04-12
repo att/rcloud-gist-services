@@ -40,6 +40,7 @@ import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistHistoryStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
+import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
 
 
 @RunWith(SpringRunner.class)
@@ -67,7 +68,7 @@ public class GitGistCommentRepositoryTest {
 	@Before
 	public void setup() {
 		File repositoryFolder = folder.getRoot();
-		gistId = UUID.randomUUID().toString();
+		gistId = new UUIDGistIdGenerator().generateId();
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		userDetails = new User("gist_user", "gist_user_pwd", authorities);
 		metadataStore = new GistMetadataStore();
