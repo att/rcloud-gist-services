@@ -12,11 +12,14 @@ import org.ajoberstar.grgit.Status;
 import org.ajoberstar.grgit.Status.Changes;
 import org.ajoberstar.grgit.operation.AddOp;
 import org.ajoberstar.grgit.operation.CleanOp;
+import org.ajoberstar.grgit.operation.CloneOp;
 import org.ajoberstar.grgit.operation.CommitOp;
+import org.ajoberstar.grgit.operation.FetchOp;
 import org.ajoberstar.grgit.operation.OpenOp;
+import org.ajoberstar.grgit.operation.PushOp;
 import org.ajoberstar.grgit.operation.ResetOp;
-import org.ajoberstar.grgit.operation.RmOp;
 import org.ajoberstar.grgit.operation.ResetOp.Mode;
+import org.ajoberstar.grgit.operation.RmOp;
 import org.ajoberstar.grgit.operation.StatusOp;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
@@ -50,12 +53,33 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 	
 	@Override
 	public GistResponse call() {
+		
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(this.getLayout().getGistFolder());
-		try (Grgit git = openOp.call()) {
+		openOp.setDir(this.getLayout().getWorkingFolder());
+		try (Grgit git = createOrOpenWorkingCopy()) {
 			createMetadata();
 			saveContent(git);
 			return this.readGist(git);
+		}
+	}
+
+	private Grgit createOrOpenWorkingCopy() {
+		File workingFolder = this.getLayout().getWorkingFolder();
+		File gitFile = new File(workingFolder, ".git");
+		if(!gitFile.exists()) {
+			//clone bare repo
+			CloneOp cloneOp = new CloneOp();
+			cloneOp.setDir(workingFolder);
+			cloneOp.setUri(this.getLayout().getBareFolder().getAbsolutePath());
+			return cloneOp.call();
+		} else {
+			OpenOp openOp = new OpenOp();
+			openOp.setDir(this.getLayout().getWorkingFolder());
+			Grgit git =  openOp.call();
+			cleanRepository(git);
+			FetchOp fetchOp = new FetchOp(git.getRepository());
+			fetchOp.call();
+			return git;
 		}
 	}
 
@@ -115,12 +139,14 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 			commitOp.setAuthor(person);
 			commitOp.setMessage("");
 			commitOp.call();
+			PushOp pushOp = new PushOp(git.getRepository());
+			pushOp.call();
 		}
 	}
 
 	private void moveFile(RepositoryLayout layout, String gistId, String filename, FileDefinition definition) {
-		File oldFile = new File(layout.getGistFolder(), filename);
-		File newFile = new File(layout.getGistFolder(), definition.getFilename());
+		File oldFile = new File(layout.getWorkingFolder(), filename);
+		File newFile = new File(layout.getWorkingFolder(), definition.getFilename());
 		if (!oldFile.equals(newFile)) {
 			try {
 				FileUtils.moveFile(oldFile, newFile);
@@ -128,7 +154,7 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 				GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
 						"Could not move {} to {} for gist {}", filename, definition.getFilename(),
 						gistId);
-				logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
+				logger.error(error.getFormattedMessage() + " with folder path {}", layout.getWorkingFolder());
 				throw new GistRepositoryException(error, e);
 			}
 		}
@@ -136,23 +162,23 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 
 	private void updateFile(RepositoryLayout layout, String gistId, String filename, FileDefinition definition) {
 		try {
-			FileUtils.write(new File(layout.getGistFolder(), filename), definition.getContent(),
+			FileUtils.write(new File(layout.getWorkingFolder(), filename), definition.getContent(),
 					CharEncoding.UTF_8);
 		} catch (IOException e) {
 			GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
 					"Could not update {} for gist {}", filename, gistId);
-			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
+			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getWorkingFolder());
 			throw new GistRepositoryException(error, e);
 		}
 	}
 
 	private void deleteFile(RepositoryLayout layout, String gistId, String filename) {
 		try {
-			FileUtils.forceDelete(new File(layout.getGistFolder(), filename));
+			FileUtils.forceDelete(new File(layout.getWorkingFolder(), filename));
 		} catch (IOException e) {
 			GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
 					"Could not remove {} from gist {}", filename, gistId);
-			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
+			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getWorkingFolder());
 			throw new GistRepositoryException(error, e);
 		}
 	}

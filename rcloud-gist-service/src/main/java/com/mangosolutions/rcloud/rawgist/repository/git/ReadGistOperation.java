@@ -108,7 +108,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	@Override
 	public GistResponse call() {
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(layout.getGistFolder());
+		openOp.setDir(layout.getBareFolder());
 		try (Grgit git = openOp.call()) {
 			
 			return this.readGist(git);

@@ -39,17 +39,19 @@ public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout>
 		createRootFolder(layout);
 		createCommentsFolder(layout);
 		createGistFolder(layout);
+		createWorkingFolder(layout);
 		initGistRepo(layout);
 		return layout;
 	}
 
 	private void initGistRepo(RepositoryLayout layout) {
-		File gistFolder = layout.getGistFolder();
+		File gistFolder = layout.getBareFolder();
 		File gitFolder = new File(gistFolder, ".git");
 		if(!gitFolder.exists()) {
 			try {
 				InitOp initOp = new InitOp();
 				initOp.setDir(gistFolder);
+				initOp.setBare(true);
 				initOp.call();
 			} catch (GrgitException e) {
 				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage location for gist");
@@ -64,8 +66,12 @@ public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout>
 	}
 
 	private void createGistFolder(RepositoryLayout layout) {
-		mkdir(layout.getGistFolder());
+		mkdir(layout.getBareFolder());
 	}
+	
+	private void createWorkingFolder(RepositoryLayout layout) {
+		mkdir(layout.getWorkingFolder());
+	}	
 
 	private void createRootFolder(RepositoryLayout layout) {
 		mkdir(layout.getRootFolder());

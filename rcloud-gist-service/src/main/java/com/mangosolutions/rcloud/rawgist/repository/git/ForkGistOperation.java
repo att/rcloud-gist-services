@@ -38,7 +38,7 @@ public class ForkGistOperation extends ReadGistOperation {
 	@Override
 	public GistResponse call() {
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(this.getLayout().getGistFolder());
+		openOp.setDir(this.getLayout().getBareFolder());
 		try (Grgit git = openOp.call()) {
 			this.forkGist();
 			return this.readGist(git);
@@ -55,7 +55,7 @@ public class ForkGistOperation extends ReadGistOperation {
 		} catch (IOException e) {
 			GistError error = new GistError(GistErrorCode.ERR_GIST_FORK_FAILURE,
 					"Could not fork gist {} to a new gist with id {}", originalRepository.getId(), this.getGistId());
-			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getGistFolder());
+			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getBareFolder());
 			throw new GistRepositoryException(error, e);
 		}
 	}

@@ -9,7 +9,9 @@ public class RepositoryLayout implements Serializable {
 
 	public static final String GIST_META_FILE = "gist.json";
 	
-	public static final String GIST_REPOSITORY_FOLDER = "repo";
+	public static final String GIST_BARE_REPOSITORY_FOLDER = "repo";
+	
+	public static final String GIST_WORKING_REPOSITORY_FOLDER = ".work";
 	
 	public static final String COMMENT_REPOSITORY_FOLDER = "comments";
 	
@@ -21,16 +23,19 @@ public class RepositoryLayout implements Serializable {
 	
 	private File commentsFile;
 	
-	private File gistFolder;
+	private File bareFolder;
 	
 	private File metadataFile;
+	
+	private File workingFolder;
 	
 	public RepositoryLayout(File root) {
 		rootFolder = root;
 		commentsFolder = new File(root, COMMENT_REPOSITORY_FOLDER);
 		commentsFile = new File(commentsFolder, COMMENTS_FILE);
-		gistFolder = new File(root, GIST_REPOSITORY_FOLDER);
+		bareFolder = new File(root, GIST_BARE_REPOSITORY_FOLDER);
 		metadataFile = new File(rootFolder, GIST_META_FILE);
+		workingFolder = new File(rootFolder, GIST_WORKING_REPOSITORY_FOLDER);
 	}
 
 	public File getCommentsFolder() {
@@ -49,12 +54,12 @@ public class RepositoryLayout implements Serializable {
 		this.commentsFile = commentsFile;
 	}
 
-	public File getGistFolder() {
-		return gistFolder;
+	public File getBareFolder() {
+		return bareFolder;
 	}
 
-	public void setGistFolder(File gistFolder) {
-		this.gistFolder = gistFolder;
+	public void setBareFolder(File bareFolder) {
+		this.bareFolder = bareFolder;
 	}
 
 	public File getMetadataFile() {
@@ -73,15 +78,24 @@ public class RepositoryLayout implements Serializable {
 		this.rootFolder = rootFolder;
 	}
 
+	public File getWorkingFolder() {
+		return workingFolder;
+	}
+
+	public void setWorkingFolder(File workingFolder) {
+		this.workingFolder = workingFolder;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((commentsFile == null) ? 0 : commentsFile.hashCode());
 		result = prime * result + ((commentsFolder == null) ? 0 : commentsFolder.hashCode());
-		result = prime * result + ((gistFolder == null) ? 0 : gistFolder.hashCode());
+		result = prime * result + ((bareFolder == null) ? 0 : bareFolder.hashCode());
 		result = prime * result + ((metadataFile == null) ? 0 : metadataFile.hashCode());
 		result = prime * result + ((rootFolder == null) ? 0 : rootFolder.hashCode());
+		result = prime * result + ((workingFolder == null) ? 0 : workingFolder.hashCode());
 		return result;
 	}
 
@@ -104,10 +118,10 @@ public class RepositoryLayout implements Serializable {
 				return false;
 		} else if (!commentsFolder.equals(other.commentsFolder))
 			return false;
-		if (gistFolder == null) {
-			if (other.gistFolder != null)
+		if (bareFolder == null) {
+			if (other.bareFolder != null)
 				return false;
-		} else if (!gistFolder.equals(other.gistFolder))
+		} else if (!bareFolder.equals(other.bareFolder))
 			return false;
 		if (metadataFile == null) {
 			if (other.metadataFile != null)
@@ -119,13 +133,19 @@ public class RepositoryLayout implements Serializable {
 				return false;
 		} else if (!rootFolder.equals(other.rootFolder))
 			return false;
+		if (workingFolder == null) {
+			if (other.workingFolder != null)
+				return false;
+		} else if (!workingFolder.equals(other.workingFolder))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
 		return "RepositoryLayout [rootFolder=" + rootFolder + ", commentsFolder=" + commentsFolder + ", commentsFile="
-				+ commentsFile + ", gistFolder=" + gistFolder + ", metadataFile=" + metadataFile + "]";
+				+ commentsFile + ", gistFolder=" + bareFolder + ", metadataFile=" + metadataFile + ", workingFolder="
+				+ workingFolder + "]";
 	}
 	
 	
