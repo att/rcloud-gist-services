@@ -34,12 +34,15 @@ public class GitGistRepository implements GistRepository, Serializable {
 	
 	private CommentStore commentStore;
 
-	private HistoryStore historyStore;
+	private HistoryCache historyStore;
+	
+	private FileContentCache fileContentCache;
 
-	public GitGistRepository(File repositoryFolder, MetadataStore metadataStore, CommentStore commentStore, HistoryStore historyStore) {
+	public GitGistRepository(File repositoryFolder, MetadataStore metadataStore, CommentStore commentStore, HistoryCache historyStore, FileContentCache fileContentCache) {
 		this.metadataStore = metadataStore;
 		this.commentStore = commentStore;
 		this.historyStore = historyStore;
+		this.fileContentCache = fileContentCache;
 		InitRepositoryLayoutOperation op = new InitRepositoryLayoutOperation(repositoryFolder);
 		this.layout = op.call();
 	}
@@ -70,7 +73,7 @@ public class GitGistRepository implements GistRepository, Serializable {
 		CreateOrUpdateGistOperation op = new CreateOrUpdateGistOperation();
 		op.setGistId(gistId);
 		op.setCommentRepository(this.getCommentRepository());
-		op.setHistoryStore(this.historyStore);
+		op.setHistorycache(this.historyStore);
 		op.setLayout(this.layout);
 		op.setMetadataStore(this.metadataStore);
 		op.setUser(userDetails);
@@ -83,7 +86,7 @@ public class GitGistRepository implements GistRepository, Serializable {
 		ForkGistOperation op = new ForkGistOperation();
 		op.setGistId(gistId);
 		op.setCommentRepository(this.getCommentRepository());
-		op.setHistoryStore(this.historyStore);
+		op.setHistorycache(this.historyStore);
 		op.setLayout(this.layout);
 		op.setMetadataStore(this.metadataStore);
 		op.setUser(userDetails);
@@ -97,7 +100,7 @@ public class GitGistRepository implements GistRepository, Serializable {
 		CreateOrUpdateGistOperation op = new CreateOrUpdateGistOperation();
 		op.setGistId(this.getId());
 		op.setCommentRepository(this.getCommentRepository());
-		op.setHistoryStore(this.historyStore);
+		op.setHistorycache(this.historyStore);
 		op.setLayout(this.layout);
 		op.setMetadataStore(this.metadataStore);
 		op.setUser(userDetails);
@@ -129,11 +132,12 @@ public class GitGistRepository implements GistRepository, Serializable {
 		ReadGistOperation op = new ReadGistOperation();
 		op.setGistId(this.getId());
 		op.setCommentRepository(this.getCommentRepository());
-		op.setHistoryStore(this.historyStore);
+		op.setHistorycache(this.historyStore);
 		op.setLayout(this.layout);
 		op.setMetadataStore(this.metadataStore);
 		op.setUser(activeUser);
 		op.setCommitId(commitId);
+		op.setFileContentCache(fileContentCache);
 		return op.call();
 	}
 	
@@ -141,10 +145,11 @@ public class GitGistRepository implements GistRepository, Serializable {
 		ReadGistOperation op = new ReadGistOperation();
 		op.setGistId(this.getId());
 		op.setCommentRepository(this.getCommentRepository());
-		op.setHistoryStore(this.historyStore);
+		op.setHistorycache(this.historyStore);
 		op.setLayout(this.layout);
 		op.setMetadataStore(this.metadataStore);
 		op.setUser(activeUser);
+		op.setFileContentCache(fileContentCache);
 		return op.call();
 	}
 

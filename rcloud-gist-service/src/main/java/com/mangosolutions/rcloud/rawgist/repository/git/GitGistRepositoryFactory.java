@@ -22,7 +22,10 @@ public class GitGistRepositoryFactory implements GistRepositoryFactory {
 	private CommentStore commentStore; 
 	
 	@Autowired
-	private HistoryStore historyStore; 
+	private HistoryCache historyStore;
+	
+	@Autowired
+	private FileContentCache fileContentCache; 
 	
 	public ObjectMapper getMapper() {
 		return mapper;
@@ -33,7 +36,7 @@ public class GitGistRepositoryFactory implements GistRepositoryFactory {
 	}
 
 	public GistRepository getRepository(File folder) {
-		return new GitGistRepository(folder, metadataStore, commentStore, historyStore);
+		return new GitGistRepository(folder, metadataStore, commentStore, historyStore, fileContentCache);
 	}
 	
 }

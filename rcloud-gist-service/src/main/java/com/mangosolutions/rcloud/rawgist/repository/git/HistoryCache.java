@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 
-public interface HistoryStore {
+public interface HistoryCache {
 
 	public List<GistHistory> load(String commitId);
 	

@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,8 +35,9 @@ import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.git.DefaultFileContentCache;
+import com.mangosolutions.rcloud.rawgist.repository.git.DefaultHistoryCache;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
-import com.mangosolutions.rcloud.rawgist.repository.git.GistHistoryStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
 import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
@@ -75,7 +75,7 @@ public class GitGistCommentRepositoryTest {
 		metadataStore.setObjectMapper(objectMapper);
 		commentStore = new GistCommentStore();
 		commentStore.setObjectMapper(objectMapper);
-		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore, new GistHistoryStore());
+		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore, new DefaultHistoryCache(), new DefaultFileContentCache());
 	}
 
 	@Test

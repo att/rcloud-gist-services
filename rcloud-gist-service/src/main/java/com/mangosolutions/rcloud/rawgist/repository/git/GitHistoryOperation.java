@@ -59,7 +59,7 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 
 	private String commitId;
 	
-	private HistoryStore historyStore = new HistoryStore() {
+	private HistoryCache historyStore = new HistoryCache() {
 
 		@Override
 		public List<GistHistory> load(String commitId) {
@@ -158,7 +158,7 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 		this.commitId = commitId;
 	}
 
-	public void setHistoryStore(HistoryStore historyStore) {
+	public void setHistoryStore(HistoryCache historyStore) {
 		this.historyStore = historyStore;
 	}
 

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 
 @Component
-public class GistHistoryStore implements HistoryStore {
+public class DefaultHistoryCache implements HistoryCache {
 
 	@Override
 	@Cacheable(value = "historystore", key = "#commitId")

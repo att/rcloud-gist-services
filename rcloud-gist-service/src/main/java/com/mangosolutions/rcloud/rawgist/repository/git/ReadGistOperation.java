@@ -51,7 +51,21 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	
 	private MetadataStore metadataStore;
 	
-	private HistoryStore historyStore;
+	private HistoryCache historyStore;
+	
+	private FileContentCache fileContentCache = new FileContentCache() {
+
+		@Override
+		public FileContent load(String contentId) {
+			return null;
+		}
+
+		@Override
+		public FileContent save(String contentId, FileContent content) {
+			return content;
+		}
+		
+	};
 	
 	private String gistId;
 	
@@ -119,28 +133,30 @@ public class ReadGistOperation implements Callable<GistResponse> {
 
 	private FileContent readContent(Repository repository, TreeWalk treeWalk) {
 		
-		FileContent content = new FileContent();
 		ObjectId objectId = treeWalk.getObjectId(0);
-		String fileName = treeWalk.getPathString();
-		try {
-			content.setFilename(fileName);
-			ObjectLoader loader = repository.open(objectId);
-			
-			content.setContent(new String(loader.getBytes(), Charsets.UTF_8));
-			content.setSize(loader.getSize());
-			content.setTruncated(false);
-			// TODO the language
-			String language = FilenameUtils.getExtension(fileName);
-			if (!GitGistRepository.B64_BINARY_EXTENSION.equals(language) && !StringUtils.isEmpty(language)) {
-				content.setLanguage(language);
+		FileContent content = fileContentCache.load(objectId.getName());
+		if(content == null) {
+			content = new FileContent(); 
+			String fileName = treeWalk.getPathString();
+			try {
+				content.setFilename(fileName);
+				ObjectLoader loader = repository.open(objectId);
+				
+				content.setContent(new String(loader.getBytes(), Charsets.UTF_8));
+				content.setSize(loader.getSize());
+				content.setTruncated(false);
+				String language = FilenameUtils.getExtension(fileName);
+				if (!GitGistRepository.B64_BINARY_EXTENSION.equals(language) && !StringUtils.isEmpty(language)) {
+					content.setLanguage(language);
+				}
+				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(fileName));
+				fileContentCache.save(objectId.getName(), content);
+			} catch (IOException e) {
+				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_READABLE,
+						"Could not read content of {} for gist {}", fileName, gistId);
+				logger.error(error.getFormattedMessage() + " with path {}", this.layout.getRootFolder(), e);
+				throw new GistRepositoryError(error, e);
 			}
-			// TODO mimetype
-			content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(fileName));
-		} catch (IOException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_READABLE,
-					"Could not read content of {} for gist {}", fileName, gistId);
-			logger.error(error.getFormattedMessage() + " with path {}", this.layout.getRootFolder(), e);
-			throw new GistRepositoryError(error, e);
 		}
 		return content;
 	}
@@ -199,19 +215,15 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		this.layout = layout;
 	}
 
-	public MetadataStore getMetadataStore() {
-		return metadataStore;
-	}
-
 	public void setMetadataStore(MetadataStore metadataStore) {
 		this.metadataStore = metadataStore;
 	}
-
-	public HistoryStore getHistoryStore() {
-		return historyStore;
+	
+	public MetadataStore getMetadataStore() {
+		return this.metadataStore;
 	}
 
-	public void setHistoryStore(HistoryStore historyStore) {
+	public void setHistorycache(HistoryCache historyStore) {
 		this.historyStore = historyStore;
 	}
 
@@ -231,8 +243,8 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		this.commitId = commitId;
 	}
 
+	public void setFileContentCache(FileContentCache fileContentCache) {
+		this.fileContentCache = fileContentCache;
+	}
 
-
-	
-	
 }
