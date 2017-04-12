@@ -8,6 +8,7 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -57,6 +58,20 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 	private Repository repository;
 
 	private String commitId;
+	
+	private HistoryStore historyStore = new HistoryStore() {
+
+		@Override
+		public List<GistHistory> load(String commitId) {
+			return new LinkedList<>();
+		}
+
+		@Override
+		public List<GistHistory> save(String commitId, List<GistHistory> history) {
+			return history;
+		}
+		
+	};
 
 	public Repository getRepository() {
 		return repository;
@@ -69,19 +84,26 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 	public List<GistHistory> call() {
 		LogOp logOp = new LogOp(repository);
 		List<Commit> commits = logOp.call();
-		return map(repository, commits);
+		return calculateHistory(repository, commits);
 	}
 
-	//TODO need to check that this is the right way.
-	private List<GistHistory> map(Repository repository, List<Commit> commits) {
+	private List<GistHistory> calculateHistory(Repository repository, List<Commit> commits) {
 		List<GistHistory> histories = new ArrayList<>();
 		boolean recordHistory = commitId == null;
 		for (Commit logCommit : commits) {
+			if(this.commitId == null) {
+				this.commitId = logCommit.getId();
+			}
 			try {
 				if(commitId != null && logCommit.getId().equals(commitId)) {
 					recordHistory = true;
 				}
 				if(recordHistory) {
+					List<GistHistory> cachedHistory = historyStore.load(logCommit.getId());
+					if(!cachedHistory.isEmpty()) {
+						histories.addAll(cachedHistory);
+						break;
+					}
 					GistHistory history = create(repository, logCommit);
 					histories.add(history);
 					
@@ -90,6 +112,7 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 				logger.error(String.format("Could not extract diff of commit %s.", logCommit.getId()), e);
 			}
 		}
+		this.historyStore.save(this.commitId, histories);
 		return histories;
 	}
 
@@ -133,6 +156,10 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 
 	public void setCommitId(String commitId) {
 		this.commitId = commitId;
+	}
+
+	public void setHistoryStore(HistoryStore historyStore) {
+		this.historyStore = historyStore;
 	}
 
 

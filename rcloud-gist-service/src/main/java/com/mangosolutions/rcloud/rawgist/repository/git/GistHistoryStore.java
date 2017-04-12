@@ -13,14 +13,14 @@ import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 public class GistHistoryStore implements HistoryStore {
 
 	@Override
-	@Cacheable(value = "historystore", key = "#gistId")
-	public List<GistHistory> load(String gistId) {
+	@Cacheable(value = "historystore", key = "#commitId")
+	public List<GistHistory> load(String commitId) {
 		return new ArrayList<GistHistory>();
 	}
 
 	@Override
-	@CachePut(cacheNames = "historystore", key = "#gistId")
-	public List<GistHistory> save(String gistId, List<GistHistory> history) {
+	@CachePut(cacheNames = "historystore", key = "#commitId")
+	public List<GistHistory> save(String commitId, List<GistHistory> history) {
 		return history;
 	}
 

@@ -6,8 +6,8 @@ import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 
 public interface HistoryStore {
 
-	public List<GistHistory> load(String gistId);
+	public List<GistHistory> load(String commitId);
 	
-	public List<GistHistory> save(String gistId, List<GistHistory> history);
+	public List<GistHistory> save(String commitId, List<GistHistory> history);
 
 }

@@ -1,8 +1,6 @@
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,13 +10,8 @@ import javax.activation.MimetypesFileTypeMap;
 
 import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.operation.OpenOp;
-import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.Charsets;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.FileFileFilter;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -69,22 +62,22 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		OpenOp openOp = new OpenOp();
 		openOp.setDir(layout.getGistFolder());
 		try (Grgit git = openOp.call()) {
+			
 			return this.readGist(git);
 		}
 	}
 
 	protected GistResponse readGist(Grgit git) {
 		try {
+			Repository repository = git.getRepository().getJgit().getRepository();
+			RevCommit revCommit = resolveCommit(repository);
 			GistResponse response = new GistResponse();
 	
-	//		fileContent = new LinkedHashMap<String, FileContent>();
-			Collection<File> fileList = FileUtils.listFiles(layout.getGistFolder(), FileFileFilter.FILE, FileFilterUtils
-					.and(TrueFileFilter.INSTANCE, FileFilterUtils.notFileFilter(FileFilterUtils.nameFileFilter(".git"))));
 			Map<String, FileContent> fileContent;
-			fileContent = getFileContent(git);
+			fileContent = getFileContent(repository, revCommit);
 			response.setFiles(fileContent);
 			response.setComments(this.commentRepository.getComments(user).size());
-			List<GistHistory> history = getHistory(git);
+			List<GistHistory> history = getHistory(git, revCommit);
 			response.setHistory(history);
 			applyMetadata(response);
 			return response;
@@ -96,12 +89,10 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		}
 	}
 
-	private Map<String, FileContent> getFileContent(Grgit git) throws MissingObjectException, IncorrectObjectTypeException, CorruptObjectException, IOException {
+	private Map<String, FileContent> getFileContent(Repository repository, RevCommit commit) throws MissingObjectException, IncorrectObjectTypeException, CorruptObjectException, IOException {
 		Map<String, FileContent> fileContent = new LinkedHashMap<String, FileContent>();
-		Repository repository = git.getRepository().getJgit().getRepository();
-		RevCommit commit = resolveCommit(repository);
 		RevTree tree = commit.getTree();
-		try (TreeWalk treeWalk = new TreeWalk(git.getRepository().getJgit().getRepository())) {
+		try (TreeWalk treeWalk = new TreeWalk(repository)) {
             treeWalk.addTree(tree);
             treeWalk.setRecursive(true);
             treeWalk.setPostOrderTraversal(false);
@@ -176,16 +167,12 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		return metadataStore.load(layout.getMetadataFile());
 	}
 
-	private List<GistHistory> getHistory(Grgit git) {
-		String gistId = this.gistId;
-		List<GistHistory> history = null; //historyStore.load(gistId);
+	private List<GistHistory> getHistory(Grgit git, RevCommit commit) {
 		GitHistoryOperation historyOperation = new GitHistoryOperation();
 		historyOperation.setCommitId(commitId);
 		historyOperation.setRepository(git.getRepository());
-//		historyOperation.setknownHistory(history);
-		history = historyOperation.call();
-//		historyStore.save(gistId, history);
-		return history;
+		historyOperation.setHistoryStore(historyStore);
+		return historyOperation.call();
 	}
 	
 	public UserDetails getUser() {
