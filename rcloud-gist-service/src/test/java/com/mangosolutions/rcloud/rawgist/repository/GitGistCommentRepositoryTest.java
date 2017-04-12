@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,10 +35,9 @@ import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
-import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
-import com.mangosolutions.rcloud.rawgist.repository.git.GistHistoryStore;
-import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistOperationFactory;
 import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
+import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
 
 
 @RunWith(SpringRunner.class)
@@ -54,12 +52,10 @@ public class GitGistCommentRepositoryTest {
 
 	private UserDetails userDetails;
 
+	private GistOperationFactory gistOperationFactory;
+	
 	@Autowired
 	private ObjectMapper objectMapper;
-	
-	private GistMetadataStore metadataStore;
-	
-	private GistCommentStore commentStore;
 
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
@@ -67,14 +63,11 @@ public class GitGistCommentRepositoryTest {
 	@Before
 	public void setup() {
 		File repositoryFolder = folder.getRoot();
-		gistId = UUID.randomUUID().toString();
+		gistId = new UUIDGistIdGenerator().generateId();
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		userDetails = new User("gist_user", "gist_user_pwd", authorities);
-		metadataStore = new GistMetadataStore();
-		metadataStore.setObjectMapper(objectMapper);
-		commentStore = new GistCommentStore();
-		commentStore.setObjectMapper(objectMapper);
-		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore, new GistHistoryStore());
+		gistOperationFactory = new GistOperationFactory(objectMapper);
+		repository = new GitGistRepository(repositoryFolder, gistOperationFactory);
 	}
 
 	@Test
@@ -94,7 +87,7 @@ public class GitGistCommentRepositoryTest {
 		String expectedFilename = "i_am_file.R";
 		String expectedContent = "I am the content of the file";
 		this.createGist(expectedDescription, new String[]{expectedFilename, expectedContent});
-		GistResponse response = repository.getGist(userDetails);
+		GistResponse response = repository.readGist(userDetails);
 		validateResponse(1, expectedDescription, expectedFilename, expectedContent, response);
 		validateHistory(response, 1);
 	}
@@ -158,7 +151,7 @@ public class GitGistCommentRepositoryTest {
 
 		GistHistory history = response.getHistory().get(1);
 		String commitId = history.getVersion();
-		response = repository.getGist(commitId, userDetails);
+		response = repository.readGist(commitId, userDetails);
 		validateResponse(2, expectedDescription, initialFilename, initialContent, response);
 		validateResponse(2, expectedDescription, newFilename, newContent, response);
 		validateHistory(response, 2);
@@ -181,7 +174,7 @@ public class GitGistCommentRepositoryTest {
 		GistRequest request = createGistRequest(null, new String[]{newFilename, newContent});
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		UserDetails userDetails = new User("another_gist_user", "gist_user_pwd", authorities);
-		response = repository.editGist(request, userDetails);
+		response = repository.updateGist(request, userDetails);
 		validateResponse(2, expectedDescription, newFilename, newContent, response);
 		GistHistory history = response.getHistory().get(0);
 		Assert.assertEquals(userDetails.getUsername(), history.getUser().getLogin());
@@ -189,7 +182,7 @@ public class GitGistCommentRepositoryTest {
 
 	private GistResponse updateGist(String[] contents) {
 		GistRequest request = createGistRequest(null, contents);
-		return repository.editGist(request, userDetails);
+		return repository.updateGist(request, userDetails);
 	}
 
 	private GistResponse createGist(String description, String[]... contents) {

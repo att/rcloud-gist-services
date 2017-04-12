@@ -75,5 +75,8 @@ caches:
     name: 'historystore'
     evictionPolicy: LRU
     ttl: 300
-    
+  - 
+    name: 'filecontentcache'
+    evictionPolicy: LRU
+    ttl: 300    
     

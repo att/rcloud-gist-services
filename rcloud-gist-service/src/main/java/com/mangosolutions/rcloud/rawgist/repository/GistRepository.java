@@ -18,15 +18,15 @@ public interface GistRepository {
 
 	File getGistRepositoryFolder(UserDetails userDetails);
 
-	GistResponse getGist(UserDetails userDetails);
+	GistResponse readGist(UserDetails userDetails);
 
-	GistResponse getGist(String commitId, UserDetails userDetails);
+	GistResponse readGist(String commitId, UserDetails userDetails);
 
 	GistResponse createGist(GistRequest request, String gistId, UserDetails userDetails);
 
-	GistResponse editGist(GistRequest request, UserDetails userDetails);
+	GistResponse updateGist(GistRequest request, UserDetails userDetails);
 
-	GistResponse fork(GistRepository forkedRepository, String gistId, UserDetails userDetails);
+	GistResponse forkGist(GistRepository forkedRepository, String gistId, UserDetails userDetails);
 
 	String getId();
 

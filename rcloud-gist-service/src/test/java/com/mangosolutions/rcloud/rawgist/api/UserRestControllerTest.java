@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +30,7 @@ import com.mangosolutions.rcloud.rawgist.Application;
 @SpringBootTest(classes = Application.class)
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @WebAppConfiguration
+@ActiveProfiles({"test", "default"})
 public class UserRestControllerTest {
 
 	public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
