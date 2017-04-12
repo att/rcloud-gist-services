@@ -20,25 +20,10 @@ public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout>
 	
 	private File repositoryRoot;
 	
-//	private String gistId;
-
 	public InitRepositoryLayoutOperation(File repositoryRoot) {
 		this.repositoryRoot = repositoryRoot;
 	}
 	
-//	public InitGistOperation(String gistId, File repositoryRoot) {
-//		this.gistId = gistId;
-//		this.repositoryRoot = repositoryRoot;
-//	}
-	
-//	public String getGistId() {
-//		return gistId;
-//	}
-//
-//	public void setGistId(String gistId) {
-//		this.gistId = gistId;
-//	}
-
 	public File getRepositoryRoot() {
 		return repositoryRoot;
 	}

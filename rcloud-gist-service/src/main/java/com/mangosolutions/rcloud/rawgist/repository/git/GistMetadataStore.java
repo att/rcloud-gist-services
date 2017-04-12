@@ -23,6 +23,14 @@ public class GistMetadataStore implements MetadataStore {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	public GistMetadataStore() {
+		this.objectMapper = new ObjectMapper();
+	}
+	
+	@Autowired
+	public GistMetadataStore(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 	
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
@@ -31,6 +39,7 @@ public class GistMetadataStore implements MetadataStore {
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
+	
 
 	@Override
 	@Cacheable(value = "metadatastore", key = "#store.getAbsolutePath()")

@@ -27,6 +27,15 @@ public class GistCommentStore implements CommentStore {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
+	public GistCommentStore() {
+		this.objectMapper = new ObjectMapper();
+	}
+	
+	@Autowired
+	public GistCommentStore(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
+	
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
 	}

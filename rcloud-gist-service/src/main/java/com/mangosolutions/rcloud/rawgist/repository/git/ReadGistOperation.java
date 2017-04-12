@@ -1,7 +1,9 @@
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -42,16 +44,24 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	private static final Logger logger = LoggerFactory.getLogger(ReadGistOperation.class);
 	
 	public static final String REF_HEAD_MASTER = "refs/heads/master";
-
-	private UserDetails user;
 	
 	private GistCommentRepository commentRepository;
 	
-	private RepositoryLayout layout;
-	
 	private MetadataStore metadataStore;
 	
-	private HistoryCache historyStore;
+	private HistoryCache historyCache = new HistoryCache() {
+
+		@Override
+		public List<GistHistory> load(String commitId) {
+			return new LinkedList<>();
+		}
+
+		@Override
+		public List<GistHistory> save(String commitId, List<GistHistory> history) {
+			return history;
+		}
+		
+	};
 	
 	private FileContentCache fileContentCache = new FileContentCache() {
 
@@ -66,10 +76,34 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		}
 		
 	};
+	private RepositoryLayout layout;
+
+	private UserDetails user;
 	
 	private String gistId;
 	
 	private String commitId = null;
+	
+	
+	public ReadGistOperation(RepositoryLayout layout, String gistId, String commitId, UserDetails user) {
+		this.layout = layout;
+		this.gistId = gistId;
+		this.commitId = commitId;
+		this.user = user;
+	}
+	
+	public ReadGistOperation(File repositoryFolder, String gistId, String commitId, UserDetails user) {
+		this(new RepositoryLayout(repositoryFolder), gistId, commitId, user);
+	}
+	
+	public ReadGistOperation(RepositoryLayout layout, String gistId, UserDetails user) {
+		this(layout, gistId, null, user);
+		
+	}
+	
+	public ReadGistOperation(File repositoryFolder, String gistId, UserDetails user) {
+		this(new RepositoryLayout(repositoryFolder), gistId, user);
+	}
 	
 	@Override
 	public GistResponse call() {
@@ -184,10 +218,8 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	}
 
 	private List<GistHistory> getHistory(Grgit git, RevCommit commit) {
-		GitHistoryOperation historyOperation = new GitHistoryOperation();
-		historyOperation.setCommitId(commitId);
-		historyOperation.setRepository(git.getRepository());
-		historyOperation.setHistoryStore(historyStore);
+		GitHistoryOperation historyOperation = new GitHistoryOperation(git, commit.getName());
+		historyOperation.setHistoryCache(historyCache);
 		return historyOperation.call();
 	}
 	
@@ -224,7 +256,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	}
 
 	public void setHistorycache(HistoryCache historyStore) {
-		this.historyStore = historyStore;
+		this.historyCache = historyStore;
 	}
 
 	public String getGistId() {

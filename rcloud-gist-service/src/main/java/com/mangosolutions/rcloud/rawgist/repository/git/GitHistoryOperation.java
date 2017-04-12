@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 
 import org.ajoberstar.grgit.Commit;
 import org.ajoberstar.grgit.CommitDiff;
+import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Person;
 import org.ajoberstar.grgit.Repository;
 import org.ajoberstar.grgit.operation.LogOp;
@@ -73,6 +74,11 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 		
 	};
 
+	public GitHistoryOperation(Grgit git, String commitId) {
+		this.repository = git.getRepository();
+		this.commitId = commitId;
+	}
+	
 	public Repository getRepository() {
 		return repository;
 	}
@@ -158,7 +164,7 @@ public class GitHistoryOperation implements Callable<List<GistHistory>> {
 		this.commitId = commitId;
 	}
 
-	public void setHistoryStore(HistoryCache historyStore) {
+	public void setHistoryCache(HistoryCache historyStore) {
 		this.historyStore = historyStore;
 	}
 

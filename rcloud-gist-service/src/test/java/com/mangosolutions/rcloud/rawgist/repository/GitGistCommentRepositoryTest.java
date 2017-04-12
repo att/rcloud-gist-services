@@ -35,10 +35,7 @@ import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
-import com.mangosolutions.rcloud.rawgist.repository.git.DefaultFileContentCache;
-import com.mangosolutions.rcloud.rawgist.repository.git.DefaultHistoryCache;
-import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
-import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistOperationFactory;
 import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
 import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
 
@@ -55,12 +52,10 @@ public class GitGistCommentRepositoryTest {
 
 	private UserDetails userDetails;
 
+	private GistOperationFactory gistOperationFactory;
+	
 	@Autowired
 	private ObjectMapper objectMapper;
-	
-	private GistMetadataStore metadataStore;
-	
-	private GistCommentStore commentStore;
 
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
@@ -71,11 +66,8 @@ public class GitGistCommentRepositoryTest {
 		gistId = new UUIDGistIdGenerator().generateId();
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		userDetails = new User("gist_user", "gist_user_pwd", authorities);
-		metadataStore = new GistMetadataStore();
-		metadataStore.setObjectMapper(objectMapper);
-		commentStore = new GistCommentStore();
-		commentStore.setObjectMapper(objectMapper);
-		repository = new GitGistRepository(repositoryFolder, metadataStore, commentStore, new DefaultHistoryCache(), new DefaultFileContentCache());
+		gistOperationFactory = new GistOperationFactory(objectMapper);
+		repository = new GitGistRepository(repositoryFolder, gistOperationFactory);
 	}
 
 	@Test

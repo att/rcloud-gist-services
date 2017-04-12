@@ -28,24 +28,31 @@ public class GitGistRepository implements GistRepository, Serializable {
 
 	static final String B64_BINARY_EXTENSION = "b64";
 
+	private GistOperationFactory gistOperationFactory;
+	
 	private RepositoryLayout layout;
 	
 	private MetadataStore metadataStore;
 	
 	private CommentStore commentStore;
+//
+//	private HistoryCache historyStore;
+//	
+//	private FileContentCache fileContentCache;
 
-	private HistoryCache historyStore;
+	public GitGistRepository(File repositoryFolder) {
+		this(repositoryFolder, new GistOperationFactory());
+	}
 	
-	private FileContentCache fileContentCache;
-
-	public GitGistRepository(File repositoryFolder, MetadataStore metadataStore, CommentStore commentStore, HistoryCache historyStore, FileContentCache fileContentCache) {
-		this.metadataStore = metadataStore;
-		this.commentStore = commentStore;
-		this.historyStore = historyStore;
-		this.fileContentCache = fileContentCache;
+	
+	public GitGistRepository(File repositoryFolder, GistOperationFactory gistOperationFactory) {
+		this.gistOperationFactory = gistOperationFactory; 
+		this.metadataStore = gistOperationFactory.getMetadataStore();
+		this.commentStore = gistOperationFactory.getCommentStore();
 		InitRepositoryLayoutOperation op = new InitRepositoryLayoutOperation(repositoryFolder);
 		this.layout = op.call();
 	}
+	
 	
 	
 	@Override
@@ -70,41 +77,21 @@ public class GitGistRepository implements GistRepository, Serializable {
 
 	@Override
 	public GistResponse createGist(GistRequest request, String gistId, UserDetails userDetails) {
-		CreateOrUpdateGistOperation op = new CreateOrUpdateGistOperation();
-		op.setGistId(gistId);
-		op.setCommentRepository(this.getCommentRepository());
-		op.setHistorycache(this.historyStore);
-		op.setLayout(this.layout);
-		op.setMetadataStore(this.metadataStore);
-		op.setUser(userDetails);
-		op.setGistRequest(request);
+		CreateOrUpdateGistOperation op = gistOperationFactory.getCreateOrUpdateOperation(layout, gistId, request, userDetails);
 		return op.call();
 	}
 	
 	@Override
 	public GistResponse forkGist(GistRepository originalRepository, String gistId, UserDetails userDetails) {
-		ForkGistOperation op = new ForkGistOperation();
-		op.setGistId(gistId);
-		op.setCommentRepository(this.getCommentRepository());
-		op.setHistorycache(this.historyStore);
-		op.setLayout(this.layout);
-		op.setMetadataStore(this.metadataStore);
-		op.setUser(userDetails);
-		op.setOriginalRepository(originalRepository);
-		op.setNewRepository(this);
+		
+		ForkGistOperation op = gistOperationFactory.getForkOperation(layout, gistId, originalRepository, this, userDetails);
 		return op.call();
+
 	}
 
 	@Override
 	public GistResponse updateGist(GistRequest request, UserDetails userDetails) {
-		CreateOrUpdateGistOperation op = new CreateOrUpdateGistOperation();
-		op.setGistId(this.getId());
-		op.setCommentRepository(this.getCommentRepository());
-		op.setHistorycache(this.historyStore);
-		op.setLayout(this.layout);
-		op.setMetadataStore(this.metadataStore);
-		op.setUser(userDetails);
-		op.setGistRequest(request);
+		CreateOrUpdateGistOperation op = gistOperationFactory.getCreateOrUpdateOperation(layout, this.getId(), request, userDetails);
 		return op.call();
 	}
 
@@ -129,31 +116,13 @@ public class GitGistRepository implements GistRepository, Serializable {
 	}
 
 	private GistResponse readGistInternal(String commitId, UserDetails activeUser) {
-		ReadGistOperation op = new ReadGistOperation();
-		op.setGistId(this.getId());
-		op.setCommentRepository(this.getCommentRepository());
-		op.setHistorycache(this.historyStore);
-		op.setLayout(this.layout);
-		op.setMetadataStore(this.metadataStore);
-		op.setUser(activeUser);
-		op.setCommitId(commitId);
-		op.setFileContentCache(fileContentCache);
+		ReadGistOperation op = gistOperationFactory.getReadOperation(layout, this.getId(), activeUser, commitId);
 		return op.call();
 	}
 	
 	private GistResponse readGistInternal(UserDetails activeUser) {
-		ReadGistOperation op = new ReadGistOperation();
-		op.setGistId(this.getId());
-		op.setCommentRepository(this.getCommentRepository());
-		op.setHistorycache(this.historyStore);
-		op.setLayout(this.layout);
-		op.setMetadataStore(this.metadataStore);
-		op.setUser(activeUser);
-		op.setFileContentCache(fileContentCache);
-		return op.call();
+		return this.readGistInternal(null, activeUser);
 	}
-
-
 
 	private void updateForkInformation(GistRepository forkedRepository) {
 		GistMetadata metadata = this.getMetadata();

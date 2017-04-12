@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistError;
@@ -24,6 +25,16 @@ public class ForkGistOperation extends ReadGistOperation {
 
 	private GistRepository newRepository;
 
+	public ForkGistOperation(RepositoryLayout layout, GistRepository originalRepository, GistRepository newRepository, UserDetails user) {
+		super(layout, newRepository.getId(), user);
+		this.originalRepository = originalRepository;
+		this.newRepository = newRepository;
+	}
+	
+	public ForkGistOperation(File repositoryFolder, GistRepository originalRepository, GistRepository newRepository, UserDetails user) {
+		this(new RepositoryLayout(repositoryFolder), originalRepository, newRepository, user);
+	}
+	
 	@Override
 	public GistResponse call() {
 		OpenOp openOp = new OpenOp();

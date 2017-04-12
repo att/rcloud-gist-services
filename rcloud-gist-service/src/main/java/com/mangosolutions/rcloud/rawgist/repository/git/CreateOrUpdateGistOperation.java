@@ -39,6 +39,15 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 
 	private GistRequest gistRequest;
 
+	public CreateOrUpdateGistOperation(RepositoryLayout layout, String gistId, GistRequest gistRequest, UserDetails user) {
+		super(layout, gistId, user);
+		this.gistRequest = gistRequest;
+	}
+	
+	public CreateOrUpdateGistOperation(File repositoryFolder, String gistId, GistRequest gistRequest, UserDetails user) {
+		this(new RepositoryLayout(repositoryFolder), gistId, gistRequest, user);
+	}
+	
 	@Override
 	public GistResponse call() {
 		OpenOp openOp = new OpenOp();
