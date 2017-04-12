@@ -2,9 +2,6 @@ language: java
 sudo: required
 jdk:
 - oraclejdk7
-before_script:
-  - sudo mkdir -p /var/rcloud-gist-service/gists
-  - sudo chmod -R 777 /var/rcloud-gist-service
 deploy:
   provider: releases
   api_key:
