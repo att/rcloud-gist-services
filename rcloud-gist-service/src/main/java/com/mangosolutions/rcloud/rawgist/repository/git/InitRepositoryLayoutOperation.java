@@ -45,17 +45,16 @@ public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout>
 	}
 
 	private void initGistRepo(RepositoryLayout layout) {
-		File gistFolder = layout.getBareFolder();
-		File gitFolder = new File(gistFolder, ".git");
-		if(!gitFolder.exists()) {
+		File bareFolder = layout.getBareFolder();
+		if(bareFolder.list().length == 0) {
 			try {
 				InitOp initOp = new InitOp();
-				initOp.setDir(gistFolder);
+				initOp.setDir(bareFolder);
 				initOp.setBare(true);
 				initOp.call();
 			} catch (GrgitException e) {
 				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage location for gist");
-				logger.error(error.getFormattedMessage() + " with folder path {}", gistFolder);
+				logger.error(error.getFormattedMessage() + " with folder path {}", bareFolder);
 				throw new GistRepositoryError(error, e);
 			}
 		}
