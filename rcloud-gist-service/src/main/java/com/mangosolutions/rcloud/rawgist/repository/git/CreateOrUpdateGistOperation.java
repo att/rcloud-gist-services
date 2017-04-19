@@ -3,26 +3,27 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 
 import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Person;
-import org.ajoberstar.grgit.Repository;
 import org.ajoberstar.grgit.Status;
-import org.ajoberstar.grgit.Status.Changes;
-import org.ajoberstar.grgit.operation.AddOp;
 import org.ajoberstar.grgit.operation.CleanOp;
 import org.ajoberstar.grgit.operation.CommitOp;
 import org.ajoberstar.grgit.operation.OpenOp;
 import org.ajoberstar.grgit.operation.ResetOp;
 import org.ajoberstar.grgit.operation.ResetOp.Mode;
-import org.ajoberstar.grgit.operation.RmOp;
 import org.ajoberstar.grgit.operation.StatusOp;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.RmCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
+import org.eclipse.jgit.treewalk.FileTreeIterator.NoGitlinksStrategy;
+import org.eclipse.jgit.treewalk.WorkingTreeOptions;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,24 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 			createMetadata();
 			saveContent(git);
 			return this.readGist(git);
+		} finally {
+			resetRepo();
+		}
+	}
+
+	private void resetRepo() {
+		Grgit git = openRepository();
+		StoredConfig config = git.getRepository().getJgit().getRepository().getConfig();
+		String workingDirectory = FilenameUtils.normalize(this.getLayout().getWorkingFolder().getAbsolutePath());
+		config.unset("core", null, "worktree");
+		config.setBoolean("core", null, "bare", true);
+		try {
+			config.save();
+		} catch (IOException e) {
+			GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION,
+					"Could not initialise gist repository with id {}, from gist {}", this.getGistId());
+			logger.error(error.getFormattedMessage() + " with folder path {}", workingDirectory, e);
+			throw new GistRepositoryException(error, e);
 		}
 	}
 
@@ -77,7 +96,7 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 			openOp.setDir(this.getLayout().getBareFolder());
 			git = openOp.call();
 		}
-		File workingFolder = git.getRepository().getJgit().getRepository().getWorkTree();
+		File workingFolder = getWorkTree(git);
 		if(!workingFolder.exists()) {
 			try {
 				FileUtils.forceMkdir(workingFolder);
@@ -89,6 +108,13 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 			}
 		}
 		return git;
+	}
+	
+	private File getWorkTree(Grgit git) {
+		if(git.getRepository().getJgit().getRepository().isBare()) {
+			return this.getLayout().getWorkingFolder();			
+		}
+		return git.getRepository().getJgit().getRepository().getWorkTree();
 	}
 
 	private void setupWorkingConfig(Git jgit) {
@@ -142,28 +168,69 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 	}
 
 	private void applyFileChanges(Grgit git, RepositoryLayout layout, Map<String, FileDefinition> files, String gistId) {
+		AddCommand addCommand = null;
+		RmCommand rmCommand = null;
 		for (Map.Entry<String, FileDefinition> file : files.entrySet()) {
 			String filename = file.getKey();
-			File workingFolder = git.getRepository().getJgit().getRepository().getWorkTree();
+			File workingFolder = getWorkTree(git);
 			FileDefinition definition = file.getValue();
 			if (isDelete(definition)) {
 				deleteFile(workingFolder, gistId, filename);
+				rmCommand = applyRmPath(rmCommand, filename, git);
 			}
 			if (isUpdate(definition)) {
 				updateFile(workingFolder, gistId, filename, definition);
+				addCommand = applyAddPath(addCommand, filename, workingFolder, git);
 			}
 
 			if (isMove(definition)) {
 				moveFile(workingFolder, gistId, filename, definition);
+				rmCommand = applyRmPath(rmCommand, filename, git);
+				addCommand = applyAddPath(addCommand, definition.getFilename(), workingFolder, git);
 			}
 		}
+		try {
+			if(addCommand != null) {
+				addCommand.call();
+			}
+			if(rmCommand != null) {
+				rmCommand.call();
+			}
+		} catch (GitAPIException e) {
+			GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
+					"Could not update gist with id {}", this.getGistId());
+			logger.error(error.getFormattedMessage() + " with folder path {}", this.getWorkTree(git), e);
+			throw new GistRepositoryException(error, e);
+		}
+		
+	}
+	
+	private RmCommand applyRmPath(RmCommand rmCommand, String filename, Grgit git) {
+		if(rmCommand == null) {
+			Git jgit = git.getRepository().getJgit();
+			rmCommand = new RmCommand(jgit.getRepository());
+		}
+		return rmCommand.addFilepattern(filename);
+	}
+
+	
+
+	private AddCommand applyAddPath(AddCommand addCommand, String filename, File workingFolder, Grgit git) {
+		if(addCommand == null) {
+			Git jgit = git.getRepository().getJgit();
+			addCommand = new AddCommand(jgit.getRepository());
+			FileTreeIterator iterator = new FileTreeIterator(
+					workingFolder, jgit.getRepository().getFS(),
+					jgit.getRepository().getConfig().get(WorkingTreeOptions.KEY), NoGitlinksStrategy.INSTANCE);
+			addCommand.setWorkingTreeIterator(iterator);
+		}
+		return addCommand.addFilepattern(filename);
 	}
 
 	private void commitChanges(Grgit git, UserDetails userDetails) {
 		StatusOp statusOp = new StatusOp(git.getRepository());
 		Status status = statusOp.call();
 		if (!status.isClean()) {
-			stageAllChanges(status, git.getRepository());
 			CommitOp commitOp = new CommitOp(git.getRepository());
 			Person person = new Person(userDetails.getUsername(), "");
 			commitOp.setCommitter(person);
@@ -209,28 +276,6 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 					"Could not remove {} from gist {}", filename, gistId);
 			logger.error(error.getFormattedMessage() + " with folder path {}", workingFolder);
 			throw new GistRepositoryException(error, e);
-		}
-	}
-
-	private void stageAllChanges(Status status, Repository repository) {
-		Changes changes = status.getUnstaged();
-		Set<String> added = changes.getAdded();
-		Set<String> modified = changes.getModified();
-		Set<String> removed = changes.getRemoved();
-		if (added != null && !added.isEmpty()) {
-			AddOp addOp = new AddOp(repository);
-			addOp.setPatterns(added);
-			addOp.call();
-		}
-		if (modified != null && !modified.isEmpty()) {
-			AddOp addOp = new AddOp(repository);
-			addOp.setPatterns(modified);
-			addOp.call();
-		}
-		if (removed != null && !removed.isEmpty()) {
-			RmOp rm = new RmOp(repository);
-			rm.setPatterns(removed);
-			rm.call();
 		}
 	}
 
