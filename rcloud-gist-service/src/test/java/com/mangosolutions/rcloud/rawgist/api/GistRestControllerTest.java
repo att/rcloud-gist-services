@@ -130,6 +130,21 @@ public class GistRestControllerTest {
 			.andReturn();
 	}
 	
+	
+	@Test
+	@WithMockUser("mock_user")
+	public void testForkRepositoryWithMockUser() throws Exception {
+		MvcResult result = mvc
+			.perform(
+				post("/gists/" + this.defaultGistId + "/forks")
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+			)
+			.andExpect(status().isCreated())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+			.andReturn();
+	}
+	
 	@Test
 	@WithMockUser("mock_user_2")
 	public void testGetGistWithMockUser2() throws Exception {

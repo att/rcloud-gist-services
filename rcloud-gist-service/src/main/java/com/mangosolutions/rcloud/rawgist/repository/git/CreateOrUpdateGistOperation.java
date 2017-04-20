@@ -66,22 +66,6 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 		
 	}
 
-//	private void resetRepo() {
-//		Grgit git = openRepository();
-//		StoredConfig config = git.getRepository().getJgit().getRepository().getConfig();
-//		String workingDirectory = FilenameUtils.normalize(this.getLayout().getWorkingFolder().getAbsolutePath());
-//		config.unset("core", null, "worktree");
-//		config.setBoolean("core", null, "bare", true);
-//		try {
-//			config.save();
-//		} catch (IOException e) {
-//			GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION,
-//					"Could not initialise gist repository with id {}, from gist {}", this.getGistId());
-//			logger.error(error.getFormattedMessage() + " with folder path {}", workingDirectory, e);
-//			throw new GistRepositoryException(error, e);
-//		}
-//	}
-
 	private Grgit createOrOpenWorkingCopy() {
 		Grgit git = openRepository();
 		git = initialiseRepo(git);

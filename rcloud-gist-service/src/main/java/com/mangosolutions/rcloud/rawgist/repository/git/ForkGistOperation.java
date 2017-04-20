@@ -25,14 +25,14 @@ public class ForkGistOperation extends ReadGistOperation {
 
 	private GistRepository newRepository;
 
-	public ForkGistOperation(RepositoryLayout layout, GistRepository originalRepository, GistRepository newRepository, UserDetails user) {
-		super(layout, newRepository.getId(), user);
+	public ForkGistOperation(RepositoryLayout layout, GistRepository originalRepository, GistRepository newRepository, String gistId, UserDetails user) {
+		super(layout, gistId, user);
 		this.originalRepository = originalRepository;
 		this.newRepository = newRepository;
 	}
 	
-	public ForkGistOperation(File repositoryFolder, GistRepository originalRepository, GistRepository newRepository, UserDetails user) {
-		this(new RepositoryLayout(repositoryFolder), originalRepository, newRepository, user);
+	public ForkGistOperation(File repositoryFolder, GistRepository originalRepository, GistRepository newRepository, String gistId, UserDetails user) {
+		this(new RepositoryLayout(repositoryFolder), originalRepository, newRepository, gistId, user);
 	}
 	
 	@Override

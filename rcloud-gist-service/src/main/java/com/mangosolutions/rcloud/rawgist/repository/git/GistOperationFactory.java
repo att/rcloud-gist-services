@@ -124,7 +124,7 @@ public class GistOperationFactory {
 	
 	public ForkGistOperation getForkOperation(RepositoryLayout layout, String gistId, GistRepository originalRepository, GistRepository newRepository, UserDetails user) {
 		GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
-		ForkGistOperation op = new ForkGistOperation(layout, originalRepository, newRepository, user);
+		ForkGistOperation op = new ForkGistOperation(layout, originalRepository, newRepository, gistId, user);
 		op.setCommentRepository(repository);
 		op.setHistorycache(historyCache);
 		op.setMetadataStore(this.metadataStore);

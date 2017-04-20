@@ -35,10 +35,6 @@ public class GitGistRepository implements GistRepository, Serializable {
 	private MetadataStore metadataStore;
 	
 	private CommentStore commentStore;
-//
-//	private HistoryCache historyStore;
-//	
-//	private FileContentCache fileContentCache;
 
 	public GitGistRepository(File repositoryFolder) {
 		this(repositoryFolder, new GistOperationFactory());
