@@ -3,7 +3,7 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.LinkedHashSet;
 
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -34,7 +34,7 @@ public class BareRmCommand  extends GitCommand<DirCache> {
 	 */
 	public BareRmCommand(Repository repo, DirCache index) {
 		super(repo);
-		filepatterns = new LinkedList<String>();
+		filepatterns = new LinkedHashSet<String>();
 		this.index = index;
 	}
 

@@ -8,7 +8,7 @@ import static org.eclipse.jgit.lib.FileMode.TYPE_TREE;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.LinkedHashSet;
 
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.errors.FilterFailedException;
@@ -44,7 +44,7 @@ public class BareAddCommand extends GitCommand<DirCache> {
 	
 	protected BareAddCommand(Repository repo) {
 		super(repo);
-		filepatterns = new LinkedList<String>();
+		filepatterns = new LinkedHashSet<String>();
 	}
 	
 	protected BareAddCommand(Repository repo, DirCache dirCache) {

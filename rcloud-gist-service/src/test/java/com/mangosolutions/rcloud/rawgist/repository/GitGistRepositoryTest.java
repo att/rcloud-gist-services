@@ -104,7 +104,33 @@ public class GitGistRepositoryTest {
 		Map<String, FileContent> files = response.getFiles();
 		Assert.assertTrue(files.containsKey(newFilename));
 		Assert.assertEquals(3, files.size());
-		
+	}
+	
+	@Test
+	public void shouldBeUpdateNotMoveTest() throws IOException {
+		String newFilename = "file_after_delete.txt";
+		String newContent = "Contents of the file";
+		GistResponse response = this.updateGist(new String[]{newFilename, newContent});
+		GistRequest request = this.createGistRequest(null, new String[]{newFilename, newContent + "new new new"});
+		request.getFiles().get(newFilename).setFilename(newFilename);
+		response = this.repository.updateGist(request, userDetails);
+		Map<String, FileContent> files = response.getFiles();
+		Assert.assertTrue(files.containsKey(newFilename));
+		Assert.assertEquals(3, files.size());
+		Assert.assertEquals(newContent + "new new new", files.get(newFilename).getContent());
+	}
+	
+	@Test
+	public void emptyCommitTest() throws IOException {
+		String newFilename = "file_after_delete.txt";
+		String newContent = "Contents of the file";
+		GistResponse response = this.updateGist(new String[]{newFilename, newContent});
+		GistRequest request = this.createGistRequest(null, new String[]{newFilename, newContent});
+		request.getFiles().get(newFilename).setFilename(newFilename);
+		response = this.repository.updateGist(request, userDetails);
+		Map<String, FileContent> files = response.getFiles();
+		Assert.assertTrue(files.containsKey(newFilename));
+		Assert.assertEquals(3, files.size());
 	}
 
 	@Test

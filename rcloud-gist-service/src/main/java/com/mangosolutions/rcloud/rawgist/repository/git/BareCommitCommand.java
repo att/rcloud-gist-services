@@ -201,8 +201,7 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 					RevCommit headCommit = rw.parseCommit(headId);
 					headCommit.getTree();
 					if (indexTreeId.equals(headCommit.getTree())) {
-						throw new EmtpyCommitException(
-								JGitText.get().emptyCommit);
+						return null;
 					}
 				}
 
@@ -458,7 +457,7 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 		if (emptyCommit) {
 			// Would like to throw a EmptyCommitException. But this would break the API
 			// TODO(ch): Change this in the next release
-			throw new JGitInternalException(JGitText.get().emptyCommit);
+//			throw new JGitInternalException(JGitText.get().emptyCommit);
 		}
 
 		// update index

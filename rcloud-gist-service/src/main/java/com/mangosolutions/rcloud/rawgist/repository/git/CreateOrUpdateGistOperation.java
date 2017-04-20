@@ -172,7 +172,7 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 				addCommand = applyAddPath(addCommand, filename, workingFolder, git, index);
 			}
 
-			if (isMove(definition)) {
+			if (isMove(filename, definition)) {
 				moveFile(workingFolder, gistId, filename, definition);
 				rmCommand = applyRmPath(rmCommand, filename, git, index);
 				commitCommand.setOnly(filename);
@@ -282,8 +282,8 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 		}
 	}
 
-	private boolean isMove(FileDefinition definition) {
-		return definition != null && !StringUtils.isEmpty(definition.getFilename());
+	private boolean isMove(String filename, FileDefinition definition) {
+		return definition != null && !StringUtils.isEmpty(definition.getFilename()) && !filename.equals(definition.getFilename());
 	}
 
 	private boolean isUpdate(FileDefinition definition) {
