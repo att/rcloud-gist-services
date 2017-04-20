@@ -40,12 +40,12 @@ public class GistOperationFactory {
 	private FileContentCache fileContentCache = new FileContentCache() {
 
 		@Override
-		public FileContent load(String contentId) {
+		public FileContent load(String contentId, String path) {
 			return null;
 		}
 
 		@Override
-		public FileContent save(String contentId, FileContent content) {
+		public FileContent save(String contentId, String path, FileContent content) {
 			return content;
 		}
 		

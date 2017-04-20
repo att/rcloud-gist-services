@@ -2,6 +2,8 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,12 +68,12 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	private FileContentCache fileContentCache = new FileContentCache() {
 
 		@Override
-		public FileContent load(String contentId) {
+		public FileContent load(String contentId, String path) {
 			return null;
 		}
 
 		@Override
-		public FileContent save(String contentId, FileContent content) {
+		public FileContent save(String contentId, String path, FileContent content) {
 			return content;
 		}
 		
@@ -121,11 +123,14 @@ public class ReadGistOperation implements Callable<GistResponse> {
 			RevCommit revCommit = resolveCommit(repository);
 			GistResponse response = new GistResponse();
 	
-			Map<String, FileContent> fileContent;
-			fileContent = getFileContent(repository, revCommit);
+			Map<String, FileContent> fileContent = Collections.emptyMap();
+			List<GistHistory> history = Collections.emptyList();
+			if(revCommit != null) {
+				fileContent = getFileContent(repository, revCommit);
+				history = getHistory(git, revCommit);
+			}
 			response.setFiles(fileContent);
 			response.setComments(this.commentRepository.getComments(user).size());
-			List<GistHistory> history = getHistory(git, revCommit);
 			response.setHistory(history);
 			applyMetadata(response);
 			return response;
@@ -158,7 +163,10 @@ public class ReadGistOperation implements Callable<GistResponse> {
         try (RevWalk revWalk = new RevWalk(repository)) {
         	if(StringUtils.isEmpty(commitId)) {
         		Ref head = repository.exactRef(REF_HEAD_MASTER);
-        		return revWalk.parseCommit(head.getObjectId());
+        		if(head != null) {
+        			return revWalk.parseCommit(head.getObjectId());
+        		}
+        		return null;
         	} else {
         		return revWalk.parseCommit(ObjectId.fromString(this.commitId));
         	}
@@ -168,10 +176,10 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	private FileContent readContent(Repository repository, TreeWalk treeWalk) {
 		
 		ObjectId objectId = treeWalk.getObjectId(0);
-		FileContent content = fileContentCache.load(objectId.getName());
+		String fileName = treeWalk.getPathString();
+		FileContent content = fileContentCache.load(objectId.getName(), fileName);
 		if(content == null) {
 			content = new FileContent(); 
-			String fileName = treeWalk.getPathString();
 			try {
 				content.setFilename(fileName);
 				ObjectLoader loader = repository.open(objectId);
@@ -184,7 +192,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 					content.setLanguage(language);
 				}
 				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(fileName));
-				fileContentCache.save(objectId.getName(), content);
+				fileContentCache.save(objectId.getName(), fileName, content);
 			} catch (IOException e) {
 				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_READABLE,
 						"Could not read content of {} for gist {}", fileName, gistId);

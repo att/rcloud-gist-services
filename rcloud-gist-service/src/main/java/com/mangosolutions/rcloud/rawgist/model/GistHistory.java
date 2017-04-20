@@ -70,4 +70,59 @@ public class GistHistory implements Serializable {
 		this.committedAt = committedAt;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((changeStatus == null) ? 0 : changeStatus.hashCode());
+		result = prime * result + ((committedAt == null) ? 0 : committedAt.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		result = prime * result + ((user == null) ? 0 : user.hashCode());
+		result = prime * result + ((version == null) ? 0 : version.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GistHistory other = (GistHistory) obj;
+		if (changeStatus == null) {
+			if (other.changeStatus != null)
+				return false;
+		} else if (!changeStatus.equals(other.changeStatus))
+			return false;
+		if (committedAt == null) {
+			if (other.committedAt != null)
+				return false;
+		} else if (!committedAt.equals(other.committedAt))
+			return false;
+		if (url == null) {
+			if (other.url != null)
+				return false;
+		} else if (!url.equals(other.url))
+			return false;
+		if (user == null) {
+			if (other.user != null)
+				return false;
+		} else if (!user.equals(other.user))
+			return false;
+		if (version == null) {
+			if (other.version != null)
+				return false;
+		} else if (!version.equals(other.version))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "GistHistory [url=" + url + ", version=" + version + ", user=" + user + ", changeStatus=" + changeStatus
+				+ ", committedAt=" + committedAt + "]";
+	}
+
 }

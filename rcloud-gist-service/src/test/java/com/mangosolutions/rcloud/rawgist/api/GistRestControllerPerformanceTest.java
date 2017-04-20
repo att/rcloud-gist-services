@@ -26,8 +26,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.mangosolutions.rcloud.rawgist.Application;
+import com.mangosolutions.rcloud.rawgist.model.FileContent;
+import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 
 
@@ -50,6 +53,9 @@ public class GistRestControllerPerformanceTest {
 	
 	@Autowired
 	private GistTestHelper gistTestHelper;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Before
 	public void setup() throws Exception {
@@ -85,9 +91,10 @@ public class GistRestControllerPerformanceTest {
 		
 		for(int i = 0; i < historySize; i++) {
 			String fileName = i + "otherfile.txt";
+			String fileName2 = i + "anotherfile.txt";
 			String fileContent = "Some content for " + i;
-			String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
-			String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+			String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}, \"{}\": {\"content\": \"{}\"}}}";
+			String payload = this.buildMessage(payloadTemplate, fileName, fileContent, fileName2, fileContent);
 			long start = System.currentTimeMillis();
 			MvcResult result = mvc
 				.perform(
@@ -105,9 +112,9 @@ public class GistRestControllerPerformanceTest {
 				durations[i] = diff;
 			}
 			String content = result.getResponse().getContentAsString();
-			Map<Object, Object> files = JsonPath.read(content, "$.files");
-			// +2 as there is already a file on the gist from the setup				
-			Assert.assertEquals(i + 2, files.keySet().size());
+			GistResponse response = objectMapper.readValue(content, GistResponse.class);
+			Map<String, FileContent> files = response.getFiles();
+			Assert.assertEquals(((i + 1)*2) + 1, files.keySet().size());
 		}
 		return durations;
 		
