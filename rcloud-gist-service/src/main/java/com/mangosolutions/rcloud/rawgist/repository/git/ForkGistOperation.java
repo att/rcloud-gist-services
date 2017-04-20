@@ -37,10 +37,10 @@ public class ForkGistOperation extends ReadGistOperation {
 	
 	@Override
 	public GistResponse call() {
+		this.forkGist();
 		OpenOp openOp = new OpenOp();
 		openOp.setDir(this.getLayout().getBareFolder());
 		try (Grgit git = openOp.call()) {
-			this.forkGist();
 			return this.readGist(git);
 		}
 	}
@@ -49,6 +49,7 @@ public class ForkGistOperation extends ReadGistOperation {
 		RepositoryLayout layout = this.getLayout();
 		File originalFolder = originalRepository.getGistRepositoryFolder(this.getUser());
 		try {
+			FileUtils.cleanDirectory(layout.getBareFolder());
 			FileUtils.copyDirectory(originalFolder, layout.getRootFolder());
 			this.updateMetadata();
 			originalRepository.registerFork(newRepository);
