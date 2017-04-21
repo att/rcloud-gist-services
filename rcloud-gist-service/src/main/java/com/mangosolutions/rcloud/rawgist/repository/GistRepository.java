@@ -17,6 +17,8 @@ import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadata;
 public interface GistRepository {
 
 	File getGistRepositoryFolder(UserDetails userDetails);
+	
+	File getGistGitRepositoryFolder(UserDetails userDetails);
 
 	GistResponse readGist(UserDetails userDetails);
 
@@ -35,5 +37,6 @@ public interface GistRepository {
 	GistMetadata getMetadata();
 	
 	GistCommentRepository getCommentRepository();
-
+	
+	
 }

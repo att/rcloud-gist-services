@@ -2,10 +2,15 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 import org.ajoberstar.grgit.Grgit;
+import org.ajoberstar.grgit.operation.CloneOp;
 import org.ajoberstar.grgit.operation.OpenOp;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,13 +52,13 @@ public class ForkGistOperation extends ReadGistOperation {
 
 	private void forkGist() {
 		RepositoryLayout layout = this.getLayout();
-		File originalFolder = originalRepository.getGistRepositoryFolder(this.getUser());
 		try {
-			FileUtils.cleanDirectory(layout.getBareFolder());
-			FileUtils.copyDirectory(originalFolder, layout.getRootFolder());
+			
+			Grgit git = cloneRepository();
+			removeRemotes(git);
 			this.updateMetadata();
 			originalRepository.registerFork(newRepository);
-		} catch (IOException e) {
+		} catch (IOException | GitAPIException e) {
 			GistError error = new GistError(GistErrorCode.ERR_GIST_FORK_FAILURE,
 					"Could not fork gist {} to a new gist with id {}", originalRepository.getId(), this.getGistId());
 			logger.error(error.getFormattedMessage() + " with folder path {}", layout.getBareFolder());
@@ -61,12 +66,38 @@ public class ForkGistOperation extends ReadGistOperation {
 		}
 	}
 
+	private void removeRemotes(Grgit git) throws GitAPIException {
+		Git jgit = git.getRepository().getJgit();
+		Collection<String> remotes = jgit.getRepository().getRemoteNames();
+		for(String remote: remotes) {
+			RemoteRemoveCommand remoteRemoveCommand = jgit.remoteRemove();
+			remoteRemoveCommand.setName(remote);
+			remoteRemoveCommand.call();
+		}
+	}
+
+	private Grgit cloneRepository() throws IOException {
+		File bareFolder = this.getLayout().getBareFolder();
+		FileUtils.cleanDirectory(bareFolder);
+		CloneOp cloneOp = new CloneOp();
+		cloneOp.setCheckout(false);
+		cloneOp.setBare(true);
+		cloneOp.setDir(bareFolder);
+		cloneOp.setUri(originalRepository.getGistGitRepositoryFolder(this.getUser()).getAbsolutePath());
+
+		Grgit git = cloneOp.call();
+		return git;
+	}
+
 	private void updateMetadata() {
+		GistMetadata originalMetadata = originalRepository.getMetadata();
 		GistMetadata metadata = getMetadata();
 		metadata.setId(this.getGistId());
 		metadata.setOwner(this.getUser().getUsername());
 		metadata.setCreatedAt(new DateTime());
 		metadata.setUpdatedAt(new DateTime());
+		metadata.setPublic(false);
+		metadata.setDescription(originalMetadata.getDescription());
 		this.saveMetadata(metadata);
 	}
 

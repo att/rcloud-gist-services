@@ -143,6 +143,7 @@ public class GistRestControllerTest {
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
 			.andReturn();
+		String response = result.getResponse().getContentAsString();
 	}
 	
 	@Test
