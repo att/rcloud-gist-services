@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mangosolutions.rcloud.rawgist.model.Fork;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
@@ -90,9 +91,33 @@ public class GistRestController {
 		decorateUrls(response, activeUser);
 		return response;
 	}
-
+	
+	@RequestMapping(value = "/{gistId}/forks", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	public List<Fork> getForks(@PathVariable("gistId") String gistId,
+			@AuthenticationPrincipal User activeUser) {
+		
+		List<Fork> forks = repository.getForks(gistId, activeUser);
+		
+		decorateUrls(forks, activeUser);
+		return forks;
+	}
+	
+	/**
+	 * Legacy github mapping
+	 */
+	@RequestMapping(value = "/{gistId}/fork", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@Deprecated
+	public List<Fork> legacyGetForks(@PathVariable("gistId") String gistId,
+			@AuthenticationPrincipal User activeUser) {
+		return this.getForks(gistId, activeUser);
+	}
+	
+	
 	@RequestMapping(value = "/{gistId}/forks", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
+	@CacheEvict(cacheNames = "gists", key="#gistId")
 	public ResponseEntity<GistResponse> forkGist(@PathVariable("gistId") String gistId,
 			@AuthenticationPrincipal User activeUser) {
 		// TODO need to add Location header to response for the new Gist
@@ -115,6 +140,7 @@ public class GistRestController {
 	 */
 	@RequestMapping(value = "/{gistId}/fork", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
+	@CacheEvict(cacheNames = "gists", key="#gistId")
 	@Deprecated
 	public ResponseEntity<GistResponse> legacyForkGist(@PathVariable("gistId") String gistId,
 			@AuthenticationPrincipal User activeUser) {
@@ -151,6 +177,14 @@ public class GistRestController {
 			gistResponse.setCommentsUrl(resolver.getCommentsUrl(gistResponse.getId(), activeUser));
 			gistResponse.setForksUrl(resolver.getForksUrl(gistResponse.getId(), activeUser));
 		}
+	}
+	
+	private void decorateUrls(List<Fork> forks, User activeUser) {
+		for(Fork fork: forks) {
+			String forkUrl = resolver.getGistUrl(fork.getId(), activeUser);
+			fork.setUrl(forkUrl);
+		}
+		
 	}
 
 }

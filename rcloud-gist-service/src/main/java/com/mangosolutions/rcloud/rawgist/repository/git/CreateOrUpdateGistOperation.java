@@ -31,6 +31,10 @@ import com.mangosolutions.rcloud.rawgist.repository.GistError;
 import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryException;
 
+/**
+ * Operation that creates a gist or updates an existing gist
+ * from the details of the provided request. 
+ */
 public class CreateOrUpdateGistOperation extends ReadGistOperation {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateOrUpdateGistOperation.class);
@@ -243,7 +247,6 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 					FileUtils.write(newFile, content,
 							CharEncoding.UTF_8);
 				}
-//				FileUtils.moveFile(oldFile, newFile);
 			} catch (IOException e) {
 				GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
 						"Could not move {} to {} for gist {}", filename, definition.getFilename(),

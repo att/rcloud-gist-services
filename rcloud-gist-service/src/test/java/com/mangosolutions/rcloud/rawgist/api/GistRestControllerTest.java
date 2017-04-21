@@ -134,7 +134,28 @@ public class GistRestControllerTest {
 	@Test
 	@WithMockUser("mock_user")
 	public void testForkRepositoryWithMockUser() throws Exception {
-		MvcResult result = mvc
+		
+		//Get the gist response.
+		String originalGist = mvc
+			.perform(
+				get("/gists/" + this.defaultGistId)
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+			)
+			.andExpect(status().isOk())
+			.andReturn().getResponse().getContentAsString();
+		
+		//Check that there are no forks.
+		mvc.perform(
+				get("/gists/" + this.defaultGistId + "/forks")
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+			)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.length()", is(0)));
+		
+		//Fork the repository
+		String forkResponse = mvc
 			.perform(
 				post("/gists/" + this.defaultGistId + "/forks")
 				.accept(GITHUB_BETA_MEDIA_TYPE)
@@ -142,8 +163,49 @@ public class GistRestControllerTest {
 			)
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$.files.length()", is(1)))
+			.andReturn().getResponse().getContentAsString();
+		String forkedGistId = JsonPath.read(forkResponse, "$.id");
+		Assert.assertNotEquals(this.defaultGistId, forkedGistId);
+		
+		//update the forked gist
+		String fileName = "file_in_new_gist.txt";
+		String fileContent = "String file contents";
+		String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+		String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+		mvc.perform(
+				patch("/gists/" + forkedGistId)
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+				.content(payload)
+			).andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$.id", is(forkedGistId)))
+			.andExpect(jsonPath("$.files.length()", is(2)))
 			.andReturn();
-		String response = result.getResponse().getContentAsString();
+		
+		//check that original gist hasn't changed
+		String originalGist2 = mvc
+				.perform(
+					get("/gists/" + this.defaultGistId)
+					.accept(GITHUB_BETA_MEDIA_TYPE)
+					.contentType(GITHUB_BETA_MEDIA_TYPE)
+				)
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString();
+		
+		Assert.assertEquals(originalGist, originalGist2);
+		
+		//get the list of forks
+		mvc.perform(
+				get("/gists/" + this.defaultGistId + "/forks")
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+			)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.length()", is(1)))
+			.andExpect(jsonPath("$.[0].id", is(forkedGistId)));
+		
 	}
 	
 	@Test

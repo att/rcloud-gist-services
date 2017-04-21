@@ -31,6 +31,11 @@ import org.eclipse.jgit.treewalk.TreeWalk.OperationType;
 import org.eclipse.jgit.treewalk.WorkingTreeIterator;
 import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
 
+/**
+ * Command that adds contents to a bare repository.
+ * This is based upon the JGit AddCommand 
+ *
+ */
 public class BareAddCommand extends GitCommand<DirCache> {
 
 	private Collection<String> filepatterns;

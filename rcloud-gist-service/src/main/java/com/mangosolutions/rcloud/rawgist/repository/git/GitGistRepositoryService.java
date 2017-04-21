@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -25,6 +26,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.hazelcast.core.HazelcastInstance;
+import com.mangosolutions.rcloud.rawgist.model.Fork;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
@@ -189,6 +191,24 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			lock.unlock();
 		}
 	}
+	
+	@Override
+	public List<Fork> getForks(String gistId, User activeUser) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
+			this.ensureReadable(repository, activeUser);
+			GistMetadata metadata = repository.getMetadata();
+			List<Fork> forks = metadata.getForks();
+			if(forks == null) {
+				forks = Collections.emptyList();
+			}
+			return forks;
+		} finally {
+			lock.unlock();
+		}
+	}
 
 	@Override
 	public List<GistCommentResponse> getComments(String gistId, UserDetails user) {
@@ -313,4 +333,6 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			throw new GistAccessDeniedException(error);
 		}
 	}
+
+	
 }

@@ -19,18 +19,29 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
 
+/**
+ * Removes files from the bare git repository. This is based
+ * upon the JGit RmCommand.  
+ */
 public class BareRmCommand  extends GitCommand<DirCache> {
 
+	/**
+	 * patterns of files that should be removed from the repository.
+	 */
 	private Collection<String> filepatterns;
 	
+	/**
+	 * The index file to update with the changes.
+	 */
 	private DirCache index;
 
 	/** Only remove files from index, not from working directory */
 	private boolean cached = true;
 
 	/**
-	 *
-	 * @param repo
+	 * Creates the command to perform the operation on the repository 
+	 * @param repo the repository to operate on.
+	 * @param the index file to change.
 	 */
 	public BareRmCommand(Repository repo, DirCache index) {
 		super(repo);
@@ -39,6 +50,7 @@ public class BareRmCommand  extends GitCommand<DirCache> {
 	}
 
 	/**
+	 * Adds file patterns to be processed.
 	 * @param filepattern
 	 *            repository-relative path of file to remove (with
 	 *            <code>/</code> as separator)
