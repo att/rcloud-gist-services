@@ -27,7 +27,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.mangosolutions.rcloud.rawgist.Application;
 import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
