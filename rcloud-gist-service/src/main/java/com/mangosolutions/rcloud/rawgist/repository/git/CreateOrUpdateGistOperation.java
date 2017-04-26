@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -33,41 +39,41 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryException;
 
 /**
  * Operation that creates a gist or updates an existing gist
- * from the details of the provided request. 
+ * from the details of the provided request.
  */
 public class CreateOrUpdateGistOperation extends ReadGistOperation {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateOrUpdateGistOperation.class);
 
 	private GistRequest gistRequest;
-	
+
 	private GistResponse preChangeResponse;
 
 	public CreateOrUpdateGistOperation(RepositoryLayout layout, String gistId, GistRequest gistRequest, UserDetails user) {
 		super(layout, gistId, user);
 		this.gistRequest = gistRequest;
 	}
-	
+
 	public CreateOrUpdateGistOperation(File repositoryFolder, String gistId, GistRequest gistRequest, UserDetails user) {
 		this(new RepositoryLayout(repositoryFolder), gistId, gistRequest, user);
 	}
-	
+
 	@Override
 	public GistResponse call() {
-		
+
 		try (Grgit git = openRepository()) {
 			preChangeResponse = this.readGist(git);
 		}
-		
+
 		try (Grgit git = createOrOpenWorkingCopy()) {
 			createMetadata();
 			saveContent(git);
 		}
-		
+
 		try (Grgit git = openRepository()) {
 			return this.readGist(git);
 		}
-		
+
 	}
 
 	private Grgit createOrOpenWorkingCopy() {
@@ -75,7 +81,7 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 		git = initialiseRepo(git);
 		cleanRepository(git);
 		return git;
-		
+
 	}
 
 	private Grgit initialiseRepo(Grgit git) {
@@ -98,10 +104,10 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 		}
 		return git;
 	}
-	
+
 	private File getWorkTree(Grgit git) {
 		if(git.getRepository().getJgit().getRepository().isBare()) {
-			return this.getLayout().getWorkingFolder();			
+			return this.getLayout().getWorkingFolder();
 		}
 		return git.getRepository().getJgit().getRepository().getWorkTree();
 	}
@@ -134,7 +140,7 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 			logger.warn("Couldn't clean working directory for gist {}", this.getGistId(), e);
 		}
 	}
-	
+
 	private DirCache getIndex(Grgit git) {
 		File indexFile = new File(this.getLayout().getWorkingFolder(), ".index");
 		DirCache index = new DirCache(indexFile, FS.detect());
@@ -196,7 +202,7 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 			throw new GistRepositoryException(error, e);
 		}
 	}
-	
+
 	private BareRmCommand applyRmPath(BareRmCommand rmCommand, String filename, Grgit git, DirCache index) {
 		if(rmCommand == null) {
 			Git jgit = git.getRepository().getJgit();
@@ -205,12 +211,12 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 		return rmCommand.addFilepattern(filename);
 	}
 
-	
+
 
 	private BareAddCommand applyAddPath(BareAddCommand addCommand, String filename, File workingFolder, Grgit git, DirCache index) {
 		if(addCommand == null) {
 			Git jgit = git.getRepository().getJgit();
-			
+
 			FileTreeIterator iterator = getFileTreeIterator(jgit, workingFolder);
 			addCommand = new BareAddCommand(jgit.getRepository());
 			addCommand.setWorkingTreeIterator(iterator);
@@ -218,18 +224,18 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 		}
 		return addCommand.addFilepattern(filename);
 	}
-	
+
 	private FileTreeIterator getFileTreeIterator(Git jgit, File workingFolder) {
-		
+
 		FileModeStrategy fileModeStrategy = jgit.getRepository().getConfig().get(WorkingTreeOptions.KEY).isDirNoGitLinks() ?
 				NoGitlinksStrategy.INSTANCE :
 				DefaultFileModeStrategy.INSTANCE;
-		
-		
+
+
 		FileTreeIterator iterator = new FileTreeIterator(
 				workingFolder, jgit.getRepository().getFS(),
 				jgit.getRepository().getConfig().get(WorkingTreeOptions.KEY), fileModeStrategy);
-		
+
 		return iterator;
 	}
 

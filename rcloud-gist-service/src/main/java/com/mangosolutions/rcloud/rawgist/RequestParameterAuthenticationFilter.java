@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import javax.servlet.http.HttpServletRequest;
@@ -67,5 +73,5 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	public void setExceptionIfHeaderMissing(boolean exceptionIfHeaderMissing) {
 		this.exceptionIfHeaderMissing = exceptionIfHeaderMissing;
 	}
-	
+
 }

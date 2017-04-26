@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -44,12 +50,12 @@ public class GistRestControllerTest {
 	public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");
 
 	private MockMvc mvc;
-	
+
 	private String defaultGistId;
-	
+
 	@Autowired
 	private WebApplicationContext webApplicationContext;
-	
+
 	@Autowired
 	private GistTestHelper gistTestHelper;
 
@@ -83,7 +89,7 @@ public class GistRestControllerTest {
 			.andExpect(jsonPath("$.comments", is(0)))
 			.andReturn();
 	}
-	
+
 	@Test
 	@WithMockUser("mock_user")
 	public void testListGistWithMockUser() throws Exception {
@@ -98,7 +104,7 @@ public class GistRestControllerTest {
 			.andExpect(jsonPath("$.length()", is(1)))
 			.andReturn();
 	}
-	
+
 	@Test
 	@WithMockUser("mock_user_2")
 	public void testListGistWithMockUser2() throws Exception {
@@ -114,7 +120,7 @@ public class GistRestControllerTest {
 			.andExpect(jsonPath("$.length()", is(0)))
 			.andReturn();
 	}
-	
+
 	@Test
 	@WithMockUser("mock_user")
 	public void testGetGistWithMockUser() throws Exception {
@@ -129,12 +135,12 @@ public class GistRestControllerTest {
 			.andExpect(jsonPath("$.id", is(this.defaultGistId)))
 			.andReturn();
 	}
-	
-	
+
+
 	@Test
 	@WithMockUser("mock_user")
 	public void testForkRepositoryWithMockUser() throws Exception {
-		
+
 		//Get the gist response.
 		String originalGist = mvc
 			.perform(
@@ -144,7 +150,7 @@ public class GistRestControllerTest {
 			)
 			.andExpect(status().isOk())
 			.andReturn().getResponse().getContentAsString();
-		
+
 		//Check that there are no forks.
 		mvc.perform(
 				get("/gists/" + this.defaultGistId + "/forks")
@@ -153,7 +159,7 @@ public class GistRestControllerTest {
 			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.length()", is(0)));
-		
+
 		//Fork the repository
 		String forkResponse = mvc
 			.perform(
@@ -167,7 +173,7 @@ public class GistRestControllerTest {
 			.andReturn().getResponse().getContentAsString();
 		String forkedGistId = JsonPath.read(forkResponse, "$.id");
 		Assert.assertNotEquals(this.defaultGistId, forkedGistId);
-		
+
 		//update the forked gist
 		String fileName = "file_in_new_gist.txt";
 		String fileContent = "String file contents";
@@ -183,7 +189,7 @@ public class GistRestControllerTest {
 			.andExpect(jsonPath("$.id", is(forkedGistId)))
 			.andExpect(jsonPath("$.files.length()", is(2)))
 			.andReturn();
-		
+
 		//check that original gist hasn't changed
 		String originalGist2 = mvc
 				.perform(
@@ -193,9 +199,9 @@ public class GistRestControllerTest {
 				)
 				.andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
-		
+
 		Assert.assertEquals(originalGist, originalGist2);
-		
+
 		//get the list of forks
 		mvc.perform(
 				get("/gists/" + this.defaultGistId + "/forks")
@@ -205,9 +211,9 @@ public class GistRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.length()", is(1)))
 			.andExpect(jsonPath("$.[0].id", is(forkedGistId)));
-		
+
 	}
-	
+
 	@Test
 	@WithMockUser("mock_user_2")
 	public void testGetGistWithMockUser2() throws Exception {
@@ -222,7 +228,7 @@ public class GistRestControllerTest {
 			.andExpect(jsonPath("$.id", is(this.defaultGistId)))
 			.andReturn();
 	}
-	
+
 	@Test
 	@WithMockUser("mock_user")
 	public void testGetGistHistory() throws Exception {
@@ -278,7 +284,7 @@ public class GistRestControllerTest {
 			Assert.assertEquals(historySize + 1 - historyIndex, files.size());
 		}
 	}
-	
+
 	private void addFilesToGist(String gistId, int historySize) throws Exception {
 		for(int i = 0; i < historySize; i++) {
 			String fileName = i + "otherfile.txt";
@@ -296,12 +302,12 @@ public class GistRestControllerTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
 				.andReturn();
 		}
-		
+
 	}
 
 
-	
-	
+
+
 	private String buildMessage(String format, Object... params) {
 		 return MessageFormatter.arrayFormat(format, params).getMessage();
 	}

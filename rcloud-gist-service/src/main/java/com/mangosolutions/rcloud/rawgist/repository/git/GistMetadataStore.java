@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -19,19 +25,19 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 public class GistMetadataStore implements MetadataStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(GistMetadataStore.class);
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
-	
+
 	public GistMetadataStore() {
 		this.objectMapper = new ObjectMapper();
 	}
-	
+
 	@Autowired
 	public GistMetadataStore(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
-	
+
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
 	}
@@ -39,7 +45,7 @@ public class GistMetadataStore implements MetadataStore {
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
-	
+
 
 	@Override
 	@Cacheable(value = "metadatastore", key = "#store.getAbsolutePath()")

@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -55,8 +61,8 @@ import org.eclipse.jgit.treewalk.WorkingTreeOptions;
 import org.eclipse.jgit.util.ChangeIdUtil;
 
 /**
- * Commits changes to a a bare git repository. This is 
- * based upon the JGit CommitCommand 
+ * Commits changes to a a bare git repository. This is
+ * based upon the JGit CommitCommand
  *
  */
 public class BareCommitCommand extends GitCommand<RevCommit> {
@@ -93,9 +99,9 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 	private PrintStream hookOutRedirect;
 
 	private Boolean allowEmpty;
-	
+
 	private DirCache index;
-	
+
 	public File workingFolder;
 
 	/**
@@ -314,18 +320,18 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 			treeWalk.setOperationType(OperationType.CHECKIN_OP);
 			int dcIdx = treeWalk
 					.addTree(new DirCacheBuildIterator(existingBuilder));
-			
+
 			FileModeStrategy fileModeStrategy = this.getRepository().getConfig().get(WorkingTreeOptions.KEY).isDirNoGitLinks() ?
 					NoGitlinksStrategy.INSTANCE :
 					DefaultFileModeStrategy.INSTANCE;
-			
-			
+
+
 			FileTreeIterator fti = new FileTreeIterator(
 					this.workingFolder, this.getRepository().getFS(),
 					this.getRepository().getConfig().get(WorkingTreeOptions.KEY), fileModeStrategy);
-			
-			
-			
+
+
+
 			fti.setDirCacheIterator(treeWalk, 0);
 			int fIdx = treeWalk.addTree(fti);
 			int hIdx = -1;
@@ -830,5 +836,5 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 		this.hookOutRedirect = hookStdOut;
 		return this;
 	}
-	
+
 }

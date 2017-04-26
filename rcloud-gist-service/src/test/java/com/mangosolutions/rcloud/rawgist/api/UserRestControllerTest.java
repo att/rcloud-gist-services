@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,19 +41,19 @@ public class UserRestControllerTest {
 
 	public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
 	public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");
-	
+
 	private MockMvc mvc;
-	
+
 	@Autowired
     private WebApplicationContext webApplicationContext;
-	
+
 	@Before
     public void setup() throws Exception {
         this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
     }
-	
+
 	@Test
-	@WithMockUser("mock_user") 
+	@WithMockUser("mock_user")
     public void testGetUserWithApplicationJsonMediaType() throws Exception {
 		ResultActions resultActions = mvc.perform(get("/user")
 	            .accept(MediaType.APPLICATION_JSON_UTF8))
@@ -56,16 +62,16 @@ public class UserRestControllerTest {
     }
 
 	@Test
-	@WithMockUser("mock_user") 
+	@WithMockUser("mock_user")
     public void testGetUserWithGithubBetaMediaType() throws Exception {
 		ResultActions resultActions = mvc.perform(get("/user")
 	            .accept(GITHUB_BETA_MEDIA_TYPE))
 	            .andExpect(status().isOk())
 	            .andExpect(jsonPath("$.login", is("mock_user")));
     }
-	
+
 	@Test
-	@WithMockUser("mock_user") 
+	@WithMockUser("mock_user")
     public void testGetUserWithGithubV3MediaType() throws Exception {
 		ResultActions resultActions = mvc.perform(get("/user")
 	            .accept(GITHUB_V3_MEDIA_TYPE))

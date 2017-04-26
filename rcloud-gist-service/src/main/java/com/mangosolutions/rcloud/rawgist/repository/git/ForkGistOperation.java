@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -35,11 +41,11 @@ public class ForkGistOperation extends ReadGistOperation {
 		this.originalRepository = originalRepository;
 		this.newRepository = newRepository;
 	}
-	
+
 	public ForkGistOperation(File repositoryFolder, GistRepository originalRepository, GistRepository newRepository, String gistId, UserDetails user) {
 		this(new RepositoryLayout(repositoryFolder), originalRepository, newRepository, gistId, user);
 	}
-	
+
 	@Override
 	public GistResponse call() {
 		this.forkGist();
@@ -53,7 +59,7 @@ public class ForkGistOperation extends ReadGistOperation {
 	private void forkGist() {
 		RepositoryLayout layout = this.getLayout();
 		try {
-			
+
 			Grgit git = cloneRepository();
 			removeRemotes(git);
 			this.updateMetadata();

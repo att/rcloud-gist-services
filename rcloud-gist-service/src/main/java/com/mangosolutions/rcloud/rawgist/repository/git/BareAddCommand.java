@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
@@ -33,7 +39,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
 
 /**
  * Command that adds contents to a bare repository.
- * This is based upon the JGit AddCommand 
+ * This is based upon the JGit AddCommand
  *
  */
 public class BareAddCommand extends GitCommand<DirCache> {
@@ -43,26 +49,26 @@ public class BareAddCommand extends GitCommand<DirCache> {
 	private WorkingTreeIterator workingTreeIterator;
 
 	private boolean update = false;
-	
+
 	private DirCache dirCache;
-	
-	
+
+
 	protected BareAddCommand(Repository repo) {
 		super(repo);
 		filepatterns = new LinkedHashSet<String>();
 	}
-	
+
 	protected BareAddCommand(Repository repo, DirCache dirCache) {
 		this(repo);
 		this.dirCache = dirCache;
 	}
-	
+
 	public BareAddCommand addFilepattern(String filepattern) {
 		checkCallable();
 		filepatterns.add(filepattern);
 		return this;
 	}
-	
+
 	public BareAddCommand addDirCache(DirCache dirCache) {
 		this.dirCache = dirCache;
 		return this;

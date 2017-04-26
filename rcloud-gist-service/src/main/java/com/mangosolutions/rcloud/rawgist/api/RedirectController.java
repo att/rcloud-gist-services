@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,24 +19,24 @@ import org.springframework.web.servlet.view.RedirectView;
 @Controller
 @RequestMapping("${gists.route.redirect.from}")
 public class RedirectController {
-	
+
 	@Value("${gists.route.redirect.to}")
 	private String redirectToUrl;
 
 	@Value("${gists.route.redirect.copyparams:true}")
 	private boolean propgateParams = true;
-	
+
 	@RequestMapping(method={RequestMethod.GET, RequestMethod.POST})
 	public RedirectView performRedirect(RedirectAttributes attributes) {
 		RedirectView redirectView = new RedirectView();
 		if(StringUtils.isEmpty(redirectToUrl)) {
-			redirectView.setStatusCode(HttpStatus.NOT_FOUND); 
+			redirectView.setStatusCode(HttpStatus.NOT_FOUND);
 		} else {
 			redirectView.setUrl(redirectToUrl);
 			redirectView.setPropagateQueryParams(propgateParams);
-			
+
 		}
-		return redirectView; 
+		return redirectView;
 	}
-	
+
 }

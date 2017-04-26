@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -17,13 +23,13 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout> {
 
 	private static final Logger logger = LoggerFactory.getLogger(InitRepositoryLayoutOperation.class);
-	
+
 	private File repositoryRoot;
-	
+
 	public InitRepositoryLayoutOperation(File repositoryRoot) {
 		this.repositoryRoot = repositoryRoot;
 	}
-	
+
 	public File getRepositoryRoot() {
 		return repositoryRoot;
 	}
@@ -67,10 +73,10 @@ public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout>
 	private void createGistFolder(RepositoryLayout layout) {
 		mkdir(layout.getBareFolder());
 	}
-	
+
 	private void createWorkingFolder(RepositoryLayout layout) {
 		mkdir(layout.getWorkingFolder());
-	}	
+	}
 
 	private void createRootFolder(RepositoryLayout layout) {
 		mkdir(layout.getRootFolder());

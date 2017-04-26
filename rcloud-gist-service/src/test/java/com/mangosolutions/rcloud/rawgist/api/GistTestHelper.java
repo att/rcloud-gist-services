@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,10 +41,10 @@ public class GistTestHelper {
 
 	@Autowired
 	private HazelcastInstance hazelcastInstance;
-	
+
 	@Autowired
 	private GistRepositoryService service;
-	
+
 	public void emptyHazelcast() {
 		Config config = hazelcastInstance.getConfig();
 		Map<String, MapConfig> mapConfigs = config.getMapConfigs();
@@ -47,7 +53,7 @@ public class GistTestHelper {
 			map.evictAll();
 		}
 	}
-	
+
 	public void clearGistRepository() throws IOException {
 		String tmpdir = System.getProperty("java.io.tmpdir");
 		File gistFolder = new File(tmpdir + "/gists");
@@ -55,7 +61,7 @@ public class GistTestHelper {
 		FileUtils.forceMkdir(gistFolder);
 		FileUtils.forceMkdir(new File(gistFolder, ".recycle"));
 	}
-	
+
 	public String createGist(String user, String description, String fileName, String fileContent) throws Exception {
 		GistRequest request = new GistRequest();
 		request.setDescription(description);
@@ -83,7 +89,7 @@ public class GistTestHelper {
 				.andExpect(status().isOk())
 				.andReturn();
 		}
-		
+
 	}
-	
+
 }

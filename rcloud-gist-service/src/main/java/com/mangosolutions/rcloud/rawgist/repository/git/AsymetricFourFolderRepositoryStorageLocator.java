@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -7,13 +13,13 @@ import java.util.regex.Pattern;
 public class AsymetricFourFolderRepositoryStorageLocator implements RepositoryStorageLocator {
 
 	private static final Pattern REPOSITORYID_FOLDER_PATTERN = Pattern.compile("(.)(.)(.)(.*)");
-	
+
 	private File root;
 
 	public AsymetricFourFolderRepositoryStorageLocator(File root) {
 		this.root = root;
 	}
-	
+
 	@Override
 	public File getStoragePath(String gistId) {
 		File path = null;

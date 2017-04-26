@@ -1,34 +1,40 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.Serializable;
 
 public class RepositoryLayout implements Serializable {
-	
+
 	private static final long serialVersionUID = 6380460397113981325L;
 
 	public static final String GIST_META_FILE = "gist.json";
-	
+
 	public static final String GIST_BARE_REPOSITORY_FOLDER = "repo";
-	
+
 	public static final String GIST_WORKING_REPOSITORY_FOLDER = ".work";
-	
+
 	public static final String COMMENT_REPOSITORY_FOLDER = "comments";
-	
+
 	public static final String COMMENTS_FILE = "comments.json";
-	
+
 	private File rootFolder;
 
 	private File commentsFolder;
-	
+
 	private File commentsFile;
-	
+
 	private File bareFolder;
-	
+
 	private File metadataFile;
-	
+
 	private File workingFolder;
-	
+
 	public RepositoryLayout(File root) {
 		rootFolder = root;
 		commentsFolder = new File(root, COMMENT_REPOSITORY_FOLDER);
@@ -147,7 +153,7 @@ public class RepositoryLayout implements Serializable {
 				+ commentsFile + ", gistFolder=" + bareFolder + ", metadataFile=" + metadataFile + ", workingFolder="
 				+ workingFolder + "]";
 	}
-	
-	
-	
+
+
+
 }

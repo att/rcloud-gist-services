@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import java.util.ArrayList;
@@ -29,7 +35,7 @@ public class ContentNegotiationConfiguration extends WebMvcConfigurerAdapter {
 
 	@Autowired
 	private GistServiceProperties serviceProperties;
-	
+
 	@Override
 	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
 		configurer.ignoreAcceptHeader(true);

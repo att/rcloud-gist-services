@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.util.Arrays;
@@ -13,7 +19,7 @@ public class SimpleGistSecurityManager implements GistSecurityManager {
 
 	private static final Set<GistAccessRight> READ_RIGHTS = new HashSet<>(Arrays.asList(GistAccessRight.READ, GistAccessRight.WRITE));
 	private static final Set<GistAccessRight> WRITE_RIGHTS = new HashSet<>(Arrays.asList(GistAccessRight.WRITE));
-	
+
 	@Override
 	public boolean canRead(GistRepository repository, UserDetails userDetails) {
 		return READ_RIGHTS.contains(this.getAccessRight(repository, userDetails));
@@ -23,7 +29,7 @@ public class SimpleGistSecurityManager implements GistSecurityManager {
 	public boolean canWrite(GistRepository repository, UserDetails userDetails) {
 		return WRITE_RIGHTS.contains(this.getAccessRight(repository, userDetails));
 	}
-	
+
 	@Override
 	public boolean isOwner(GistRepository repository, UserDetails userDetails) {
 		return GistRole.OWNER.equals(this.getRole(repository, userDetails));
@@ -37,7 +43,7 @@ public class SimpleGistSecurityManager implements GistSecurityManager {
 	@Override
 	public GistAccessRight getAccessRight(GistRepository repository, UserDetails userDetails) {
 		GistMetadata metadata = getMetaData(repository);
-		
+
 		if(this.canWrite(metadata, userDetails)) {
 			return GistAccessRight.WRITE;
 		}
@@ -46,11 +52,11 @@ public class SimpleGistSecurityManager implements GistSecurityManager {
 		}
 		return GistAccessRight.NONE;
 	}
-	
+
 	private boolean canRead(GistMetadata metadata, UserDetails userDetails) {
 		return true;
 	}
-	
+
 	private boolean canWrite(GistMetadata metadata, UserDetails userDetails) {
 		return this.isOwner(metadata, userDetails);
 	}
@@ -58,7 +64,7 @@ public class SimpleGistSecurityManager implements GistSecurityManager {
 	private GistMetadata getMetaData(GistRepository repository) {
 		return repository.getMetadata();
 	}
-	
+
 	private boolean isOwner(GistMetadata metadata, UserDetails userDetails)  {
 		return userDetails.getUsername().equals(metadata.getOwner());
 	}

@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -21,7 +27,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilterGroup;
 
 /**
  * Removes files from the bare git repository. This is based
- * upon the JGit RmCommand.  
+ * upon the JGit RmCommand.
  */
 public class BareRmCommand  extends GitCommand<DirCache> {
 
@@ -29,7 +35,7 @@ public class BareRmCommand  extends GitCommand<DirCache> {
 	 * patterns of files that should be removed from the repository.
 	 */
 	private Collection<String> filepatterns;
-	
+
 	/**
 	 * The index file to update with the changes.
 	 */
@@ -39,7 +45,7 @@ public class BareRmCommand  extends GitCommand<DirCache> {
 	private boolean cached = true;
 
 	/**
-	 * Creates the command to perform the operation on the repository 
+	 * Creates the command to perform the operation on the repository
 	 * @param repo the repository to operate on.
 	 * @param index the index file to change.
 	 */

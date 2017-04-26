@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -23,19 +29,19 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 public class GistCommentStore implements CommentStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(GistCommentStore.class);
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
-	
+
 	public GistCommentStore() {
 		this.objectMapper = new ObjectMapper();
 	}
-	
+
 	@Autowired
 	public GistCommentStore(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
-	
+
 	public ObjectMapper getObjectMapper() {
 		return objectMapper;
 	}
@@ -76,6 +82,6 @@ public class GistCommentStore implements CommentStore {
 		return comments;
 	}
 
-	
-	
+
+
 }
