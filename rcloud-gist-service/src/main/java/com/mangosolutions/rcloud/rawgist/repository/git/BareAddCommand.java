@@ -70,7 +70,7 @@ public class BareAddCommand extends GitCommand<DirCache> {
 
 	/**
 	 * Allow clients to provide their own implementation of a FileTreeIterator
-	 * @param f
+	 * @param f the iterator for the working tree
 	 * @return {@code this}
 	 */
 	public BareAddCommand setWorkingTreeIterator(WorkingTreeIterator f) {

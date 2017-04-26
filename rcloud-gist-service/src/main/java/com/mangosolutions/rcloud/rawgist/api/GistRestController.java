@@ -103,7 +103,7 @@ public class GistRestController {
 		return forks;
 	}
 	
-	/**
+	/*
 	 * Legacy github mapping
 	 */
 	@RequestMapping(value = "/{gistId}/fork", method = RequestMethod.GET)
@@ -135,7 +135,7 @@ public class GistRestController {
 		return responseEntity;
 	}
 
-	/**
+	/*
 	 * Legacy github mapping
 	 */
 	@RequestMapping(value = "/{gistId}/fork", method = RequestMethod.POST)

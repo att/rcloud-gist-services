@@ -99,7 +99,8 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 	public File workingFolder;
 
 	/**
-	 * @param repo
+	 * @param repo the git repository
+	 * @param index the index file to use for the commit
 	 */
 	protected BareCommitCommand(Repository repo, DirCache index) {
 		super(repo);
@@ -479,8 +480,7 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 	 * <code>only</code>, lookup is also tried with (parent) directory paths
 	 * (e.g. "d1/d2" and "d1").
 	 *
-	 * @param pathString
-	 *            entry's path
+	 * @param pathString the entry's path
 	 * @return the item's index in <code>only</code>; -1 if no item matches
 	 */
 	private int lookupOnly(String pathString) {
@@ -714,7 +714,7 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 	 * been modified and deleted, but new files not known by the repository are
 	 * not affected. This corresponds to the parameter -a on the command line.
 	 *
-	 * @param all
+	 * @param all true to stage all files.
 	 * @return {@code this}
 	 * @throws JGitInternalException
 	 *             in case of an illegal combination of arguments/ options
@@ -735,7 +735,7 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 	 * commit will be amended. This is equivalent to --amend on the command
 	 * line.
 	 *
-	 * @param amend
+	 * @param amend true to amend the tip of the current branch
 	 * @return {@code this}
 	 */
 	public BareCommitCommand setAmend(boolean amend) {
@@ -777,7 +777,7 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 	 * An existing change id is not replaced. An initial change id (I000...)
 	 * will be replaced by the change id.
 	 *
-	 * @param insertChangeId
+	 * @param insertChangeId true to add the change id
 	 *
 	 * @return {@code this}
 	 */
@@ -790,7 +790,7 @@ public class BareCommitCommand extends GitCommand<RevCommit> {
 	/**
 	 * Override the message written to the reflog
 	 *
-	 * @param reflogComment
+	 * @param reflogComment the comment
 	 * @return {@code this}
 	 */
 	public BareCommitCommand setReflogComment(String reflogComment) {

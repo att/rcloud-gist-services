@@ -41,7 +41,7 @@ public class BareRmCommand  extends GitCommand<DirCache> {
 	/**
 	 * Creates the command to perform the operation on the repository 
 	 * @param repo the repository to operate on.
-	 * @param the index file to change.
+	 * @param index the index file to change.
 	 */
 	public BareRmCommand(Repository repo, DirCache index) {
 		super(repo);
