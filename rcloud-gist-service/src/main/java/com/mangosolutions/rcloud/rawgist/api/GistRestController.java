@@ -9,10 +9,13 @@ package com.mangosolutions.rcloud.rawgist.api;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -30,14 +33,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mangosolutions.rcloud.rawgist.model.Fork;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 
 @RestController()
-@RequestMapping(value = "/gists", produces = { MediaType.APPLICATION_JSON_VALUE })
+@RequestMapping(value = "/gists", produces = { 
+		MediaType.APPLICATION_JSON_VALUE,
+		"application/vnd.github.beta+json",
+		"application/vnd.github.v3+json" })
 public class GistRestController {
 
+	private final Logger logger = LoggerFactory.getLogger(GistRestController.class);
+	
 	@Autowired
 	private GistRepositoryService repository;
 
@@ -45,17 +54,15 @@ public class GistRestController {
 	private ControllerUrlResolver resolver;
 
 	@RequestMapping(method = RequestMethod.GET)
-	public List<GistResponse> listAllGists(@AuthenticationPrincipal User activeUser) {
+	public List<GistResponse> listAllGistsForUser(@AuthenticationPrincipal User activeUser) {
 		List<GistResponse> responses = repository.listGists(activeUser);
 		decorateUrls(responses, activeUser);
 		return responses;
 	}
 
 	@RequestMapping(value = "/public", method = RequestMethod.GET)
-	public List<GistResponse> listPublicGists(@AuthenticationPrincipal User activeUser) {
-		List<GistResponse> responses = repository.listGists(activeUser);
-		decorateUrls(responses, activeUser);
-		return responses;
+	public List<GistResponse> listAllPublicGists() {
+		return Collections.emptyList();
 	}
 
 	@RequestMapping(value = "/{gistId}", method = RequestMethod.GET)
@@ -84,9 +91,33 @@ public class GistRestController {
 		decorateUrls(response, activeUser);
 		return response;
 	}
-
+	
+	@RequestMapping(value = "/{gistId}/forks", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	public List<Fork> getForks(@PathVariable("gistId") String gistId,
+			@AuthenticationPrincipal User activeUser) {
+		
+		List<Fork> forks = repository.getForks(gistId, activeUser);
+		
+		decorateUrls(forks, activeUser);
+		return forks;
+	}
+	
+	/*
+	 * Legacy github mapping
+	 */
+	@RequestMapping(value = "/{gistId}/fork", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@Deprecated
+	public List<Fork> legacyGetForks(@PathVariable("gistId") String gistId,
+			@AuthenticationPrincipal User activeUser) {
+		return this.getForks(gistId, activeUser);
+	}
+	
+	
 	@RequestMapping(value = "/{gistId}/forks", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
+	@CacheEvict(cacheNames = "gists", key="#gistId")
 	public ResponseEntity<GistResponse> forkGist(@PathVariable("gistId") String gistId,
 			@AuthenticationPrincipal User activeUser) {
 		// TODO need to add Location header to response for the new Gist
@@ -96,8 +127,7 @@ public class GistRestController {
 		try {
 			headers.setLocation(new URI(location));
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("Unable to set the location header with value {} for fork with id {} with error {}.", location, gistId, e.getMessage());
 		}
 		decorateUrls(response, activeUser);
 		ResponseEntity<GistResponse> responseEntity = new ResponseEntity<>(response, headers, HttpStatus.CREATED);
@@ -105,11 +135,12 @@ public class GistRestController {
 		return responseEntity;
 	}
 
-	/**
+	/*
 	 * Legacy github mapping
 	 */
 	@RequestMapping(value = "/{gistId}/fork", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
+	@CacheEvict(cacheNames = "gists", key="#gistId")
 	@Deprecated
 	public ResponseEntity<GistResponse> legacyForkGist(@PathVariable("gistId") String gistId,
 			@AuthenticationPrincipal User activeUser) {
@@ -146,6 +177,14 @@ public class GistRestController {
 			gistResponse.setCommentsUrl(resolver.getCommentsUrl(gistResponse.getId(), activeUser));
 			gistResponse.setForksUrl(resolver.getForksUrl(gistResponse.getId(), activeUser));
 		}
+	}
+	
+	private void decorateUrls(List<Fork> forks, User activeUser) {
+		for(Fork fork: forks) {
+			String forkUrl = resolver.getGistUrl(fork.getId(), activeUser);
+			fork.setUrl(forkUrl);
+		}
+		
 	}
 
 }

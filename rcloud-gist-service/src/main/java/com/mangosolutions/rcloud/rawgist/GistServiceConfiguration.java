@@ -8,20 +8,24 @@ package com.mangosolutions.rcloud.rawgist;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.config.Config;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.spring.cache.HazelcastCacheManager;
 import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryFactory;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
-import com.mangosolutions.rcloud.rawgist.repository.GitGistRepositoryService;
-import com.mangosolutions.rcloud.rawgist.repository.UUIDGistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepositoryService;
+import com.mangosolutions.rcloud.rawgist.repository.git.PermissiveGistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.git.SimpleGistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
 
 /**
  * Main Spring configuration
@@ -31,6 +35,8 @@ import com.mangosolutions.rcloud.rawgist.repository.UUIDGistIdGenerator;
 @EnableConfigurationProperties(GistServiceProperties.class)
 public class GistServiceConfiguration {
 
+	private final Logger logger = LoggerFactory.getLogger(GistServiceConfiguration.class);
+	
 	@Autowired
 	private GistServiceProperties serviceProperties;
 
@@ -39,13 +45,29 @@ public class GistServiceConfiguration {
 
 	@Autowired
 	private ObjectMapper objectMapper;
-
+	
+	@Autowired 
+	private GistRepositoryFactory repositoryFactory;
+	
 	@Bean
 	public GistRepositoryService getGistRepository() throws IOException {
 		GitGistRepositoryService repo = new GitGistRepositoryService(serviceProperties.getRoot(),
-				this.getGistIdGenerator(), hazelcastInstance, objectMapper);
+				this.getGistIdGenerator(), hazelcastInstance);
 		repo.setLockTimeout(serviceProperties.getLockTimeout());
+		repo.setSecurityManager(getGistSecurityManager());
+		repo.setGistRepositoryFactory(repositoryFactory);
 		return repo;
+	}
+	
+	@Bean
+	public GistSecurityManager getGistSecurityManager() {
+		if(GistServiceProperties.STRICT_SECURITY_MANAGER.equals(serviceProperties.getSecurity())) {
+			logger.info("Using strict gist security manager.");
+			return new SimpleGistSecurityManager();
+		} else {
+			logger.info("Using permissive gist security manager.");
+			return new PermissiveGistSecurityManager();
+		}
 	}
 
 	@Bean
@@ -53,5 +75,13 @@ public class GistServiceConfiguration {
 		return new UUIDGistIdGenerator();
 	}
 
+	@Bean
+	public CommonsRequestLoggingFilter requestLoggingFilter() {
+	    CommonsRequestLoggingFilter crlf = new CommonsRequestLoggingFilter();
+	    crlf.setIncludeClientInfo(true);
+	    crlf.setIncludeQueryString(true);
+	    crlf.setIncludePayload(true);
+	    return crlf;
+	}
 	
 }

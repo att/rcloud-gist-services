@@ -6,15 +6,10 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
-import java.util.UUID;
+import java.io.File;
 
-public class UUIDGistIdGenerator implements GistIdGenerator {
+public interface GistRepositoryFactory {
 
-	/* (non-Javadoc)
-	 * @see com.mangosolutions.rcloud.rawgist.api.GistIdGenerator#generateId()
-	 */
-	@Override
-	public String generateId() {
-		return UUID.randomUUID().toString().replace("-", "");
-	}
+	GistRepository getRepository(File folder);
+
 }

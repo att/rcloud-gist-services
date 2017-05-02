@@ -4,14 +4,17 @@
 * SPDX-License-Identifier:   MIT
 *
 *******************************************************************************/
-package com.mangosolutions.rcloud.rawgist.repository;
+package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.ajoberstar.grgit.Commit;
 import org.ajoberstar.grgit.CommitDiff;
+import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Person;
 import org.ajoberstar.grgit.Repository;
 import org.ajoberstar.grgit.operation.LogOp;
@@ -49,29 +52,76 @@ import com.mangosolutions.rcloud.rawgist.model.GitChangeStatus;
  * </pre>
  *
  */
-public class GitHistoryCreator {
+public class GitHistoryOperation implements Callable<List<GistHistory>> {
 
-	private static final Logger LOG = Logger.getLogger(GitHistoryCreator.class);
+	private static final Logger logger = Logger.getLogger(GitHistoryOperation.class);
 
+	private Repository repository;
 
-	public List<GistHistory> call(Repository repository) {
+	private String commitId;
+	
+	private HistoryCache historyStore = new HistoryCache() {
+
+		@Override
+		public List<GistHistory> load(String commitId) {
+			return new LinkedList<>();
+		}
+
+		@Override
+		public List<GistHistory> save(String commitId, List<GistHistory> history) {
+			return history;
+		}
+		
+	};
+
+	public GitHistoryOperation(Grgit git, String commitId) {
+		this.repository = git.getRepository();
+		this.commitId = commitId;
+	}
+	
+	public Repository getRepository() {
+		return repository;
+	}
+
+	public void setRepository(Repository repository) {
+		this.repository = repository;
+	}
+
+	public List<GistHistory> call() {
 		LogOp logOp = new LogOp(repository);
 		List<Commit> commits = logOp.call();
-		return map(repository, commits);
+		return calculateHistory(repository, commits);
 	}
 
-	private List<GistHistory> map(Repository repository, List<Commit> commits) {
+	private List<GistHistory> calculateHistory(Repository repository, List<Commit> commits) {
 		List<GistHistory> histories = new ArrayList<>();
+		boolean recordHistory = commitId == null;
 		for (Commit logCommit : commits) {
+			if(this.commitId == null) {
+				this.commitId = logCommit.getId();
+			}
 			try {
-				GistHistory history = create(repository, logCommit);
-				histories.add(history);
+				if(commitId != null && logCommit.getId().equals(commitId)) {
+					recordHistory = true;
+				}
+				if(recordHistory) {
+					List<GistHistory> cachedHistory = historyStore.load(logCommit.getId());
+					if(!cachedHistory.isEmpty()) {
+						histories.addAll(cachedHistory);
+						break;
+					}
+					GistHistory history = create(repository, logCommit);
+					histories.add(history);
+					
+				}
 			} catch (GitAPIException | IOException e) {
-				LOG.error(String.format("Could not extract diff of commit %s.", logCommit.getId()), e);
+				logger.error(String.format("Could not extract diff of commit %s.", logCommit.getId()), e);
 			}
 		}
+		this.historyStore.save(this.commitId, histories);
 		return histories;
 	}
+
 
 	private GistHistory create(Repository repository, Commit logCommit) throws GitAPIException, IOException {
 		ShowOp showOp = new ShowOp(repository);
@@ -109,5 +159,14 @@ public class GitHistoryCreator {
 	private void setVersion(GistHistory history, Commit logCommit) {
 		history.setVersion(logCommit.getId());
 	}
+
+	public void setCommitId(String commitId) {
+		this.commitId = commitId;
+	}
+
+	public void setHistoryCache(HistoryCache historyStore) {
+		this.historyStore = historyStore;
+	}
+
 
 }

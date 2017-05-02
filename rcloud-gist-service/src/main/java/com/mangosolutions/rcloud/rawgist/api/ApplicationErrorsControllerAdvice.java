@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mangosolutions.rcloud.rawgist.repository.GistAccessDeniedException;
 import com.mangosolutions.rcloud.rawgist.repository.GistError;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryException;
@@ -34,7 +35,6 @@ public class ApplicationErrorsControllerAdvice {
 
     @ResponseBody
     @ExceptionHandler(GistRepositoryException.class)
-    //TODO map this error properly
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     String handle(GistRepositoryException ex) {
     	logger.error(ex.getMessage(), ex);
@@ -47,9 +47,23 @@ public class ApplicationErrorsControllerAdvice {
         }
     }
 
+    
+    @ResponseBody
+    @ExceptionHandler(GistAccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    String handle(GistAccessDeniedException ex) {
+    	logger.error(ex.getMessage(), ex);
+    	GistError gistError = ex.getGistError();
+        VndError error = new VndError(gistError.getCode().toString(), gistError.toString());
+        try {
+            return objectMapper.writeValueAsString(error);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(gistError.getFormattedMessage());
+        }
+    }    
+    
     @ResponseBody
     @ExceptionHandler(GistRepositoryError.class)
-    //TODO map this error properly
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     String handle(GistRepositoryError ex) {
     	logger.error(ex.getMessage(), ex);

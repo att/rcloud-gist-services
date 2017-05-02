@@ -7,6 +7,7 @@
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,25 +28,34 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
+import com.mangosolutions.rcloud.rawgist.repository.git.GistOperationFactory;
+import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepository;
+import com.mangosolutions.rcloud.rawgist.repository.git.RepositoryLayout;
 
 
 
 @RunWith(SpringRunner.class)
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @AutoConfigureJsonTesters
 @JsonTest
 public class GitGistRepositoryTest {
 
 	private GitGistRepository repository;
 
-	private GitGistCommentRepository commentRepository;
+	private GistCommentRepository commentRepository;
+	
+	private File repositoryFolder;
 
 	private String gistId;
 
@@ -52,19 +63,22 @@ public class GitGistRepositoryTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+	
+	private GistOperationFactory gistOperationFactory;
 
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
 
 	@Before
 	public void setup() {
-		File repositoryFolder = folder.getRoot();
+		repositoryFolder = folder.getRoot();
 		gistId = UUID.randomUUID().toString();
 		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
 		userDetails = new User("gist_user", "gist_user_pwd", authorities);
-		repository = new GitGistRepository(repositoryFolder, gistId, objectMapper, userDetails);
+		gistOperationFactory = new GistOperationFactory(objectMapper);
+		repository = new GitGistRepository(repositoryFolder, gistOperationFactory);
 		this.populateTestRepository();
-		commentRepository = new GitGistCommentRepository(repositoryFolder, gistId, objectMapper);
+		commentRepository = repository.getCommentRepository();
 	}
 
 	public void populateTestRepository() {
@@ -76,6 +90,47 @@ public class GitGistRepositoryTest {
 		String newContent = "I am the content of a different file";
 		this.createGist(expectedDescription, new String[]{expectedFilename, initialContent});
 		this.updateGist(new String[]{newFilename, newContent});
+	}
+	
+	@Test
+	public void deleteWorkingFolderTest() throws IOException {
+		RepositoryLayout layout = new RepositoryLayout(repositoryFolder);
+		File workingFolder = layout.getWorkingFolder();
+		Assert.assertTrue(workingFolder.exists());
+		FileUtils.forceDelete(workingFolder);
+		String newFilename = "file_after_delete.txt";
+		String newContent = "Contents of the file";
+		GistResponse response = this.updateGist(new String[]{newFilename, newContent});
+		Map<String, FileContent> files = response.getFiles();
+		Assert.assertTrue(files.containsKey(newFilename));
+		Assert.assertEquals(3, files.size());
+	}
+	
+	@Test
+	public void shouldBeUpdateNotMoveTest() throws IOException {
+		String newFilename = "file_after_delete.txt";
+		String newContent = "Contents of the file";
+		GistResponse response = this.updateGist(new String[]{newFilename, newContent});
+		GistRequest request = this.createGistRequest(null, new String[]{newFilename, newContent + "new new new"});
+		request.getFiles().get(newFilename).setFilename(newFilename);
+		response = this.repository.updateGist(request, userDetails);
+		Map<String, FileContent> files = response.getFiles();
+		Assert.assertTrue(files.containsKey(newFilename));
+		Assert.assertEquals(3, files.size());
+		Assert.assertEquals(newContent + "new new new", files.get(newFilename).getContent());
+	}
+	
+	@Test
+	public void emptyCommitTest() throws IOException {
+		String newFilename = "file_after_delete.txt";
+		String newContent = "Contents of the file";
+		GistResponse response = this.updateGist(new String[]{newFilename, newContent});
+		GistRequest request = this.createGistRequest(null, new String[]{newFilename, newContent});
+		request.getFiles().get(newFilename).setFilename(newFilename);
+		response = this.repository.updateGist(request, userDetails);
+		Map<String, FileContent> files = response.getFiles();
+		Assert.assertTrue(files.containsKey(newFilename));
+		Assert.assertEquals(3, files.size());
 	}
 
 	@Test
@@ -151,12 +206,12 @@ public class GitGistRepositoryTest {
 
 	private GistResponse updateGist(String[] contents) {
 		GistRequest request = createGistRequest(null, contents);
-		return repository.editGist(request, userDetails);
+		return repository.updateGist(request, userDetails);
 	}
 
 	private GistResponse createGist(String description, String[]... contents) {
 		GistRequest request = createGistRequest(description, contents);
-		return repository.createGist(request, userDetails);
+		return repository.createGist(request, this.gistId, userDetails);
 	}
 
 	private GistRequest createGistRequest(String description, String[]... contents) {

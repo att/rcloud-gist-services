@@ -36,31 +36,53 @@ security:
 gists:
   root: /var/rcloud-gist-service/gists/
   lockTimeout: 30
+  security: permissive
   keyserver:
     host: 127.0.0.1
     port: 4301
     realm: rcloud
     url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
+  token: access_token
+  mediatypes:
+     - application/vnd.github.beta+json
+     - application/vnd.github.beta
+     - application/vnd.github.v3+json
+     - application/vnd.github.v3
+  route:
+    redirect:
+      from: '/login/*'
+      to: http://example.com
+      copyparams: true
+  
     
-#TOO update the caches with better default values.
+#TODO update the caches with better default values.
 caches:
   - 
     name: 'sessionkeys'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
   - 
     name: 'gists'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
   - 
     name: 'comments'
-    evictionPercentage: 25
     evictionPolicy: LRU
     ttl: 300
-    evictionCheck: 500
-    
+  - 
+    name: 'commentstore'
+    evictionPolicy: LRU
+    ttl: 300
+  - 
+    name: 'metadatatore'
+    evictionPolicy: LRU
+    ttl: 300
+  - 
+    name: 'historystore'
+    evictionPolicy: LRU
+    ttl: 300
+  - 
+    name: 'filecontentcache'
+    evictionPolicy: LRU
+    ttl: 300    
     

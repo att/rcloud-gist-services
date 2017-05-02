@@ -51,5 +51,38 @@ public class GitChangeStatus implements Serializable {
 		this.total = total;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + additions;
+		result = prime * result + deletions;
+		result = prime * result + total;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GitChangeStatus other = (GitChangeStatus) obj;
+		if (additions != other.additions)
+			return false;
+		if (deletions != other.deletions)
+			return false;
+		if (total != other.total)
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "GitChangeStatus [deletions=" + deletions + ", additions=" + additions + ", total=" + total + "]";
+	}
+
 
 }

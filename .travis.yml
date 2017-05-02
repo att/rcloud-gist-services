@@ -1,4 +1,6 @@
 language: java
+dist: trusty
+sudo: required
 jdk:
 - oraclejdk7
 deploy:
