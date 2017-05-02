@@ -1,7 +1,15 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,13 +50,13 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 public class ReadGistOperation implements Callable<GistResponse> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ReadGistOperation.class);
-	
+
 	public static final String REF_HEAD_MASTER = "refs/heads/master";
-	
+
 	private GistCommentRepository commentRepository;
-	
+
 	private MetadataStore metadataStore;
-	
+
 	private HistoryCache historyCache = new HistoryCache() {
 
 		@Override
@@ -60,57 +68,57 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		public List<GistHistory> save(String commitId, List<GistHistory> history) {
 			return history;
 		}
-		
+
 	};
-	
+
 	private FileContentCache fileContentCache = new FileContentCache() {
 
 		@Override
-		public FileContent load(String contentId) {
+		public FileContent load(String contentId, String path) {
 			return null;
 		}
 
 		@Override
-		public FileContent save(String contentId, FileContent content) {
+		public FileContent save(String contentId, String path, FileContent content) {
 			return content;
 		}
-		
+
 	};
 	private RepositoryLayout layout;
 
 	private UserDetails user;
-	
+
 	private String gistId;
-	
+
 	private String commitId = null;
-	
-	
+
+
 	public ReadGistOperation(RepositoryLayout layout, String gistId, String commitId, UserDetails user) {
 		this.layout = layout;
 		this.gistId = gistId;
 		this.commitId = commitId;
 		this.user = user;
 	}
-	
+
 	public ReadGistOperation(File repositoryFolder, String gistId, String commitId, UserDetails user) {
 		this(new RepositoryLayout(repositoryFolder), gistId, commitId, user);
 	}
-	
+
 	public ReadGistOperation(RepositoryLayout layout, String gistId, UserDetails user) {
 		this(layout, gistId, null, user);
-		
+
 	}
-	
+
 	public ReadGistOperation(File repositoryFolder, String gistId, UserDetails user) {
 		this(new RepositoryLayout(repositoryFolder), gistId, user);
 	}
-	
+
 	@Override
 	public GistResponse call() {
 		OpenOp openOp = new OpenOp();
-		openOp.setDir(layout.getGistFolder());
+		openOp.setDir(layout.getBareFolder());
 		try (Grgit git = openOp.call()) {
-			
+
 			return this.readGist(git);
 		}
 	}
@@ -120,12 +128,15 @@ public class ReadGistOperation implements Callable<GistResponse> {
 			Repository repository = git.getRepository().getJgit().getRepository();
 			RevCommit revCommit = resolveCommit(repository);
 			GistResponse response = new GistResponse();
-	
-			Map<String, FileContent> fileContent;
-			fileContent = getFileContent(repository, revCommit);
+
+			Map<String, FileContent> fileContent = Collections.emptyMap();
+			List<GistHistory> history = Collections.emptyList();
+			if(revCommit != null) {
+				fileContent = getFileContent(repository, revCommit);
+				history = getHistory(git, revCommit);
+			}
 			response.setFiles(fileContent);
 			response.setComments(this.commentRepository.getComments(user).size());
-			List<GistHistory> history = getHistory(git, revCommit);
 			response.setHistory(history);
 			applyMetadata(response);
 			return response;
@@ -146,19 +157,22 @@ public class ReadGistOperation implements Callable<GistResponse> {
             treeWalk.setPostOrderTraversal(false);
 
             while(treeWalk.next()) {
-            	
+
             	FileContent content = readContent(repository, treeWalk);
             	fileContent.put(content.getFilename(), content);
             }
         }
 		return fileContent;
 	}
-	
+
 	private RevCommit resolveCommit(Repository repository) throws IOException {
         try (RevWalk revWalk = new RevWalk(repository)) {
         	if(StringUtils.isEmpty(commitId)) {
         		Ref head = repository.exactRef(REF_HEAD_MASTER);
-        		return revWalk.parseCommit(head.getObjectId());
+        		if(head != null) {
+        			return revWalk.parseCommit(head.getObjectId());
+        		}
+        		return null;
         	} else {
         		return revWalk.parseCommit(ObjectId.fromString(this.commitId));
         	}
@@ -166,16 +180,16 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	}
 
 	private FileContent readContent(Repository repository, TreeWalk treeWalk) {
-		
+
 		ObjectId objectId = treeWalk.getObjectId(0);
-		FileContent content = fileContentCache.load(objectId.getName());
+		String fileName = treeWalk.getPathString();
+		FileContent content = fileContentCache.load(objectId.getName(), fileName);
 		if(content == null) {
-			content = new FileContent(); 
-			String fileName = treeWalk.getPathString();
+			content = new FileContent();
 			try {
 				content.setFilename(fileName);
 				ObjectLoader loader = repository.open(objectId);
-				
+
 				content.setContent(new String(loader.getBytes(), Charsets.UTF_8));
 				content.setSize(loader.getSize());
 				content.setTruncated(false);
@@ -184,7 +198,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 					content.setLanguage(language);
 				}
 				content.setType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(fileName));
-				fileContentCache.save(objectId.getName(), content);
+				fileContentCache.save(objectId.getName(), fileName, content);
 			} catch (IOException e) {
 				GistError error = new GistError(GistErrorCode.ERR_GIST_CONTENT_NOT_READABLE,
 						"Could not read content of {} for gist {}", fileName, gistId);
@@ -212,7 +226,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		}
 		response.addAdditionalProperties(metadata.getAdditionalProperties());
 	}
-	
+
 	public GistMetadata getMetadata() {
 		return metadataStore.load(layout.getMetadataFile());
 	}
@@ -222,7 +236,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 		historyOperation.setHistoryCache(historyCache);
 		return historyOperation.call();
 	}
-	
+
 	public UserDetails getUser() {
 		return user;
 	}
@@ -250,7 +264,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 	public void setMetadataStore(MetadataStore metadataStore) {
 		this.metadataStore = metadataStore;
 	}
-	
+
 	public MetadataStore getMetadataStore() {
 		return this.metadataStore;
 	}

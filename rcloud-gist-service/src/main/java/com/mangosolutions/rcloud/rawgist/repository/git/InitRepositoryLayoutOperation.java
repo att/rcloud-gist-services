@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -17,13 +23,13 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout> {
 
 	private static final Logger logger = LoggerFactory.getLogger(InitRepositoryLayoutOperation.class);
-	
+
 	private File repositoryRoot;
-	
+
 	public InitRepositoryLayoutOperation(File repositoryRoot) {
 		this.repositoryRoot = repositoryRoot;
 	}
-	
+
 	public File getRepositoryRoot() {
 		return repositoryRoot;
 	}
@@ -39,21 +45,22 @@ public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout>
 		createRootFolder(layout);
 		createCommentsFolder(layout);
 		createGistFolder(layout);
+		createWorkingFolder(layout);
 		initGistRepo(layout);
 		return layout;
 	}
 
 	private void initGistRepo(RepositoryLayout layout) {
-		File gistFolder = layout.getGistFolder();
-		File gitFolder = new File(gistFolder, ".git");
-		if(!gitFolder.exists()) {
+		File bareFolder = layout.getBareFolder();
+		if(bareFolder.list().length == 0) {
 			try {
 				InitOp initOp = new InitOp();
-				initOp.setDir(gistFolder);
+				initOp.setDir(bareFolder);
+				initOp.setBare(true);
 				initOp.call();
 			} catch (GrgitException e) {
 				GistError error = new GistError(GistErrorCode.FATAL_GIST_INITIALISATION, "Could not create gist storage location for gist");
-				logger.error(error.getFormattedMessage() + " with folder path {}", gistFolder);
+				logger.error(error.getFormattedMessage() + " with folder path {}", bareFolder);
 				throw new GistRepositoryError(error, e);
 			}
 		}
@@ -64,7 +71,11 @@ public class InitRepositoryLayoutOperation implements Callable<RepositoryLayout>
 	}
 
 	private void createGistFolder(RepositoryLayout layout) {
-		mkdir(layout.getGistFolder());
+		mkdir(layout.getBareFolder());
+	}
+
+	private void createWorkingFolder(RepositoryLayout layout) {
+		mkdir(layout.getWorkingFolder());
 	}
 
 	private void createRootFolder(RepositoryLayout layout) {

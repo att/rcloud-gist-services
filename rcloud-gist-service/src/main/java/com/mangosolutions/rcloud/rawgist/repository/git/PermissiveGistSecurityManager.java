@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +21,7 @@ public class PermissiveGistSecurityManager extends SimpleGistSecurityManager {
 	public boolean canWrite(GistRepository repository, UserDetails userDetails) {
 		return true;
 	}
-	
+
 	@Override
 	public GistAccessRight getAccessRight(GistRepository repository, UserDetails userDetails) {
 		return GistAccessRight.WRITE;

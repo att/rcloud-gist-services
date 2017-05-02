@@ -16,4 +16,6 @@
         <appender-ref ref="CONSOLE" />
     </root>
     <logger name="org.springframework.web.servlet.DispatcherServlet" level="DEBUG" />
+    <logger name="org.ajoberstar.grgit.auth" level="WARN" />
+    
 </configuration>

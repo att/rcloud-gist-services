@@ -242,4 +242,129 @@ public class GistResponse implements Serializable
         this.additionalProperties.putAll(properties);
     }
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((_public == null) ? 0 : _public.hashCode());
+		result = prime * result + ((additionalProperties == null) ? 0 : additionalProperties.hashCode());
+		result = prime * result + ((comments == null) ? 0 : comments.hashCode());
+		result = prime * result + ((commentsUrl == null) ? 0 : commentsUrl.hashCode());
+		result = prime * result + ((commitsUrl == null) ? 0 : commitsUrl.hashCode());
+		result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((files == null) ? 0 : files.hashCode());
+		result = prime * result + ((forksUrl == null) ? 0 : forksUrl.hashCode());
+		result = prime * result + ((history == null) ? 0 : history.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((owner == null) ? 0 : owner.hashCode());
+		result = prime * result + ((truncated == null) ? 0 : truncated.hashCode());
+		result = prime * result + ((updatedAt == null) ? 0 : updatedAt.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		result = prime * result + ((user == null) ? 0 : user.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GistResponse other = (GistResponse) obj;
+		if (_public == null) {
+			if (other._public != null)
+				return false;
+		} else if (!_public.equals(other._public))
+			return false;
+		if (additionalProperties == null) {
+			if (other.additionalProperties != null)
+				return false;
+		} else if (!additionalProperties.equals(other.additionalProperties))
+			return false;
+		if (comments == null) {
+			if (other.comments != null)
+				return false;
+		} else if (!comments.equals(other.comments))
+			return false;
+		if (commentsUrl == null) {
+			if (other.commentsUrl != null)
+				return false;
+		} else if (!commentsUrl.equals(other.commentsUrl))
+			return false;
+		if (commitsUrl == null) {
+			if (other.commitsUrl != null)
+				return false;
+		} else if (!commitsUrl.equals(other.commitsUrl))
+			return false;
+		if (createdAt == null) {
+			if (other.createdAt != null)
+				return false;
+		} else if (!createdAt.equals(other.createdAt))
+			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (files == null) {
+			if (other.files != null)
+				return false;
+		} else if (!files.equals(other.files))
+			return false;
+		if (forksUrl == null) {
+			if (other.forksUrl != null)
+				return false;
+		} else if (!forksUrl.equals(other.forksUrl))
+			return false;
+		if (history == null) {
+			if (other.history != null)
+				return false;
+		} else if (!history.equals(other.history))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (owner == null) {
+			if (other.owner != null)
+				return false;
+		} else if (!owner.equals(other.owner))
+			return false;
+		if (truncated == null) {
+			if (other.truncated != null)
+				return false;
+		} else if (!truncated.equals(other.truncated))
+			return false;
+		if (updatedAt == null) {
+			if (other.updatedAt != null)
+				return false;
+		} else if (!updatedAt.equals(other.updatedAt))
+			return false;
+		if (url == null) {
+			if (other.url != null)
+				return false;
+		} else if (!url.equals(other.url))
+			return false;
+		if (user == null) {
+			if (other.user != null)
+				return false;
+		} else if (!user.equals(other.user))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "GistResponse [url=" + url + ", commitsUrl=" + commitsUrl + ", forksUrl=" + forksUrl + ", id=" + id
+				+ ", description=" + description + ", _public=" + _public + ", owner=" + owner + ", user=" + user
+				+ ", files=" + files + ", truncated=" + truncated + ", comments=" + comments + ", commentsUrl="
+				+ commentsUrl + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", history=" + history
+				+ ", additionalProperties=" + additionalProperties + "]";
+	}
+
+	
 }

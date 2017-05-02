@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -18,8 +24,8 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
 
 @Component
 public class GistOperationFactory {
-	
-	
+
+
 	@Autowired
 	private HistoryCache historyCache = new HistoryCache() {
 
@@ -32,40 +38,40 @@ public class GistOperationFactory {
 		public List<GistHistory> save(String commitId, List<GistHistory> history) {
 			return history;
 		}
-		
+
 	};
-	
-	
+
+
 	@Autowired
 	private FileContentCache fileContentCache = new FileContentCache() {
 
 		@Override
-		public FileContent load(String contentId) {
+		public FileContent load(String contentId, String path) {
 			return null;
 		}
 
 		@Override
-		public FileContent save(String contentId, FileContent content) {
+		public FileContent save(String contentId, String path, FileContent content) {
 			return content;
 		}
-		
+
 	};
-	
-	@Autowired 
+
+	@Autowired
 	private MetadataStore metadataStore;
-	
-	@Autowired 
+
+	@Autowired
 	private CommentStore commentStore;
-	
+
 	public GistOperationFactory() {
 		this(new ObjectMapper());
 	}
-	
+
 	public GistOperationFactory(ObjectMapper objectMapper) {
 		this.metadataStore = new GistMetadataStore(objectMapper);
 		this.commentStore = new GistCommentStore(objectMapper);
 	}
-	
+
 	@Autowired
 	public GistOperationFactory(MetadataStore metadataStore, CommentStore commentStore, HistoryCache historyCache, FileContentCache fileContentCache) {
 		this.metadataStore = metadataStore;
@@ -73,7 +79,7 @@ public class GistOperationFactory {
 		this.historyCache = historyCache;
 		this.fileContentCache = fileContentCache;
 	}
-	
+
 	public HistoryCache getHistoryCache() {
 		return historyCache;
 	}
@@ -109,9 +115,9 @@ public class GistOperationFactory {
 		op.setHistorycache(historyCache);
 		op.setMetadataStore(this.metadataStore);
 		op.setFileContentCache(fileContentCache);
-		return op; 
+		return op;
 	}
-	
+
 	public CreateOrUpdateGistOperation getCreateOrUpdateOperation(RepositoryLayout layout, String gistId, GistRequest gistRequest, UserDetails user) {
 		GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
 		CreateOrUpdateGistOperation op = new CreateOrUpdateGistOperation(layout, gistId, gistRequest, user);
@@ -119,21 +125,21 @@ public class GistOperationFactory {
 		op.setHistorycache(historyCache);
 		op.setMetadataStore(this.metadataStore);
 		op.setFileContentCache(fileContentCache);
-		return op; 
+		return op;
 	}
-	
+
 	public ForkGistOperation getForkOperation(RepositoryLayout layout, String gistId, GistRepository originalRepository, GistRepository newRepository, UserDetails user) {
 		GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
-		ForkGistOperation op = new ForkGistOperation(layout, originalRepository, newRepository, user);
+		ForkGistOperation op = new ForkGistOperation(layout, originalRepository, newRepository, gistId, user);
 		op.setCommentRepository(repository);
 		op.setHistorycache(historyCache);
 		op.setMetadataStore(this.metadataStore);
 		op.setFileContentCache(fileContentCache);
-		return op; 
+		return op;
 	}
-	
+
 	public InitRepositoryLayoutOperation getInitRepositoryLayoutOperation(File repositoryRoot) {
 		return new InitRepositoryLayoutOperation(repositoryRoot);
 	}
-	
+
 }

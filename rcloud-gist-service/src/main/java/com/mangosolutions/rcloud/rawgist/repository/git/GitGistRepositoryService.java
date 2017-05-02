@@ -9,6 +9,8 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -23,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.google.common.base.Splitter;
 import com.hazelcast.core.HazelcastInstance;
+import com.mangosolutions.rcloud.rawgist.model.Fork;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
@@ -47,7 +49,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 
 	private int lockTimeout = DEFAULT_LOCK_TIMEOUT;
 
-	private static final Splitter REPOSITORYID_FOLDER_SPLITTER = Splitter.fixedLength(4);
+	
 
 	private static final String RECYCLE_FOLDER_NAME = ".recycle";
 
@@ -59,6 +61,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	private HazelcastInstance hazelcastInstance;
 	private GistSecurityManager securityManager;
 	private GistRepositoryFactory repositoryFactory;
+	private List<RepositoryStorageLocator> locators;
 	
 
 	public GitGistRepositoryService(String repositoryRoot, GistIdGenerator idGenerator,
@@ -73,6 +76,8 @@ public class GitGistRepositoryService implements GistRepositoryService {
 		}
 		this.idGenerator = idGenerator;
 		this.hazelcastInstance = hazelcastInstance;
+		
+		locators = Arrays.asList(new AsymetricFourFolderRepositoryStorageLocator(this.repositoryRoot), new SymetricFourPartRepositoryStorageLocator(this.repositoryRoot));
 	}
 	
 	public void setGistRepositoryFactory(GistRepositoryFactory repositoryFactory) {
@@ -186,6 +191,24 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			lock.unlock();
 		}
 	}
+	
+	@Override
+	public List<Fork> getForks(String gistId, User activeUser) {
+		Lock lock = acquireGistLock(gistId);
+		try {
+			File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+			GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
+			this.ensureReadable(repository, activeUser);
+			GistMetadata metadata = repository.getMetadata();
+			List<Fork> forks = metadata.getForks();
+			if(forks == null) {
+				forks = Collections.emptyList();
+			}
+			return forks;
+		} finally {
+			lock.unlock();
+		}
+	}
 
 	@Override
 	public List<GistCommentResponse> getComments(String gistId, UserDetails user) {
@@ -276,21 +299,20 @@ public class GitGistRepositoryService implements GistRepositoryService {
 	}
 
 	private File getAndValidateRepositoryFolder(String id) {
-		File folder = getRepositoryFolder(id);
-		if (!folder.exists()) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_NOT_EXIST, "Gist with id {} does not exist", id);
-			logger.error(error.getFormattedMessage());
-			throw new GistRepositoryException(error);
+		for(RepositoryStorageLocator locator: this.locators) {
+			File repositoryFolder = locator.getStoragePath(id);
+			if(repositoryFolder.exists()) {
+				return repositoryFolder;
+			}
 		}
-		return folder;
+		GistError error = new GistError(GistErrorCode.ERR_GIST_NOT_EXIST, "Gist with id {} does not exist", id);
+		logger.error(error.getFormattedMessage());
+		throw new GistRepositoryException(error);
+		
 	}
 
 	private File getRepositoryFolder(String id) {
-		File folder = repositoryRoot;
-		for (String path : REPOSITORYID_FOLDER_SPLITTER.split(id)) {
-			folder = new File(folder, path);
-		}
-		return folder;
+		return this.locators.get(0).getStoragePath(id);
 	}
 	
 	
@@ -311,4 +333,6 @@ public class GitGistRepositoryService implements GistRepositoryService {
 			throw new GistAccessDeniedException(error);
 		}
 	}
+
+	
 }

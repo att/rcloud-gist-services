@@ -11,6 +11,7 @@ import java.util.List;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.mangosolutions.rcloud.rawgist.model.Fork;
 import com.mangosolutions.rcloud.rawgist.model.GistComment;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
@@ -41,5 +42,7 @@ public interface GistRepositoryService {
 	public void deleteComment(String gistId, long commentId, UserDetails activeUser);
 
 	public GistResponse forkGist(String gistId, User activeUser);
+	
+	public List<Fork> getForks(String gistId, User activeUser);
 
 }

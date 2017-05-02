@@ -5,10 +5,10 @@
 #
 #*******************************************************************************
 server:
-    port: 13020
+    port: 17020
 
 management:
-  port: 13021
+  port: 17021
   security:
     enabled: true
 
@@ -47,6 +47,11 @@ gists:
      - application/vnd.github.beta
      - application/vnd.github.v3+json
      - application/vnd.github.v3
+  route:
+    redirect:
+      from: '/login/*'
+      to: http://example.com
+      copyparams: true
     
 #TOO update the caches with better default values.
 caches:

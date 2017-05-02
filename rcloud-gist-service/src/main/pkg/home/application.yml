@@ -33,6 +33,15 @@
 #    The port of the Session Key Server
 # keyserver.url:
 #    The URL template for the session key server.
+# route.redirect:
+#    A static route that when hit will return a redirect to the client
+# route.redirect.from: 
+#    The relative URL that this service uses to issue the redirect from.
+# route.redirect.to:
+#    The URL to redirect to
+# route.redirect.copyparams:
+#     Whether to copy the parameters from the request into the redirection URL.
+#     defaults to 'true' if not specified
 ################################################################################
 #gists:
 #  root: /var/rcloud-gist-service/gists/
@@ -42,6 +51,11 @@
 #    port: 4301
 #    realm: rcloud
 #    url: http://${gists.sessionKeyServerHost}:${gists.sessionKeyServerPort}/valid?token={token}&realm={realm}
+#   route:
+#    redirect:
+#      from: '/login/*'
+#      to: 'http://example.com'
+#      copyparams: true
 
 ################################################################################
 # Security information for administrative access.

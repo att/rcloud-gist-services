@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
@@ -17,5 +23,5 @@ public class GitGistRepositoryFactory implements GistRepositoryFactory {
 	public GistRepository getRepository(File folder) {
 		return new GitGistRepository(folder, gistOperationFactory);
 	}
-	
+
 }

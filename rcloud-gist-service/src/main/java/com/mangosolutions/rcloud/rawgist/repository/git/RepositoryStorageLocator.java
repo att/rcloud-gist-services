@@ -6,12 +6,10 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.git;
 
-import com.mangosolutions.rcloud.rawgist.model.FileContent;
+import java.io.File;
 
-public interface FileContentCache {
+public interface RepositoryStorageLocator {
 
-	FileContent load(String contentId, String path);
-
-	FileContent save(String contentId, String path, FileContent content);
+	File getStoragePath(String gistId);
 
 }

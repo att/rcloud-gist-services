@@ -79,6 +79,28 @@ public class GitGistCommentRepositoryTest {
 		validateResponse(1, expectedDescription, expectedFilename, expectedContent, response);
 		validateHistory(response, 1);
 	}
+	
+	@Test
+	public void updateGistWithTwoFiles() {
+		String expectedDescription = "This is a cool gist";
+		String expectedFilename = "i_am_file_1.R";
+
+		String initialContent = "I am the content of the file";
+		String newFilename = "i_am_file_2.R";
+		String newContent = "I am the content of a different file";
+		String newFilename2 = "i_am_file_3.R";
+		String newContent2 = "I am the content of a different file2";
+		this.createGist(expectedDescription, new String[]{expectedFilename, initialContent});
+		GistRequest request = this.createGistRequest(null, new String[]{newFilename, newContent});
+		FileDefinition def = new FileDefinition();
+		def.setContent(newContent2);
+		request.getFiles().put(newFilename2, def);
+		GistResponse response = this.repository.updateGist(request, userDetails);
+		validateResponse(3, expectedDescription, expectedFilename, initialContent, response);
+		validateResponse(3, expectedDescription, newFilename, newContent, response);
+		validateResponse(3, expectedDescription, newFilename2, newContent2, response);
+		validateHistory(response, 2);
+	}
 
 
 	@Test
@@ -135,7 +157,7 @@ public class GitGistCommentRepositoryTest {
 
 
 	@Test
-	public void getGistRevision() {
+	public void getGistRevisionTest() {
 		String expectedDescription = "This is a cool gist";
 		String initialFilename = "i_am_file_1.R";
 
@@ -158,7 +180,39 @@ public class GitGistCommentRepositoryTest {
 	}
 
 	@Test
-	public void updateGistWithDifferentUser() {
+	public void moveGistFileTest() {
+		String expectedDescription = "This is a cool gist";
+		String initialFilename = "i_am_file_1.R";
+
+		String initialContent = "I am the content of the file";
+		String newFilename = "i_am_file_2.R";
+		String newContent = "I am the content of a different file";
+		String movedFileName = "i_am_file_3.R";
+		this.createGist(expectedDescription, new String[]{initialFilename, initialContent});
+		this.updateGist(new String[]{newFilename, newContent});
+
+		
+		GistRequest request = this.createGistRequest(null, new String[]{initialFilename});
+		FileDefinition def = new FileDefinition();
+		
+		def.setFilename(movedFileName);
+		request.getFiles().put(initialFilename, def);
+		
+		GistResponse response = this.repository.updateGist(request, userDetails);
+		
+		validateResponse(2, expectedDescription, newFilename, newContent, response);
+		validateHistory(response, 3);
+
+		GistHistory history = response.getHistory().get(1);
+		String commitId = history.getVersion();
+		response = repository.readGist(commitId, userDetails);
+		validateResponse(2, expectedDescription, initialFilename, initialContent, response);
+		validateResponse(2, expectedDescription, newFilename, newContent, response);
+		validateHistory(response, 2);
+	}
+	
+	@Test
+	public void updateGistWithDifferentUserTest() {
 		String expectedDescription = "This is a cool gist";
 		String expectedFilename = "i_am_file.R";
 		String initialContent = "I am the content of the file";

@@ -35,10 +35,6 @@ public class GitGistRepository implements GistRepository, Serializable {
 	private MetadataStore metadataStore;
 	
 	private CommentStore commentStore;
-//
-//	private HistoryCache historyStore;
-//	
-//	private FileContentCache fileContentCache;
 
 	public GitGistRepository(File repositoryFolder) {
 		this(repositoryFolder, new GistOperationFactory());
@@ -54,7 +50,6 @@ public class GitGistRepository implements GistRepository, Serializable {
 	}
 	
 	
-	
 	@Override
 	public String getId() {
 		return this.getMetadata().getId();
@@ -63,6 +58,10 @@ public class GitGistRepository implements GistRepository, Serializable {
 	@Override
 	public File getGistRepositoryFolder(UserDetails owner) {
 		return layout.getRootFolder();
+	}
+
+	public File getGistGitRepositoryFolder(UserDetails owner) {
+		return layout.getBareFolder();
 	}
 
 	@Override

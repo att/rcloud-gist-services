@@ -40,12 +40,13 @@ public class GistError {
 		return this.params;
 	}
 
+	
 	public String getFormattedMessage() {
 		String prefix = "";
 		if(!StringUtils.isEmpty(code)) {
 			prefix = this.format(PREFIX_FORMAT, code);
 		}
-		return prefix + this.format(message, params);
+		return prefix + this.format(message, (Object[]) params);
 	}
 
 
