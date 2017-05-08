@@ -38,7 +38,7 @@
             <ports>0</ports>
         </outbound-ports>
         <join>
-            <multicast enabled="true">
+            <multicast enabled="false">
                 <multicast-group>224.2.2.3</multicast-group>
                 <multicast-port>54327</multicast-port>
             </multicast>
@@ -265,13 +265,4 @@
 
     <lite-member enabled="false"/>
     
-    
-<!--     <cache name="sessionkeys"> -->
-<!--     <expiry-policy-factory> -->
-<!--          <timed-expiry-policy-factory expiry-policy-type="CREATED" -->
-<!--                                          duration-amount="1" -->
-<!--                                          time-unit="MINUTES"/> -->
-<!--      </expiry-policy-factory> -->
-<!--     </cache> -->
-
 </hazelcast>

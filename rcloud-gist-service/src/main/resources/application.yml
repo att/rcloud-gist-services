@@ -55,8 +55,6 @@ gists:
       to: http://example.com
       copyparams: true
   
-    
-#TODO update the caches with better default values.
 caches:
   - 
     name: 'sessionkeys'

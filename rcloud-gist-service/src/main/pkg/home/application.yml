@@ -27,11 +27,17 @@
 # lockTimeout:
 #    Timeout to acquire read/write locks on a gist to prevent concurrent 
 #    modification.
-# keyserver.host:
+# keyservers:
+#    The configuration block for the Session Key Servers. The immediate child
+#    of this is the client_id name for the key server as is received in the
+#    request from rcloud. A value of 'default' indicates that this is to 
+#    be used if no matching client_id is specified for a key servce 
+#    configuration.
+# keyservers.host:
 #    The host machine running the Session Key Server
-# keyserver.port:
+# keyservers.port:
 #    The port of the Session Key Server
-# keyserver.url:
+# keyservers.url:
 #    The URL template for the session key server.
 # route.redirect:
 #    A static route that when hit will return a redirect to the client
@@ -46,11 +52,12 @@
 #gists:
 #  root: /var/rcloud-gist-service/gists/
 #  lockTimeout: 30
-#  keyserver:
-#    host: 127.0.0.1
-#    port: 4301
-#    realm: rcloud
-#    url: http://${gists.sessionKeyServerHost}:${gists.sessionKeyServerPort}/valid?token={token}&realm={realm}
+#  keyservers:
+#    default:
+#      host: 127.0.0.1
+#      port: 4301
+#      realm: rcloud
+#      url: http://{host}:{port}/valid?token={token}&realm={realm}
 #   route:
 #    redirect:
 #      from: '/login/*'
