@@ -6,6 +6,8 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
+import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +22,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.AuthenticationUserDetailsService;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.util.StringUtils;
 
+import com.mangosolutions.rcloud.sessionkeyauth.KeyServerConfiguration;
 import com.mangosolutions.rcloud.sessionkeyauth.SessionKeyServerUserDetailsService;
 
 @Configuration
@@ -45,7 +48,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.addFilterBefore(ssoFilter(), RequestHeaderAuthenticationFilter.class)
-			.authenticationProvider(preauthAuthProvider())
+			.authenticationProvider(preAuthAuthProvider())
 			.csrf()
 			.disable()
 			.authorizeRequests()
@@ -55,46 +58,37 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(preauthAuthProvider());
+		auth.authenticationProvider(preAuthAuthProvider());
 	}
 	
 	@Bean 
-	public UserDetailsService getSessionKeyServerUserDetailsService() {
-		SessionKeyServerUserDetailsService service = new SessionKeyServerUserDetailsService();
-		String serverUrl = keyserverProperties.getUrl();
-		if(!StringUtils.isEmpty(serverUrl)) {
-			logger.info("Setting the session key URL to {}", serverUrl);
-			service.setSessionKeyServerUrl(serverUrl.trim());
-		}
-		String realm = keyserverProperties.getRealm();
-		if(!StringUtils.isEmpty(realm)) {
-			logger.info("Setting the session key realm to {}", realm);
-			service.setRealm(realm.trim());
-		}
+	public AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> getSessionKeyServerUserDetailsService() {
+		Collection<KeyServerConfiguration> config = this.keyserverProperties.getKeyservers();
+		SessionKeyServerUserDetailsService service = new SessionKeyServerUserDetailsService(config);
 		return service;
 	}
 
 	@Bean
-	public UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsServiceWrapper() {
-		UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> wrapper =
-				new UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken>();
-
-		wrapper.setUserDetailsService(this.getSessionKeyServerUserDetailsService());
-		return wrapper;
+	public PreAuthenticatedAuthenticationProvider preAuthAuthProvider() {
+		PreAuthenticatedAuthenticationProvider preAuthAuthProvider = new PreAuthenticatedAuthenticationProvider();
+		preAuthAuthProvider.setPreAuthenticatedUserDetailsService(getSessionKeyServerUserDetailsService());
+		return preAuthAuthProvider;
 	}
 
 	@Bean
-	public PreAuthenticatedAuthenticationProvider preauthAuthProvider() {
-		PreAuthenticatedAuthenticationProvider preauthAuthProvider = new PreAuthenticatedAuthenticationProvider();
-		preauthAuthProvider.setPreAuthenticatedUserDetailsService(userDetailsServiceWrapper());
-		return preauthAuthProvider;
+	public SessionKeyServerWebAuthenticationDetailsSource getDetailsSource() {
+		return new SessionKeyServerWebAuthenticationDetailsSource(this.keyserverProperties.getClientId());
 	}
-
+	
 	@Bean
-	public RequestParameterAuthenticationFilter ssoFilter() throws Exception {
+	public AbstractPreAuthenticatedProcessingFilter ssoFilter() throws Exception {
 		RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
 		filter.setAuthenticationManager(authenticationManager());
-		filter.setPrincipalRequestParameter(keyserverProperties.getToken());
+		filter.setAuthenticationDetailsSource(getDetailsSource());
+		String tokenParameter = this.keyserverProperties.getToken();
+		if(!StringUtils.isEmpty(tokenParameter)) {
+			filter.setPrincipalRequestParameter(tokenParameter);
+		}
 		return filter;
 	}
 

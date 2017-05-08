@@ -36,12 +36,21 @@ security:
 gists:
   root: ${java.io.tmpdir}/gists/
   lockTimeout: 30
-  keyserver:
-    host: 127.0.0.1
-    port: 4301
-    realm: rcloud
-    url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
-    token: access_token
+  keyservers:
+    -
+      client_id: local
+      host: 127.0.0.1
+      port: 4301
+      realm: rcloud
+      url: http://{host}:{port}/valid?token={token}&realm={realm}
+      token: access_token
+    -
+      client_id: remote
+      host: remotekeyserver
+      port: 4301
+      realm: rcloud
+      url: http://{host}:{port}/valid?token={token}&realm={realm}
+      token: access_token
   mediatypes:
      - application/vnd.github.beta+json
      - application/vnd.github.beta
