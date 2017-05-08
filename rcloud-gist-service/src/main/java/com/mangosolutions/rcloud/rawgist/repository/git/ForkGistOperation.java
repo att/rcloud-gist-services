@@ -108,10 +108,6 @@ public class ForkGistOperation extends ReadGistOperation {
 		metadata.setDescription(originalMetadata.getDescription());
 		Fork fork = new Fork();
 		fork.setId(originalMetadata.getId());
-		String owner = originalMetadata.getOwner();
-		GistIdentity identity = new GistIdentity();
-		identity.setLogin(owner);
-		fork.setUser(identity);
 		metadata.setForkOf(fork);
 		this.saveMetadata(metadata);
 	}
