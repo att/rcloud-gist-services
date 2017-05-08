@@ -6,7 +6,7 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -170,10 +170,14 @@ public class GistRestControllerTest {
 			.andExpect(status().isCreated())
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
 			.andExpect(jsonPath("$.files.length()", is(1)))
+			.andExpect(jsonPath("$.fork_of.id", is(this.defaultGistId)))
 			.andReturn().getResponse().getContentAsString();
 		String forkedGistId = JsonPath.read(forkResponse, "$.id");
+		
 		Assert.assertNotEquals(this.defaultGistId, forkedGistId);
-
+		String forkOfUrl = JsonPath.read(forkResponse, "$.fork_of.url");
+		Assert.assertTrue(forkOfUrl.endsWith(this.defaultGistId));
+		
 		//update the forked gist
 		String fileName = "file_in_new_gist.txt";
 		String fileContent = "String file contents";

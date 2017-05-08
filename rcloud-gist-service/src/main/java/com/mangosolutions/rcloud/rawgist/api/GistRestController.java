@@ -176,6 +176,11 @@ public class GistRestController {
 			gistResponse.setUrl(resolver.getGistUrl(gistResponse.getId(), activeUser));
 			gistResponse.setCommentsUrl(resolver.getCommentsUrl(gistResponse.getId(), activeUser));
 			gistResponse.setForksUrl(resolver.getForksUrl(gistResponse.getId(), activeUser));
+			if(gistResponse.getForkOf() != null) {
+				Fork forkOf = gistResponse.getForkOf();
+				String url = resolver.getGistUrl(forkOf.getId(), activeUser);
+				forkOf.setUrl(url);
+			}
 		}
 	}
 	

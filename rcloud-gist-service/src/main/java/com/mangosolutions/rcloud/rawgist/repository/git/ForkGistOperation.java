@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.mangosolutions.rcloud.rawgist.model.Fork;
+import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistError;
 import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
@@ -104,6 +106,13 @@ public class ForkGistOperation extends ReadGistOperation {
 		metadata.setUpdatedAt(new DateTime());
 		metadata.setPublic(false);
 		metadata.setDescription(originalMetadata.getDescription());
+		Fork fork = new Fork();
+		fork.setId(originalMetadata.getId());
+		String owner = originalMetadata.getOwner();
+		GistIdentity identity = new GistIdentity();
+		identity.setLogin(owner);
+		fork.setUser(identity);
+		metadata.setForkOf(fork);
 		this.saveMetadata(metadata);
 	}
 

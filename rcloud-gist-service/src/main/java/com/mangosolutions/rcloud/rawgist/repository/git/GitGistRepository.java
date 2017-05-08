@@ -128,13 +128,12 @@ public class GitGistRepository implements GistRepository, Serializable {
 		GistMetadata forksMetadata = forkedRepository.getMetadata();
 		Fork fork = new Fork();
 		fork.setCreatedAt(forksMetadata.getCreatedAt());
-		fork.setUpdatedAt(forksMetadata.getUpdatedAt());
 		fork.setId(forksMetadata.getId());
 		String forkOwner = forksMetadata.getOwner(); 
 		GistIdentity forkOwnerIdentity = new GistIdentity();
 		forkOwnerIdentity.setLogin(forkOwner);
 		fork.setUser(forkOwnerIdentity);
-		metadata.addFork(fork);
+		metadata.addOrUpdateFork(fork);
 		this.saveMetadata(metadata);
 	}
 

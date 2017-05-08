@@ -224,6 +224,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
 			response.setOwner(owner);
 			response.setUser(owner);
 		}
+		response.setForkOf(metadata.getForkOf());
 		response.addAdditionalProperties(metadata.getAdditionalProperties());
 	}
 

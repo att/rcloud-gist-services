@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "url",
     "forks_url",
@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "user",
     "files",
     "truncated",
+    "fork_of",
     "comments",
     "comments_url",
     "created_at",
@@ -60,6 +61,8 @@ public class GistResponse implements Serializable
     private GistIdentity user;
     @JsonProperty("files")
     private Map<String, FileContent> files = new HashMap<String, FileContent>();
+    @JsonProperty("fork_of")
+    private Fork forkOf;
     @JsonProperty("truncated")
     private Boolean truncated = false;
     @JsonProperty("comments")
@@ -227,8 +230,18 @@ public class GistResponse implements Serializable
     public void setHistory(List<GistHistory> history) {
         this.history = history;
     }
+    
+    @JsonProperty("fork_of")
+    public Fork getForkOf() {
+		return forkOf;
+	}
 
-    @JsonAnyGetter
+    @JsonProperty("fork_of")
+	public void setForkOf(Fork forkOf) {
+		this.forkOf = forkOf;
+	}
+
+	@JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
     }
@@ -254,6 +267,7 @@ public class GistResponse implements Serializable
 		result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((files == null) ? 0 : files.hashCode());
+		result = prime * result + ((forkOf == null) ? 0 : forkOf.hashCode());
 		result = prime * result + ((forksUrl == null) ? 0 : forksUrl.hashCode());
 		result = prime * result + ((history == null) ? 0 : history.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
@@ -314,6 +328,11 @@ public class GistResponse implements Serializable
 				return false;
 		} else if (!files.equals(other.files))
 			return false;
+		if (forkOf == null) {
+			if (other.forkOf != null)
+				return false;
+		} else if (!forkOf.equals(other.forkOf))
+			return false;
 		if (forksUrl == null) {
 			if (other.forksUrl != null)
 				return false;
@@ -361,9 +380,9 @@ public class GistResponse implements Serializable
 	public String toString() {
 		return "GistResponse [url=" + url + ", commitsUrl=" + commitsUrl + ", forksUrl=" + forksUrl + ", id=" + id
 				+ ", description=" + description + ", _public=" + _public + ", owner=" + owner + ", user=" + user
-				+ ", files=" + files + ", truncated=" + truncated + ", comments=" + comments + ", commentsUrl="
-				+ commentsUrl + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", history=" + history
-				+ ", additionalProperties=" + additionalProperties + "]";
+				+ ", files=" + files + ", forkOf=" + forkOf + ", truncated=" + truncated + ", comments=" + comments
+				+ ", commentsUrl=" + commentsUrl + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
+				+ ", history=" + history + ", additionalProperties=" + additionalProperties + "]";
 	}
 
 	
