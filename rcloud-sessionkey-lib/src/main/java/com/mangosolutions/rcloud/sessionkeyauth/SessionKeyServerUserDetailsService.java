@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -40,35 +41,32 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 
 	private Map<String, KeyServerConfiguration> keyServers = new HashMap<>();
 	
-	public SessionKeyServerUserDetailsService(Collection<KeyServerConfiguration> keyServers) {
+	public SessionKeyServerUserDetailsService(Map<String, KeyServerConfiguration> keyServers) {
 		this(new RestTemplate(), keyServers);
 	}
 
-	public SessionKeyServerUserDetailsService(RestTemplate restTemplate, Collection<KeyServerConfiguration> keyServers) {
-		for(KeyServerConfiguration keyServer: keyServers) {
-			String clientId = keyServer.getClientId();
-			this.keyServers.put(clientId, keyServer);
-		}
+	public SessionKeyServerUserDetailsService(RestTemplate restTemplate, Map<String, KeyServerConfiguration> keyServers) {
+		this.keyServers = new HashMap<>(keyServers);
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
 		converters.add(new SessionKeyServerMessageConverter());
 		restTemplate.setMessageConverters(converters);
 		this.restTemplate = restTemplate;
 	}
 	
-	public SessionKeyServerUserDetailsService(RestTemplate restTemplate, Map<String, KeyServerConfiguration> keyServers) {
-		List<HttpMessageConverter<?>> converters = new ArrayList<>();
-		converters.add(new SessionKeyServerMessageConverter());
-		restTemplate.setMessageConverters(converters);
-		this.restTemplate = restTemplate;
-	}
-
 	@Override
-//	@Cacheable(value="sessionkeys")
+	@Cacheable(value="sessionkeys", key = "{#token.getPrincipal(), #token.getDetails().getClientId()}")
 	public UserDetails loadUserDetails(PreAuthenticatedAuthenticationToken token) throws UsernameNotFoundException {
-		//TODO add caching back in
 		if(token == null) {
 			throw new UsernameNotFoundException("SessionKey token not correctly defined.");
 		}
+		String sessionKey = getSessionKey(token);
+		String clientId = getClientId(token);
+		KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
+		ResponseEntity<SessionKeyServerResponse> response = doAuthentication(sessionKey, keyServer);
+		return convertToUserDetails(response.getBody(), sessionKey);
+	}
+
+	private String getSessionKey(PreAuthenticatedAuthenticationToken token) {
 		Object principal = token.getPrincipal();
 		//Assume that the principal is not null and is a string
 		if(!(principal instanceof String)) {
@@ -76,17 +74,11 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 			throw new UsernameNotFoundException("SessionKey token not correctly defined.");
 		}
 		String sessionKey = (String) token.getPrincipal();
-		Object details =  token.getDetails();
-		String clientId = "default";
-		if(details instanceof SessionKeyServerAuthenticationDetails) {
-			clientId = ((SessionKeyServerAuthenticationDetails)details).getClientId();
-		}
-		KeyServerConfiguration keyServer = this.keyServers.get(clientId);
-		if(keyServer == null) {
-			throw new UsernameNotFoundException("SessionKeyServer configuration not found for client_id " + clientId);
-		}
-	
+		return sessionKey;
+	}
 
+	private ResponseEntity<SessionKeyServerResponse> doAuthentication(String sessionKey,
+			KeyServerConfiguration keyServer) {
 		Map<String, Object> params = buildParams(keyServer, sessionKey);
 		HttpHeaders headers = buildHeaders();
 
@@ -100,8 +92,27 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 			logger.error("Bad response from the Session Key Server: {}, response: {}", keyServer, response);
 			throw new UsernameNotFoundException("Response from SessionKeyServer was not successful");
 		}
+		return response;
+	}
 
-		return convertToUserDetails(response.getBody(), sessionKey);
+	private String getClientId(PreAuthenticatedAuthenticationToken token) {
+		Object details =  token.getDetails();
+		String clientId = "default";
+		if(details instanceof SessionKeyServerAuthenticationDetails) {
+			clientId = ((SessionKeyServerAuthenticationDetails)details).getClientId();
+		}
+		return clientId;
+	}
+
+	private KeyServerConfiguration getKeyServerConfiguration(String clientId) {
+		KeyServerConfiguration configuration = this.keyServers.get(clientId);
+		if(configuration == null) {
+			configuration = this.keyServers.get("default");
+		}
+		if(configuration == null) {
+			throw new UsernameNotFoundException("SessionKeyServer configuration not found for client_id " + clientId);
+		}
+		return configuration;
 	}
 
 	public RestTemplate getRestTemplate() {

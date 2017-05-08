@@ -6,7 +6,8 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -19,33 +20,78 @@ public class SessionKeyServerProperties {
 	
 	private static final String DEFAULT_CLIENT_ID_NAME = "client_id";
 	
-	private List<KeyServerConfiguration> keyservers;
+	private Map<String, KeyServerConfiguration> keyservers = new HashMap<String, KeyServerConfiguration>();
 	
-	private String token = DEFAULT_ACCESS_TOKEN_NAME;
-	private String clientId = DEFAULT_CLIENT_ID_NAME;
+	private String accessTokenParam = DEFAULT_ACCESS_TOKEN_NAME;
+	private String clientIdParam = DEFAULT_CLIENT_ID_NAME;
 	
-	public List<KeyServerConfiguration> getKeyservers() {
+	public String getAccessTokenParam() {
+		return accessTokenParam;
+	}
+
+	public Map<String, KeyServerConfiguration> getKeyservers() {
 		return keyservers;
 	}
 
-	public String getToken() {
-		return token;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
-	}
-
-	public String getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-
-	public void setKeyservers(List<KeyServerConfiguration> keyservers) {
+	public void setKeyservers(Map<String, KeyServerConfiguration> keyservers) {
 		this.keyservers = keyservers;
 	}
 
+	public void setAccessTokenParam(String accessTokenParam) {
+		this.accessTokenParam = accessTokenParam;
+	}
+
+	public String getClientIdParam() {
+		return clientIdParam;
+	}
+
+	public void setClientIdParam(String clientIdParam) {
+		this.clientIdParam = clientIdParam;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((accessTokenParam == null) ? 0 : accessTokenParam.hashCode());
+		result = prime * result + ((clientIdParam == null) ? 0 : clientIdParam.hashCode());
+		result = prime * result + ((keyservers == null) ? 0 : keyservers.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SessionKeyServerProperties other = (SessionKeyServerProperties) obj;
+		if (accessTokenParam == null) {
+			if (other.accessTokenParam != null)
+				return false;
+		} else if (!accessTokenParam.equals(other.accessTokenParam))
+			return false;
+		if (clientIdParam == null) {
+			if (other.clientIdParam != null)
+				return false;
+		} else if (!clientIdParam.equals(other.clientIdParam))
+			return false;
+		if (keyservers == null) {
+			if (other.keyservers != null)
+				return false;
+		} else if (!keyservers.equals(other.keyservers))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "SessionKeyServerProperties [keyservers=" + keyservers + ", accessTokenParam=" + accessTokenParam
+				+ ", clientIdParam=" + clientIdParam + "]";
+	}
+
+	
+	
 }

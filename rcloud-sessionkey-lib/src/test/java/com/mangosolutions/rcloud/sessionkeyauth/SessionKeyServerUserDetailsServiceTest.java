@@ -6,10 +6,14 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.sessionkeyauth;
 
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,21 +30,23 @@ import org.springframework.web.client.RestTemplate;
 
 public class SessionKeyServerUserDetailsServiceTest {
 
-	private KeyServerConfiguration config;
+	private KeyServerConfiguration defaultConfig;
 	private KeyServerConfiguration remoteConfig;
-	
-	SessionKeyServerUserDetailsService detailsService;
-	SessionKeyServerAuthenticationDetails details;
+	private Map<String, KeyServerConfiguration> configs = new HashMap<>();
+	private SessionKeyServerUserDetailsService detailsService;
+	private SessionKeyServerAuthenticationDetails details;
 	
 	@Before
 	public void setUp() {
-		config = new KeyServerConfiguration();
+		
+		defaultConfig = new KeyServerConfiguration();
+		configs.put("default", defaultConfig);
 		remoteConfig = new KeyServerConfiguration();
-		remoteConfig.setClientId("remote");
 		remoteConfig.setHost("remote.example.com");
 		remoteConfig.setPort(9090);
 		remoteConfig.setRealm("anotherRealm");
-		detailsService = new SessionKeyServerUserDetailsService(Arrays.asList(config, remoteConfig));
+		configs.put("remote", remoteConfig);
+		detailsService = new SessionKeyServerUserDetailsService(configs);
 		details = new SessionKeyServerAuthenticationDetails("default");
 	}
 	
@@ -73,16 +79,19 @@ public class SessionKeyServerUserDetailsServiceTest {
 		Assert.assertEquals("xyz", userDetails.getPassword());
 	}
 	
-	@Test(expected=UsernameNotFoundException.class)
+	@Test
 	public void testMissingConfig() {
 		details = new SessionKeyServerAuthenticationDetails("missing");
 		RestTemplate restTemplate = detailsService.getRestTemplate();
 		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
-		server.expect(requestTo("http://remote.example.com:9090/valid?token=xyz&realm=anotherRealm")).andExpect(method(HttpMethod.GET))
+		server.expect(requestTo("http://127.0.0.1:4301/valid?token=def&realm=rcloud")).andExpect(method(HttpMethod.GET))
 				     .andRespond(withSuccess("YES\ntheuser\nthesource", MediaType.TEXT_PLAIN));
-		PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken("xyz", null);
+		PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken("def", null);
 		token.setDetails(details);
-		detailsService.loadUserDetails(token);
+		UserDetails userDetails = detailsService.loadUserDetails(token);
+		Assert.assertNotNull(userDetails);
+		Assert.assertEquals("theuser", userDetails.getUsername());
+		Assert.assertEquals("def", userDetails.getPassword());
 	}
 
 	@Test(expected=UsernameNotFoundException.class)

@@ -7,6 +7,7 @@
 package com.mangosolutions.rcloud.rawgist;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,8 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	
 	@Bean 
 	public AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> getSessionKeyServerUserDetailsService() {
-		Collection<KeyServerConfiguration> config = this.keyserverProperties.getKeyservers();
+		Map<String, KeyServerConfiguration> config = this.keyserverProperties.getKeyservers();
+		logger.info("Configured key servers: {}", config);
 		SessionKeyServerUserDetailsService service = new SessionKeyServerUserDetailsService(config);
 		return service;
 	}
@@ -77,7 +79,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
 	@Bean
 	public SessionKeyServerWebAuthenticationDetailsSource getDetailsSource() {
-		return new SessionKeyServerWebAuthenticationDetailsSource(this.keyserverProperties.getClientId());
+		return new SessionKeyServerWebAuthenticationDetailsSource(this.keyserverProperties.getClientIdParam());
 	}
 	
 	@Bean
@@ -85,7 +87,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 		RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
 		filter.setAuthenticationManager(authenticationManager());
 		filter.setAuthenticationDetailsSource(getDetailsSource());
-		String tokenParameter = this.keyserverProperties.getToken();
+		String tokenParameter = this.keyserverProperties.getAccessTokenParam();
 		if(!StringUtils.isEmpty(tokenParameter)) {
 			filter.setPrincipalRequestParameter(tokenParameter);
 		}

@@ -10,21 +10,11 @@ public class KeyServerConfiguration {
 
 	private static final Integer DEFAULT_PORT_VALUE = 4301;
 
-	private static final String DEFAULT_CLIENT_ID_VALUE = "default";
-
-	private String clientId = DEFAULT_CLIENT_ID_VALUE;
 	private String host = DEFAULT_HOST_VALUE;
 	private Integer port = DEFAULT_PORT_VALUE;
 	private String realm = DEFAULT_REALM_VALUE;
 	private String url = DEFAULT_URL_VALUE;
 
-	public String getClientId() {
-		return clientId;
-	}
-
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
 
 	public String getHost() {
 		return host;
@@ -61,7 +51,6 @@ public class KeyServerConfiguration {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((clientId == null) ? 0 : clientId.hashCode());
 		result = prime * result + ((host == null) ? 0 : host.hashCode());
 		result = prime * result + ((port == null) ? 0 : port.hashCode());
 		result = prime * result + ((realm == null) ? 0 : realm.hashCode());
@@ -78,11 +67,6 @@ public class KeyServerConfiguration {
 		if (getClass() != obj.getClass())
 			return false;
 		KeyServerConfiguration other = (KeyServerConfiguration) obj;
-		if (clientId == null) {
-			if (other.clientId != null)
-				return false;
-		} else if (!clientId.equals(other.clientId))
-			return false;
 		if (host == null) {
 			if (other.host != null)
 				return false;
@@ -108,8 +92,7 @@ public class KeyServerConfiguration {
 
 	@Override
 	public String toString() {
-		return "KeyServerConfiguration [clientId=" + clientId + ", host=" + host + ", port=" + port + ", realm=" + realm
-				+ ", url=" + url + "]";
+		return "KeyServerConfiguration [host=" + host + ", port=" + port + ", realm=" + realm + ", url=" + url + "]";
 	}
 	
 	

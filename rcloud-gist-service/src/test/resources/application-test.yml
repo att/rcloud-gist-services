@@ -37,20 +37,16 @@ gists:
   root: ${java.io.tmpdir}/gists/
   lockTimeout: 30
   keyservers:
-    -
-      client_id: local
+    default:
       host: 127.0.0.1
       port: 4301
       realm: rcloud
       url: http://{host}:{port}/valid?token={token}&realm={realm}
-      token: access_token
-    -
-      client_id: remote
-      host: remotekeyserver
-      port: 4301
-      realm: rcloud
+    example:
+      host: example.com
+      port: 5678
+      realm: example
       url: http://{host}:{port}/valid?token={token}&realm={realm}
-      token: access_token
   mediatypes:
      - application/vnd.github.beta+json
      - application/vnd.github.beta
@@ -62,7 +58,6 @@ gists:
       to: http://example.com
       copyparams: true
     
-#TOO update the caches with better default values.
 caches:
   - 
     name: 'sessionkeys'
