@@ -217,6 +217,55 @@ public class GistRestControllerTest {
 			.andExpect(jsonPath("$.[0].id", is(forkedGistId)));
 
 	}
+	
+	
+	@Test
+	@WithMockUser("mock_user")
+	public void testForkRepositoryWithMockUserAndRenameFork() throws Exception {
+
+		//Get the gist response.
+		String originalGist = mvc
+			.perform(
+				get("/gists/" + this.defaultGistId)
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+			)
+			.andExpect(status().isOk())
+			.andReturn().getResponse().getContentAsString();
+
+		//Fork the repository
+		String forkResponse = mvc
+			.perform(
+				post("/gists/" + this.defaultGistId + "/forks")
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+			)
+			.andExpect(status().isCreated())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$.files.length()", is(1)))
+			.andExpect(jsonPath("$.fork_of.id", is(this.defaultGistId)))
+			.andReturn().getResponse().getContentAsString();
+		String forkedGistId = JsonPath.read(forkResponse, "$.id");
+		String description = "The new description for the gist";
+		String payloadTemplate = "{\"description\": \"{}\"}";
+		String payload = this.buildMessage(payloadTemplate, description);
+		mvc.perform(
+				patch("/gists/" + forkedGistId)
+				.accept(GITHUB_BETA_MEDIA_TYPE)
+				.contentType(GITHUB_BETA_MEDIA_TYPE)
+				.content(payload)
+			).andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+			.andExpect(jsonPath("$.id", is(forkedGistId)))
+			.andExpect(jsonPath("$.files.length()", is(1)))
+			.andExpect(jsonPath("$.description", is(description)))
+			.andReturn();
+
+		
+		
+		
+
+	}
 
 	@Test
 	@WithMockUser("mock_user_2")

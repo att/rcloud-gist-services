@@ -148,58 +148,60 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
 	}
 
 	private void applyFileChanges(Grgit git, RepositoryLayout layout, Map<String, FileDefinition> files, String gistId, UserDetails userDetails) {
-		DirCache index = getIndex(git);
-		BareAddCommand addCommand = null;
-		BareRmCommand rmCommand = null;
-		BareCommitCommand commitCommand = new BareCommitCommand(git.getRepository().getJgit().getRepository(), index);
-		for (Map.Entry<String, FileDefinition> file : files.entrySet()) {
-			String filename = file.getKey();
-			File workingFolder = getWorkTree(git);
-			FileDefinition definition = file.getValue();
-			if (isDelete(definition)) {
-				commitCommand.setOnly(filename);
-				rmCommand = applyRmPath(rmCommand, filename, git, index);
-			}
-			if (isUpdate(definition)) {
-				updateFile(workingFolder, gistId, filename, definition);
-				commitCommand.setOnly(filename);
-				addCommand = applyAddPath(addCommand, filename, workingFolder, git, index);
-			}
-
-			if (isMove(filename, definition)) {
-				moveFile(workingFolder, gistId, filename, definition);
-				rmCommand = applyRmPath(rmCommand, filename, git, index);
-				commitCommand.setOnly(filename);
-				addCommand = applyAddPath(addCommand, definition.getFilename(), workingFolder, git, index);
-				commitCommand.setOnly(definition.getFilename());
-			}
-		}
-		try {
-			if(addCommand != null) {
-				FileTreeIterator it = this.getFileTreeIterator(git.getRepository().getJgit(), this.getWorkTree(git));
-				addCommand.setWorkingTreeIterator(it);
-				addCommand.call();
-			}
-			if(rmCommand != null) {
-				rmCommand.call();
+		if(files != null && !files.isEmpty()) {
+			DirCache index = getIndex(git);
+			BareAddCommand addCommand = null;
+			BareRmCommand rmCommand = null;
+			BareCommitCommand commitCommand = new BareCommitCommand(git.getRepository().getJgit().getRepository(), index);
+			for (Map.Entry<String, FileDefinition> file : files.entrySet()) {
+				String filename = file.getKey();
+				File workingFolder = getWorkTree(git);
+				FileDefinition definition = file.getValue();
+				if (isDelete(definition)) {
+					commitCommand.setOnly(filename);
+					rmCommand = applyRmPath(rmCommand, filename, git, index);
+				}
+				if (isUpdate(definition)) {
+					updateFile(workingFolder, gistId, filename, definition);
+					commitCommand.setOnly(filename);
+					addCommand = applyAddPath(addCommand, filename, workingFolder, git, index);
+				}
+	
+				if (isMove(filename, definition)) {
+					moveFile(workingFolder, gistId, filename, definition);
+					rmCommand = applyRmPath(rmCommand, filename, git, index);
+					commitCommand.setOnly(filename);
+					addCommand = applyAddPath(addCommand, definition.getFilename(), workingFolder, git, index);
+					commitCommand.setOnly(definition.getFilename());
+				}
 			}
 			try {
-				if(addCommand != null || rmCommand != null) {
-					commitCommand.workingFolder = this.getWorkTree(git);
-					commitCommand.setAuthor(userDetails.getUsername(), "");
-					commitCommand.setCommitter(userDetails.getUsername(), "");
-					commitCommand.setMessage("");
-					commitCommand.setNoVerify(true);
-					commitCommand.call();
+				if(addCommand != null) {
+					FileTreeIterator it = this.getFileTreeIterator(git.getRepository().getJgit(), this.getWorkTree(git));
+					addCommand.setWorkingTreeIterator(it);
+					addCommand.call();
+				}
+				if(rmCommand != null) {
+					rmCommand.call();
+				}
+				try {
+					if(addCommand != null || rmCommand != null) {
+						commitCommand.workingFolder = this.getWorkTree(git);
+						commitCommand.setAuthor(userDetails.getUsername(), "");
+						commitCommand.setCommitter(userDetails.getUsername(), "");
+						commitCommand.setMessage("");
+						commitCommand.setNoVerify(true);
+						commitCommand.call();
+					}
+				} catch (GitAPIException e) {
+					throw new RuntimeException(e);
 				}
 			} catch (GitAPIException e) {
-				throw new RuntimeException(e);
+				GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
+						"Could not update gist with id {}", this.getGistId());
+				logger.error(error.getFormattedMessage() + " with folder path {}", this.getWorkTree(git), e);
+				throw new GistRepositoryException(error, e);
 			}
-		} catch (GitAPIException e) {
-			GistError error = new GistError(GistErrorCode.ERR_GIST_UPDATE_FAILURE,
-					"Could not update gist with id {}", this.getGistId());
-			logger.error(error.getFormattedMessage() + " with folder path {}", this.getWorkTree(git), e);
-			throw new GistRepositoryException(error, e);
 		}
 	}
 
