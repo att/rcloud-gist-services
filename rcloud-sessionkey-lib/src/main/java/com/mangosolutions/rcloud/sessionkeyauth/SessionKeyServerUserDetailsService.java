@@ -108,8 +108,10 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 		KeyServerConfiguration configuration = this.keyServers.get(clientId);
 		if(configuration == null) {
 			configuration = this.keyServers.get("default");
+			logger.info("No key server defined for client_id {}, attempting to use default.", clientId);
 		}
 		if(configuration == null) {
+			logger.warn("No key server defined for client_id {}, and not fallback 'default' defined", clientId);
 			throw new UsernameNotFoundException("SessionKeyServer configuration not found for client_id " + clientId);
 		}
 		return configuration;
