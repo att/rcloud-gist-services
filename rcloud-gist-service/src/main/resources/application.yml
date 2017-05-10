@@ -5,12 +5,13 @@
 #
 #*******************************************************************************
 server:
-    port: 13020
+  port: 13020
 
 management:
   port: 13021
   security:
     enabled: true
+  context_path: /manage
 
 info:
   version: 0.1.0

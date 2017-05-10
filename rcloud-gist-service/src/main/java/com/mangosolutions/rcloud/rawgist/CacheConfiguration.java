@@ -7,6 +7,7 @@
 package com.mangosolutions.rcloud.rawgist;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spring.cache.HazelcastCacheManager;
@@ -25,6 +27,8 @@ import com.mangosolutions.rcloud.rawgist.CacheConfigurationProperties.GistCacheC
 @Configuration
 @EnableConfigurationProperties(CacheConfigurationProperties.class)
 public class CacheConfiguration {
+
+	private static final String RANDOM_GROUP_NAME = "random";
 
 	private final Logger logger = LoggerFactory.getLogger(CacheConfiguration.class);
 	
@@ -38,9 +42,22 @@ public class CacheConfiguration {
     public HazelcastCacheManager cacheManager() {
 		HazelcastCacheManager cacheManager = new HazelcastCacheManager(hazelcastInstance);
 		configureCaches(cacheManager);
+		configureGroupName();
 		return cacheManager;
     }
 	
+	private void configureGroupName() {
+		GroupConfig groupConfig = hazelcastInstance.getConfig().getGroupConfig();
+		String name = groupConfig.getName();
+		if(RANDOM_GROUP_NAME.equalsIgnoreCase(name)) {
+			String groupName = UUID.randomUUID().toString();
+			String groupPass = UUID.randomUUID().toString();
+			groupConfig.setName(groupName);
+			groupConfig.setPassword(groupPass);
+		}
+		
+	}
+
 	public void configureCaches(HazelcastCacheManager hazelcastCacheManager) {
 		HazelcastInstance hazelcastInstance = hazelcastCacheManager.getHazelcastInstance();
 		for(GistCacheConfiguration cacheConfig: cacheConfigurationProperties.getCaches()) {

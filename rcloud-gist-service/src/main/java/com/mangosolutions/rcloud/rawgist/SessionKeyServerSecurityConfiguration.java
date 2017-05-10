@@ -11,6 +11,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.ManagementServerProperties;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -28,6 +29,8 @@ import org.springframework.security.web.authentication.preauth.AbstractPreAuthen
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.util.StringUtils;
 
 import com.mangosolutions.rcloud.sessionkeyauth.KeyServerConfiguration;
@@ -44,25 +47,28 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
 	@Autowired
 	private SessionKeyServerProperties keyserverProperties;
-	
+
+	@Autowired
+	private ManagementServerProperties managementProperties;
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http
-			.addFilterBefore(ssoFilter(), RequestHeaderAuthenticationFilter.class)
-			.authenticationProvider(preAuthAuthProvider())
-			.csrf()
-			.disable()
-			.authorizeRequests()
-			.anyRequest()
-			.authenticated();
+
+		http.requestMatchers()
+				.requestMatchers(new NegatedRequestMatcher(
+						new AntPathRequestMatcher("/" + managementProperties.getContextPath() + "/**")))
+				.and()
+				.addFilterBefore(ssoFilter(), RequestHeaderAuthenticationFilter.class)
+				.authenticationProvider(preAuthAuthProvider()).csrf().disable().authorizeRequests().anyRequest()
+				.authenticated();
 	}
 
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.authenticationProvider(preAuthAuthProvider());
 	}
-	
-	@Bean 
+
+	@Bean
 	@RefreshScope
 	public AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> getSessionKeyServerUserDetailsService() {
 		Map<String, KeyServerConfiguration> config = this.keyserverProperties.getKeyservers();
@@ -82,14 +88,14 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	public SessionKeyServerWebAuthenticationDetailsSource getDetailsSource() {
 		return new SessionKeyServerWebAuthenticationDetailsSource(this.keyserverProperties.getClientIdParam());
 	}
-	
+
 	@Bean
 	public AbstractPreAuthenticatedProcessingFilter ssoFilter() throws Exception {
 		RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
 		filter.setAuthenticationManager(authenticationManager());
 		filter.setAuthenticationDetailsSource(getDetailsSource());
 		String tokenParameter = this.keyserverProperties.getAccessTokenParam();
-		if(!StringUtils.isEmpty(tokenParameter)) {
+		if (!StringUtils.isEmpty(tokenParameter)) {
 			filter.setPrincipalRequestParameter(tokenParameter);
 		}
 		return filter;

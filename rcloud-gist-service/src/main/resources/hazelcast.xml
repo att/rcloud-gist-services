@@ -24,8 +24,9 @@
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <group>
-        <name>dev</name>
-        <password>dev-pass</password>
+    	<!-- if name is set to random  a random name and password for the group is generated on startup -->
+        <name>random</name>
+        <password>random</password>
     </group>
     <management-center enabled="false">http://localhost:8080/mancenter</management-center>
     <network>

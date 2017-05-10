@@ -10,8 +10,6 @@ import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +24,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.ReflectionUtils;
 
 @Configuration
@@ -43,14 +40,8 @@ public class ManagementSecurityConfiguration extends WebSecurityConfigurerAdapte
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.requestMatchers().requestMatchers(new RequestMatcher() {
-
-			@Override
-			public boolean matches(HttpServletRequest request) {
-				return managementProperties.getPort() == request.getLocalPort();
-			}
-		})
-		.and()
+		http
+		.antMatcher("/" + managementProperties.getContextPath() + "/**")
 		.csrf()
 		.disable()
 		.authorizeRequests()
