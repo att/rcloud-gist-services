@@ -14,10 +14,26 @@
 
 ################################################################################
 # Management port. Change the value below to change the port the management
-# services are listening on.
+# services are listening on. This is protected by BASIC authentication details
+# in the security section below.
 ################################################################################
 #management:
-#   port: 13021
+#  port: 13021
+
+################################################################################
+# Security information settings administrative access to endpoints.
+# Default user is 'admin' default password is generated on startup and printed
+# out in the log file. To override these settings uncomment the lines below
+# and specify your own password.
+#
+# The administrative endpoints are documented:
+# https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html
+################################################################################
+#security:
+#  user:
+#    name: admin
+#    role: ADMIN
+#    password: secret
 
 ################################################################################
 # Gist Repository configuration:
@@ -26,13 +42,15 @@
 #   rcloudgistservice user/group.
 # lockTimeout:
 #    Timeout to acquire read/write locks on a gist to prevent concurrent 
-#    modification.
+#    modification. This value is in seconds.
 # keyservers:
 #    The configuration block for the Session Key Servers. The immediate child
 #    of this is the client_id name for the key server as is received in the
 #    request from rcloud. A value of 'default' indicates that this is to 
-#    be used if no matching client_id is specified for a key servce 
+#    be used if no matching client_id is specified for a key service 
 #    configuration.
+# keyservers.active:
+#    Whether this configuration for the keyserver is active, default is true. 
 # keyservers.host:
 #    The host machine running the Session Key Server
 # keyservers.port:
@@ -64,16 +82,7 @@
 #      to: 'http://example.com'
 #      copyparams: true
 
-################################################################################
-# Security information for administrative access.
-# Default user is 'admin' default password is generated on startup and printed
-# out in the log file. To override these settings uncomment the lines below
-# and specify your own password.
-################################################################################
-#security:
-#  user:
-#    name: admin
-#    password: secret
+
 
 ################################################################################
 # Logging configuration:
