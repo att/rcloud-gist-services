@@ -12,7 +12,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.4.3.RELEASE'
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE'
         classpath 'io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE'
         classpath 'com.netflix.nebula:gradle-ospackage-plugin:3.7.1'
         classpath 'com.netflix.nebula:gradle-info-plugin:3.5.0'

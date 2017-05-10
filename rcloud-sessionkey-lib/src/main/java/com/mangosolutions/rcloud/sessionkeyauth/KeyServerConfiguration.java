@@ -20,6 +20,7 @@ public class KeyServerConfiguration {
 	private Integer port = DEFAULT_PORT_VALUE;
 	private String realm = DEFAULT_REALM_VALUE;
 	private String url = DEFAULT_URL_VALUE;
+	private boolean active = true;
 
 
 	public String getHost() {
@@ -53,10 +54,21 @@ public class KeyServerConfiguration {
 	public void setUrl(String url) {
 		this.url = url;
 	}
+	
+	
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + (active ? 1231 : 1237);
 		result = prime * result + ((host == null) ? 0 : host.hashCode());
 		result = prime * result + ((port == null) ? 0 : port.hashCode());
 		result = prime * result + ((realm == null) ? 0 : realm.hashCode());
@@ -73,6 +85,8 @@ public class KeyServerConfiguration {
 		if (getClass() != obj.getClass())
 			return false;
 		KeyServerConfiguration other = (KeyServerConfiguration) obj;
+		if (active != other.active)
+			return false;
 		if (host == null) {
 			if (other.host != null)
 				return false;
@@ -98,7 +112,8 @@ public class KeyServerConfiguration {
 
 	@Override
 	public String toString() {
-		return "KeyServerConfiguration [host=" + host + ", port=" + port + ", realm=" + realm + ", url=" + url + "]";
+		return "KeyServerConfiguration [host=" + host + ", port=" + port + ", realm=" + realm + ", url=" + url
+				+ ", active=" + active + "]";
 	}
 	
 	

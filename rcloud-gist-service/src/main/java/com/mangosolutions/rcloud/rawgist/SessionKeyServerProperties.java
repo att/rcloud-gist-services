@@ -10,10 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 import com.mangosolutions.rcloud.sessionkeyauth.KeyServerConfiguration;
 
 @ConfigurationProperties(prefix = "gists")
+@RefreshScope
 public class SessionKeyServerProperties {
 
 	private static final String DEFAULT_ACCESS_TOKEN_NAME = "access_token";
@@ -28,7 +30,7 @@ public class SessionKeyServerProperties {
 	public String getAccessTokenParam() {
 		return accessTokenParam;
 	}
-
+	
 	public Map<String, KeyServerConfiguration> getKeyservers() {
 		return keyservers;
 	}

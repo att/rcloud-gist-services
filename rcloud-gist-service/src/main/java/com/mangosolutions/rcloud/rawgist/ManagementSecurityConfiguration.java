@@ -49,7 +49,14 @@ public class ManagementSecurityConfiguration extends WebSecurityConfigurerAdapte
 			public boolean matches(HttpServletRequest request) {
 				return managementProperties.getPort() == request.getLocalPort();
 			}
-		}).and().authorizeRequests().anyRequest().hasRole("ADMIN").and().httpBasic();
+		})
+		.and()
+		.csrf()
+		.disable()
+		.authorizeRequests()
+		.anyRequest()
+		.hasRole("ADMIN")
+		.and().httpBasic();
 	}
 
 	@Autowired

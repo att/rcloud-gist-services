@@ -46,7 +46,7 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 	}
 
 	public SessionKeyServerUserDetailsService(RestTemplate restTemplate, Map<String, KeyServerConfiguration> keyServers) {
-		this.keyServers = new HashMap<>(keyServers);
+		this.keyServers = keyServers;
 		List<HttpMessageConverter<?>> converters = new ArrayList<>();
 		converters.add(new SessionKeyServerMessageConverter());
 		restTemplate.setMessageConverters(converters);
@@ -106,9 +106,9 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 
 	private KeyServerConfiguration getKeyServerConfiguration(String clientId) {
 		KeyServerConfiguration configuration = this.keyServers.get(clientId);
-		if(configuration == null) {
+		if(configuration == null || !configuration.isActive()) {
 			configuration = this.keyServers.get("default");
-			logger.info("No key server defined for client_id {}, attempting to use default.", clientId);
+			logger.info("No active key server defined for client_id {}, attempting to use default.", clientId);
 		}
 		if(configuration == null) {
 			logger.warn("No key server defined for client_id {}, and not fallback 'default' defined", clientId);

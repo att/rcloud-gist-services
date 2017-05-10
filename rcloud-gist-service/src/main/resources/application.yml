@@ -29,6 +29,7 @@ spring:
 security:
   user:
     name: admin
+    role: ADMIN
   basic:
     enabled: false
 

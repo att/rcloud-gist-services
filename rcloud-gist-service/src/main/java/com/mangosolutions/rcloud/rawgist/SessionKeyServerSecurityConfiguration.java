@@ -6,7 +6,6 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
-import java.util.Collection;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -14,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -63,6 +63,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 	}
 	
 	@Bean 
+	@RefreshScope
 	public AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> getSessionKeyServerUserDetailsService() {
 		Map<String, KeyServerConfiguration> config = this.keyserverProperties.getKeyservers();
 		logger.info("Configured key servers: {}", config);
