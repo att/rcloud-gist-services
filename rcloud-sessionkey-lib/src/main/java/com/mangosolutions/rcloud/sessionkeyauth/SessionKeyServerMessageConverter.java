@@ -21,7 +21,13 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.StringUtils;
 
-public class SessionKeyServerMessageConverter extends AbstractHttpMessageConverter<SessionKeyServerResponse> implements HttpMessageConverter<SessionKeyServerResponse> {
+/**
+ * Converts the authentication result from a request to a SessionKeyServer to a
+ * standard SessionKeyServerResponse object.
+ * 
+ */
+public class SessionKeyServerMessageConverter extends AbstractHttpMessageConverter<SessionKeyServerResponse>
+		implements HttpMessageConverter<SessionKeyServerResponse> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionKeyServerMessageConverter.class);
 
@@ -46,13 +52,14 @@ public class SessionKeyServerMessageConverter extends AbstractHttpMessageConvert
 	@Override
 	protected void writeInternal(SessionKeyServerResponse t, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
-		//nothing to do here, this is not convertable.
+		// nothing to do here, this is not convertable.
 	}
 
 	private SessionKeyServerResponse convert(HttpInputMessage inputMessage) throws IOException {
 		List<String> lines = IOUtils.readLines(inputMessage.getBody(), "UTF-8");
-		if(lines == null || lines.isEmpty()) {
-			throw new HttpMessageNotReadableException("Response from SessionKeyServer does not contain a valid result.");
+		if (lines == null || lines.isEmpty()) {
+			throw new HttpMessageNotReadableException(
+					"Response from SessionKeyServer does not contain a valid result.");
 		}
 		SessionKeyServerResponse response = new SessionKeyServerResponse();
 		for (int i = 0; i < lines.size(); i++) {
@@ -60,11 +67,14 @@ public class SessionKeyServerMessageConverter extends AbstractHttpMessageConvert
 			case 0: // this is the YES/NO line
 				parseResult(lines.get(i), response);
 				break;
-			case 1: //this is the name line (optional)
-				parseName(lines.get(i), response); break;
-			case 2: //this is the source line (optional)
-				parseSource(lines.get(i), response); break;
-			default: logLine(lines, i);
+			case 1: // this is the name line (optional)
+				parseName(lines.get(i), response);
+				break;
+			case 2: // this is the source line (optional)
+				parseSource(lines.get(i), response);
+				break;
+			default:
+				logLine(lines, i);
 				break;
 			}
 		}
@@ -74,14 +84,14 @@ public class SessionKeyServerMessageConverter extends AbstractHttpMessageConvert
 
 	private void logLine(List<String> lines, int i) {
 		String line = lines.get(i);
-		if(StringUtils.isEmpty(line)) {
+		if (StringUtils.isEmpty(line)) {
 			return;
 		}
 		logger.info("Found unexpected value '{}' in session key server response on line {}", line, i);
 	}
 
 	private void parseSource(String source, SessionKeyServerResponse response) {
-		if(StringUtils.isEmpty(source)) {
+		if (StringUtils.isEmpty(source)) {
 			return;
 		}
 		response.setSource(source.trim());
@@ -89,22 +99,24 @@ public class SessionKeyServerMessageConverter extends AbstractHttpMessageConvert
 	}
 
 	private void parseName(String name, SessionKeyServerResponse response) {
-		if(StringUtils.isEmpty(name)) {
+		if (StringUtils.isEmpty(name)) {
 			return;
 		}
 		response.setName(name.trim());
 	}
 
 	private void parseResult(String result, SessionKeyServerResponse response) throws HttpMessageNotReadableException {
-		if(StringUtils.isEmpty(result)) {
-			throw new HttpMessageNotReadableException("Response from SessionKeyServer does not contain a valid result.");
+		if (StringUtils.isEmpty(result)) {
+			throw new HttpMessageNotReadableException(
+					"Response from SessionKeyServer does not contain a valid result.");
 		}
 		try {
 			SessionKeyServerResult sessionKeyServerResult = SessionKeyServerResult.valueOf(result.trim().toUpperCase());
 			response.setResult(sessionKeyServerResult);
 		} catch (IllegalArgumentException e) {
 			logger.error("Could not parse {} as a result from the SessionKeyServer", result);
-			throw new HttpMessageNotReadableException("Could not parse " + result + " as a result from the SessionKeyServer");
+			throw new HttpMessageNotReadableException(
+					"Could not parse " + result + " as a result from the SessionKeyServer");
 		}
 	}
 

@@ -14,12 +14,12 @@ import org.springframework.util.Assert;
 
 public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 
-	private String principalRequestParameter = "session_token";
+	private String principalRequestParameter = "access_token";
 	private String credentialsRequestParameter;
 	private boolean exceptionIfHeaderMissing = true;
 
 	/**
-	 * Read and returns the header named by {@code principalRequestHeader} from the
+	 * Read and returns the header named by {@code principalRequestParameter} from the
 	 * request.
 	 *
 	 * @throws PreAuthenticatedCredentialsNotFoundException if the header is missing and
@@ -38,7 +38,7 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	}
 
 	/**
-	 * Credentials aren't usually applicable, but if a {@code credentialsRequestHeader} is
+	 * Credentials aren't usually applicable, but if a {@code credentialsRequestParameter} is
 	 * set, this will be read and used as the credentials value. Otherwise a dummy value
 	 * will be used.
 	 */
@@ -51,16 +51,16 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 		return "N/A";
 	}
 
-	public void setPrincipalRequestParameter(String principalRequestHeader) {
-		Assert.hasText(principalRequestHeader,
+	public void setPrincipalRequestParameter(String principalRequestParameter) {
+		Assert.hasText(principalRequestParameter,
 				"principalRequestHeader must not be empty or null");
-		this.principalRequestParameter = principalRequestHeader;
+		this.principalRequestParameter = principalRequestParameter;
 	}
 
-	public void setCredentialsRequestParameter(String credentialsRequestHeader) {
-		Assert.hasText(credentialsRequestHeader,
+	public void setCredentialsRequestParameter(String credentialsRequestParameter) {
+		Assert.hasText(credentialsRequestParameter,
 				"credentialsRequestHeader must not be empty or null");
-		this.credentialsRequestParameter = credentialsRequestHeader;
+		this.credentialsRequestParameter = credentialsRequestParameter;
 	}
 
 	/**
