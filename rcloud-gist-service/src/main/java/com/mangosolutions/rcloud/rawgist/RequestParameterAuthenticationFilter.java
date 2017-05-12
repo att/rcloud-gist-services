@@ -14,12 +14,12 @@ import org.springframework.util.Assert;
 
 public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 
-	private String principalRequestParameter = "session_token";
+	private String principalRequestParameter = "access_token";
 	private String credentialsRequestParameter;
-	private boolean exceptionIfHeaderMissing = true;
+	private boolean exceptionIfParameterMissing = true;
 
 	/**
-	 * Read and returns the header named by {@code principalRequestHeader} from the
+	 * Read and returns the header named by {@code principalRequestParameter} from the
 	 * request.
 	 *
 	 * @throws PreAuthenticatedCredentialsNotFoundException if the header is missing and
@@ -29,16 +29,18 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
 		String principal = request.getParameter(principalRequestParameter);
 
-		if (principal == null && exceptionIfHeaderMissing) {
+		if (principal == null && exceptionIfParameterMissing) {
 			throw new PreAuthenticatedCredentialsNotFoundException(principalRequestParameter
 					+ " parameter not found in request.");
+		} else {
+			principal = principal == null? "": principal;
 		}
-
+		
 		return principal;
 	}
 
 	/**
-	 * Credentials aren't usually applicable, but if a {@code credentialsRequestHeader} is
+	 * Credentials aren't usually applicable, but if a {@code credentialsRequestParameter} is
 	 * set, this will be read and used as the credentials value. Otherwise a dummy value
 	 * will be used.
 	 */
@@ -51,27 +53,27 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 		return "N/A";
 	}
 
-	public void setPrincipalRequestParameter(String principalRequestHeader) {
-		Assert.hasText(principalRequestHeader,
+	public void setPrincipalRequestParameter(String principalRequestParameter) {
+		Assert.hasText(principalRequestParameter,
 				"principalRequestHeader must not be empty or null");
-		this.principalRequestParameter = principalRequestHeader;
+		this.principalRequestParameter = principalRequestParameter;
 	}
 
-	public void setCredentialsRequestParameter(String credentialsRequestHeader) {
-		Assert.hasText(credentialsRequestHeader,
+	public void setCredentialsRequestParameter(String credentialsRequestParameter) {
+		Assert.hasText(credentialsRequestParameter,
 				"credentialsRequestHeader must not be empty or null");
-		this.credentialsRequestParameter = credentialsRequestHeader;
+		this.credentialsRequestParameter = credentialsRequestParameter;
 	}
 
 	/**
-	 * Defines whether an exception should be raised if the principal header is missing.
+	 * Defines whether an exception should be raised if the principal paramater is missing.
 	 * Defaults to {@code true}.
 	 *
-	 * @param exceptionIfHeaderMissing set to {@code false} to override the default
+	 * @param exceptionIfParameterMissing set to {@code false} to override the default
 	 * behaviour and allow the request to proceed if no header is found.
 	 */
-	public void setExceptionIfHeaderMissing(boolean exceptionIfHeaderMissing) {
-		this.exceptionIfHeaderMissing = exceptionIfHeaderMissing;
+	public void setExceptionIfParameterMissing(boolean exceptionIfParameterMissing) {
+		this.exceptionIfParameterMissing = exceptionIfParameterMissing;
 	}
 
 }

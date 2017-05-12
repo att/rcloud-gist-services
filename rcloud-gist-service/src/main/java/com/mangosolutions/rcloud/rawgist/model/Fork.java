@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "user", "url", "id", "created_at", "updated_at" })
 public class Fork implements Serializable
 {
@@ -29,35 +29,14 @@ public class Fork implements Serializable
 	 */
 	private static final long serialVersionUID = 1L;
 
-	@JsonProperty("user")
-    private GistIdentity user;
-	
 	@JsonProperty("url")
     private String url;
     
 	@JsonProperty("id")
     private String id;
     
-	@JsonProperty("created_at")
-    private DateTime createdAt;
-    
-	@JsonProperty("updated_at")
-    private DateTime updatedAt;
-	
-	
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-
-
-    @JsonProperty("user")
-    public GistIdentity getUser() {
-		return user;
-	}
-
-    @JsonProperty("user")
-	public void setUser(GistIdentity user) {
-		this.user = user;
-	}
 
     @JsonProperty("url")
 	public String getUrl() {
@@ -79,26 +58,6 @@ public class Fork implements Serializable
 		this.id = id;
 	}
 
-    @JsonProperty("created_at")
-	public DateTime getCreatedAt() {
-		return createdAt;
-	}
-
-    @JsonProperty("created_at")
-	public void setCreatedAt(DateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-
-    @JsonProperty("updated_at")
-	public DateTime getUpdatedAt() {
-		return updatedAt;
-	}
-    
-    @JsonProperty("updated_at")
-	public void setUpdatedAt(DateTime updatedAt) {
-		this.updatedAt = updatedAt;
-	}
-
 	@JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
@@ -108,5 +67,47 @@ public class Fork implements Serializable
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((additionalProperties == null) ? 0 : additionalProperties.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Fork other = (Fork) obj;
+		if (additionalProperties == null) {
+			if (other.additionalProperties != null)
+				return false;
+		} else if (!additionalProperties.equals(other.additionalProperties))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (url == null) {
+			if (other.url != null)
+				return false;
+		} else if (!url.equals(other.url))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Fork [url=" + url + ", id=" + id + ", additionalProperties=" + additionalProperties + "]";
+	}
 
 }

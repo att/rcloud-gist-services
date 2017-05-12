@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.VndErrors;
 import org.springframework.hateoas.VndErrors.VndError;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,6 +62,19 @@ public class ApplicationErrorsControllerAdvice {
             throw new RuntimeException(gistError.getFormattedMessage());
         }
     }    
+    
+    @ResponseBody
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    String handle(AccessDeniedException ex) {
+    	logger.error(ex.getMessage(), ex);
+        VndError error = new VndError("ACCESS_DENIED", "You do not have permission to access this resource.");
+        try {
+            return objectMapper.writeValueAsString(error);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(ex.getMessage());
+        }
+    }  
     
     @ResponseBody
     @ExceptionHandler(GistRepositoryError.class)

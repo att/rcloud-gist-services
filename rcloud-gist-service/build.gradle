@@ -29,7 +29,7 @@ dependencies {
   compile project(':rcloud-sessionkey-lib')
 
   testCompile 'junit:junit'
-  testCompile 'org.mockito:mockito-all:1.10.8'
+//  testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'
   testCompile 'org.springframework.security:spring-security-test'
   testCompile 'org.apache.commons:commons-math3:3.6.1'
@@ -86,7 +86,7 @@ ospackage {
         filter (org.apache.tools.ant.filters.ReplaceTokens, tokens: pkg )
         rename { String fileName ->
             if(fileName.equals("service.conf")) {
-                fileName.replace('service', project.name + "-" + project.version)
+                fileName.replace('service', pkg.name + "-" + project.version)
             } else if(fileName.equals("systemd.service")) {
                 fileName.replace('systemd', pkg.name)
             } else {

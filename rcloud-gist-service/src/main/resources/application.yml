@@ -5,12 +5,13 @@
 #
 #*******************************************************************************
 server:
-    port: 13020
+  port: 13020
 
 management:
   port: 13021
   security:
     enabled: true
+  context_path: /manage
 
 info:
   version: 0.1.0
@@ -26,10 +27,10 @@ spring:
     config:
       enabled: false
 
-
 security:
   user:
     name: admin
+    role: ADMIN
   basic:
     enabled: false
 
@@ -37,12 +38,14 @@ gists:
   root: /var/rcloud-gist-service/gists/
   lockTimeout: 30
   security: permissive
-  keyserver:
-    host: 127.0.0.1
-    port: 4301
-    realm: rcloud
-    url: http://${gists.keyserver.host}:${gists.keyserver.port}/valid?token={token}&realm={realm}
-  token: access_token
+  keyservers:
+    default:
+      host: 127.0.0.1
+      port: 4301
+      realm: rcloud
+      url: http://{host}:{port}/valid?token={token}&realm={realm}
+  access_token_param: access_token
+  client_id_param: client_id
   mediatypes:
      - application/vnd.github.beta+json
      - application/vnd.github.beta
@@ -54,8 +57,6 @@ gists:
       to: http://example.com
       copyparams: true
   
-    
-#TODO update the caches with better default values.
 caches:
   - 
     name: 'sessionkeys'

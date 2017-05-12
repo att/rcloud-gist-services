@@ -17,6 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,6 +62,7 @@ public class GistCommentRestController {
 	}
 
 	@RequestMapping(method=RequestMethod.POST)
+	@PreAuthorize(GistRestController.USER_ROLE_AUTHORITY)
 	@ResponseStatus( HttpStatus.CREATED )
 	@CacheEvict(key="#gistId")
 	public GistCommentResponse createComment(@PathVariable("gistId") String gistId, @RequestBody GistComment comment, @AuthenticationPrincipal User activeUser) {
@@ -70,6 +72,7 @@ public class GistCommentRestController {
 	}
 
 	@RequestMapping(value="/{commentId}", method=RequestMethod.PATCH)
+	@PreAuthorize(GistRestController.USER_ROLE_AUTHORITY)
 	@CachePut(key="{#gistId, #commentId}")
 	@Caching(evict = @CacheEvict(key="#gistId"), put = @CachePut(key="{#gistId, #commentId}"))
 	public GistCommentResponse editComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId, @RequestBody GistComment comment, @AuthenticationPrincipal User activeUser) {
@@ -79,6 +82,7 @@ public class GistCommentRestController {
 	}
 
 	@RequestMapping(value="/{commentId}", method=RequestMethod.DELETE)
+	@PreAuthorize(GistRestController.USER_ROLE_AUTHORITY)
 	@ResponseStatus( HttpStatus.NO_CONTENT )
 	@Caching(evict = { @CacheEvict(key="#gistId"), @CacheEvict(key="{#gistId, #commentId}") })
 	public void deleteComment(@PathVariable("gistId") String gistId, @PathVariable("commentId") long commentId, @AuthenticationPrincipal User activeUser) {
