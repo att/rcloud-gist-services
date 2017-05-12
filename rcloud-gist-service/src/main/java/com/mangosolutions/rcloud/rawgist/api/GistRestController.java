@@ -24,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,6 +47,7 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 public class GistRestController {
 
 	private final Logger logger = LoggerFactory.getLogger(GistRestController.class);
+	public static final String USER_ROLE_AUTHORITY = "hasRole('USER')";
 	
 	@Autowired
 	private GistRepositoryService repository;
@@ -84,6 +86,7 @@ public class GistRestController {
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
+	@PreAuthorize(USER_ROLE_AUTHORITY)
 	@ResponseStatus(HttpStatus.CREATED)
 	public GistResponse createGist(@RequestBody GistRequest request, HttpServletRequest httpRequest,
 			@AuthenticationPrincipal User activeUser) {
@@ -116,6 +119,7 @@ public class GistRestController {
 	
 	
 	@RequestMapping(value = "/{gistId}/forks", method = RequestMethod.POST)
+	@PreAuthorize(USER_ROLE_AUTHORITY)
 	@ResponseStatus(HttpStatus.CREATED)
 	@CacheEvict(cacheNames = "gists", key="#gistId")
 	public ResponseEntity<GistResponse> forkGist(@PathVariable("gistId") String gistId,
@@ -139,6 +143,7 @@ public class GistRestController {
 	 * Legacy github mapping
 	 */
 	@RequestMapping(value = "/{gistId}/fork", method = RequestMethod.POST)
+	@PreAuthorize(USER_ROLE_AUTHORITY)
 	@ResponseStatus(HttpStatus.CREATED)
 	@CacheEvict(cacheNames = "gists", key="#gistId")
 	@Deprecated
@@ -148,6 +153,7 @@ public class GistRestController {
 	}
 
 	@RequestMapping(value = "/{gistId}", method = RequestMethod.PATCH)
+	@PreAuthorize(USER_ROLE_AUTHORITY)
 	@CachePut(cacheNames = "gists", key = "#gistId")
 	public GistResponse editGist(@PathVariable("gistId") String gistId, @RequestBody GistRequest request,
 			@AuthenticationPrincipal User activeUser) {
@@ -157,6 +163,7 @@ public class GistRestController {
 	}
 
 	@RequestMapping(value = "/{gistId}", method = RequestMethod.DELETE)
+	@PreAuthorize(USER_ROLE_AUTHORITY)
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@CacheEvict(cacheNames = "gists", key="#gistId")
 	public void deleteGist(@PathVariable("gistId") String gistId, @AuthenticationPrincipal User activeUser) {

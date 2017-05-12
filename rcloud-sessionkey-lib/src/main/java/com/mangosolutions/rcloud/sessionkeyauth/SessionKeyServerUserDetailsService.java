@@ -8,8 +8,8 @@ package com.mangosolutions.rcloud.sessionkeyauth;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,17 +25,28 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
 
 public class SessionKeyServerUserDetailsService implements AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionKeyServerUserDetailsService.class);
+	
+	private static final GrantedAuthority ANONYMOUS_AUTHORITY = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
+	private static final GrantedAuthority USER_AUTHORITY = new SimpleGrantedAuthority("ROLE_USER");
+	
+	private static final Collection<GrantedAuthority> ANONYMOUS_AUTHORITIES = Arrays.asList(ANONYMOUS_AUTHORITY);
+	
+	private static final Collection<GrantedAuthority> USER_AUTHORITIES = Arrays.asList(USER_AUTHORITY, ANONYMOUS_AUTHORITY);
+	
+	private static final UserDetails ANONYMOUS_USER = new User("anonymous", "", ANONYMOUS_AUTHORITIES);
 
 	private RestTemplate restTemplate;
 
@@ -59,11 +70,23 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 		if(token == null) {
 			throw new UsernameNotFoundException("SessionKey token not correctly defined.");
 		}
+		UserDetails userDetails = createAnonymousUser();
 		String sessionKey = getSessionKey(token);
-		String clientId = getClientId(token);
-		KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
-		ResponseEntity<SessionKeyServerResponse> response = doAuthentication(sessionKey, keyServer);
-		return convertToUserDetails(response.getBody(), sessionKey);
+		if(!isAnonymousUser(sessionKey)) {
+			
+			String clientId = getClientId(token);
+			KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
+			ResponseEntity<SessionKeyServerResponse> response = doAuthentication(sessionKey, keyServer);
+			userDetails = convertToUserDetails(response.getBody(), sessionKey);
+			
+		}
+		return userDetails;
+	}
+
+
+
+	private boolean isAnonymousUser(String sessionKey) {
+		return StringUtils.isEmpty(sessionKey);
 	}
 
 	private String getSessionKey(PreAuthenticatedAuthenticationToken token) {
@@ -158,9 +181,12 @@ public class SessionKeyServerUserDetailsService implements AuthenticationUserDet
 					"Token provided is not valid. Response from SessionKeyServer is " + response.getResult());
 		}
 		String username = response.getName();
-		Collection<GrantedAuthority> authorities = Collections.emptyList();
-		UserDetails details = new User(username, sessionKey, authorities);
+		UserDetails details = new User(username, sessionKey, USER_AUTHORITIES);
 		return details;
+	}
+	
+	private UserDetails createAnonymousUser() {
+		return ANONYMOUS_USER;
 	}
 
 }

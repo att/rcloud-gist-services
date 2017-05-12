@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -62,7 +63,23 @@ public class SessionKeyServerUserDetailsServiceTest {
 		Assert.assertNotNull(userDetails);
 		Assert.assertEquals("theuser", userDetails.getUsername());
 		Assert.assertEquals("abc", userDetails.getPassword());
+		Assert.assertEquals(2, userDetails.getAuthorities().size());
+		Assert.assertEquals("ROLE_ANONYMOUS", userDetails.getAuthorities().toArray(new GrantedAuthority[0])[0].getAuthority());
+		Assert.assertEquals("ROLE_USER", userDetails.getAuthorities().toArray(new GrantedAuthority[0])[1].getAuthority());
 	}
+	
+	@Test
+	public void testAnonymousResponse() {
+		PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken("", null);
+		token.setDetails(details);
+		UserDetails userDetails = detailsService.loadUserDetails(token);
+		Assert.assertNotNull(userDetails);
+		Assert.assertEquals("anonymous", userDetails.getUsername());
+		Assert.assertEquals("", userDetails.getPassword());
+		Assert.assertEquals(1, userDetails.getAuthorities().size());
+		Assert.assertEquals("ROLE_ANONYMOUS", userDetails.getAuthorities().toArray(new GrantedAuthority[0])[0].getAuthority());
+	}
+	
 	
 	@Test
 	public void testDifferentConfig() {
@@ -77,6 +94,9 @@ public class SessionKeyServerUserDetailsServiceTest {
 		Assert.assertNotNull(userDetails);
 		Assert.assertEquals("theuser", userDetails.getUsername());
 		Assert.assertEquals("xyz", userDetails.getPassword());
+		Assert.assertEquals(2, userDetails.getAuthorities().size());
+		Assert.assertEquals("ROLE_ANONYMOUS", userDetails.getAuthorities().toArray(new GrantedAuthority[0])[0].getAuthority());
+		Assert.assertEquals("ROLE_USER", userDetails.getAuthorities().toArray(new GrantedAuthority[0])[1].getAuthority());
 	}
 	
 	@Test
@@ -92,6 +112,9 @@ public class SessionKeyServerUserDetailsServiceTest {
 		Assert.assertNotNull(userDetails);
 		Assert.assertEquals("theuser", userDetails.getUsername());
 		Assert.assertEquals("def", userDetails.getPassword());
+		Assert.assertEquals(2, userDetails.getAuthorities().size());
+		Assert.assertEquals("ROLE_ANONYMOUS", userDetails.getAuthorities().toArray(new GrantedAuthority[0])[0].getAuthority());
+		Assert.assertEquals("ROLE_USER", userDetails.getAuthorities().toArray(new GrantedAuthority[0])[1].getAuthority());
 	}
 
 	@Test(expected=UsernameNotFoundException.class)
@@ -123,12 +146,6 @@ public class SessionKeyServerUserDetailsServiceTest {
 
 	@Test(expected=UsernameNotFoundException.class)
 	public void testNullTokenRequest() {
-
-		RestTemplate restTemplate = detailsService.getRestTemplate();
-		MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
-		server.expect(requestTo("http://127.0.0.1:4301/valid?token=&realm=rcloud")).andExpect(method(HttpMethod.GET))
-				     .andRespond(withSuccess("NO\n", MediaType.TEXT_PLAIN));
-
 		UserDetails details = detailsService.loadUserDetails(null);
 		Assert.fail("User should not have been found: " + details);
 	}
