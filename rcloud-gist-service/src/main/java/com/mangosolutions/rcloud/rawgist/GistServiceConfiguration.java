@@ -23,9 +23,10 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryFactory;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
 import com.mangosolutions.rcloud.rawgist.repository.git.GitGistRepositoryService;
-import com.mangosolutions.rcloud.rawgist.repository.git.PermissiveGistSecurityManager;
-import com.mangosolutions.rcloud.rawgist.repository.git.SimpleGistSecurityManager;
 import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
+import com.mangosolutions.rcloud.rawgist.repository.security.GrantedAuthorityGistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.security.PermissiveGistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.security.SimpleGistSecurityManager;
 
 /**
  * Main Spring configuration
@@ -35,53 +36,60 @@ import com.mangosolutions.rcloud.rawgist.repository.git.UUIDGistIdGenerator;
 @EnableConfigurationProperties(GistServiceProperties.class)
 public class GistServiceConfiguration {
 
-	private final Logger logger = LoggerFactory.getLogger(GistServiceConfiguration.class);
-	
-	@Autowired
-	private GistServiceProperties serviceProperties;
+    private final Logger logger = LoggerFactory.getLogger(GistServiceConfiguration.class);
 
-	@Autowired
-	private HazelcastInstance hazelcastInstance;
+    @Autowired
+    private GistServiceProperties serviceProperties;
 
-	@Autowired
-	private ObjectMapper objectMapper;
-	
-	@Autowired 
-	private GistRepositoryFactory repositoryFactory;
-	
-	@Bean
-	public GistRepositoryService getGistRepository() throws IOException {
-		GitGistRepositoryService repo = new GitGistRepositoryService(serviceProperties.getRoot(),
-				this.getGistIdGenerator(), hazelcastInstance);
-		repo.setLockTimeout(serviceProperties.getLockTimeout());
-		repo.setSecurityManager(getGistSecurityManager());
-		repo.setGistRepositoryFactory(repositoryFactory);
-		return repo;
-	}
-	
-	@Bean
-	public GistSecurityManager getGistSecurityManager() {
-		if(GistServiceProperties.STRICT_SECURITY_MANAGER.equals(serviceProperties.getSecurity())) {
-			logger.info("Using strict gist security manager.");
-			return new SimpleGistSecurityManager();
-		} else {
-			logger.info("Using permissive gist security manager.");
-			return new PermissiveGistSecurityManager();
-		}
-	}
+    @Autowired
+    private HazelcastInstance hazelcastInstance;
 
-	@Bean
-	public GistIdGenerator getGistIdGenerator() {
-		return new UUIDGistIdGenerator();
-	}
+    @Autowired
+    private ObjectMapper objectMapper;
 
-	@Bean
-	public CommonsRequestLoggingFilter requestLoggingFilter() {
-	    CommonsRequestLoggingFilter crlf = new CommonsRequestLoggingFilter();
-	    crlf.setIncludeClientInfo(true);
-	    crlf.setIncludeQueryString(true);
-	    crlf.setIncludePayload(true);
-	    return crlf;
-	}
-	
+    @Autowired
+    private GistRepositoryFactory repositoryFactory;
+
+    @Bean
+    public GistRepositoryService getGistRepository() throws IOException {
+        GitGistRepositoryService repo = new GitGistRepositoryService(serviceProperties.getRoot(),
+                this.getGistIdGenerator(), hazelcastInstance);
+        repo.setLockTimeout(serviceProperties.getLockTimeout());
+        repo.setSecurityManager(getGistSecurityManager());
+        repo.setGistRepositoryFactory(repositoryFactory);
+        return repo;
+    }
+
+    @Bean
+    public GistSecurityManager getGistSecurityManager() {
+        GistSecurityManager manager = null;
+        String securityType = serviceProperties.getSecurity();
+        switch (securityType) {
+            case GistServiceProperties.STRICT_SECURITY_MANAGER:
+                manager = new SimpleGistSecurityManager();
+                break;
+            case GistServiceProperties.PERMISSIVE_SECURITY_MANAGER:
+                manager = new PermissiveGistSecurityManager();
+                break;
+            default:
+                manager = new GrantedAuthorityGistSecurityManager();
+                break;
+        }
+        return manager;
+    }
+
+    @Bean
+    public GistIdGenerator getGistIdGenerator() {
+        return new UUIDGistIdGenerator();
+    }
+
+    @Bean
+    public CommonsRequestLoggingFilter requestLoggingFilter() {
+        CommonsRequestLoggingFilter crlf = new CommonsRequestLoggingFilter();
+        crlf.setIncludeClientInfo(true);
+        crlf.setIncludeQueryString(true);
+        crlf.setIncludePayload(true);
+        return crlf;
+    }
+
 }

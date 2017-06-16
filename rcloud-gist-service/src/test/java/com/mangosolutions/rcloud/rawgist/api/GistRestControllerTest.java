@@ -7,7 +7,7 @@
 package com.mangosolutions.rcloud.rawgist.api;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -15,6 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -25,7 +27,11 @@ import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
@@ -38,331 +44,376 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.jayway.jsonpath.JsonPath;
 import com.mangosolutions.rcloud.rawgist.Application;
+import com.mangosolutions.rcloud.rawgist.repository.security.CollaborationGrantedAuthority;
+import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUserAuthorityResolver;
+import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @WebAppConfiguration
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-@ActiveProfiles({"test", "default"})
+@ActiveProfiles({ "test", "default" })
 public class GistRestControllerTest {
 
-	public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
-	public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");
+    public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
+    public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");
 
-	private MockMvc mvc;
+    private MockMvc mvc;
 
-	private String defaultGistId;
+    private String defaultGistId;
 
-	@Autowired
-	private WebApplicationContext webApplicationContext;
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
-	@Autowired
-	private GistTestHelper gistTestHelper;
+    @Autowired
+    private GistTestHelper gistTestHelper;
 
-	@Before
-	public void setup() throws Exception {
-		this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
-		gistTestHelper.clearGistRepository();
-		defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt", "This is some default content");
-		gistTestHelper.emptyHazelcast();
-	}
+    @Before
+    public void setup() throws Exception {
+        this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).apply(SecurityMockMvcConfigurers.springSecurity()).build();
+        gistTestHelper.clearGistRepository();
+        defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt",
+                "This is some default content");
+        gistTestHelper.emptyHazelcast();
+    }
 
-	@Test
-	@WithMockUser("mock_user")
-	public void testCreateGist() throws Exception {
-		String description = "the description for this gist";
-		String fileName = "file1.txt";
-		String fileContent = "String file contents";
-		String payloadTemplate = "{\"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
-		String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
-		MvcResult result = mvc
-			.perform(
-				post("/gists")
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-				.content(payload)
-			)
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.owner.login", is("mock_user")))
-			.andExpect(jsonPath("$.description", is(description)))
-			.andExpect(jsonPath("$.comments", is(0)))
-			.andReturn();
-	}
+    @Test
+    @WithMockUser("mock_user")
+    public void testCreateGist() throws Exception {
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload))
+                .andExpect(status().isCreated()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.owner.login", is("mock_user")))
+                .andExpect(jsonPath("$.description", is(description))).andExpect(jsonPath("$.comments", is(0)))
+                .andReturn();
+    }
 
-	@Test
-	@WithMockUser("mock_user")
-	public void testListGistWithMockUser() throws Exception {
-		MvcResult result = mvc
-			.perform(
-				get("/gists")
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.length()", is(1)))
-			.andReturn();
-	}
+    @Test
+    @WithMockUser(username="anonymous", roles={"ANONYMOUS"})
+    public void testCreateGistWithAnonymousUserShouldBeForbidden() throws Exception {
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+    
+    @Test
+    @WithMockUser(username="mock_user2", roles={"USER"})
+    public void testUpdateGistWithNonCollaboratorUserShouldBeForbidden() throws Exception {
+        String fileName = "anotherfile.txt";
+        String fileContent = "Some content";
+        String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(patch("/gists/" + defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+    
+    @Test
+    public void testUpdateGistWithCollaboratorUserShouldBeOk() throws Exception {
+        
+        
+        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"mock_user"});
+        
+        
+        String fileName = "anotherfile.txt";
+        String fileContent = "Some content";
+        String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(patch("/gists/" + defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload).with(user(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.owner.login", is("mock_user")))
+                .andReturn();
+    }
+    
+    @Test
+    public void testUpdateGistWithWrongCollaboratorUserShouldBeForbidden() throws Exception {
+        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"different_mock_user"});
+        
+        String fileName = "anotherfile.txt";
+        String fileContent = "Some content";
+        String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(patch("/gists/" + defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload).with(user(user)))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
 
-	@Test
-	@WithMockUser("mock_user_2")
-	public void testListGistWithMockUser2() throws Exception {
-		MvcResult result = mvc
-			.perform(
-				get("/gists")
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-				.with(user("mock_user_2"))
-			)
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.length()", is(0)))
-			.andReturn();
-	}
+    @Test
+    public void testCreateGistWithCollaboratorAsCollaboratorUser() throws Exception {
+        
+        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"owner\": \"another_mock_user\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload).with(user(user)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.owner.login", is("another_mock_user")))
+                .andReturn();
+    }
+    
+    @Test
+    public void testCreateGistWithCollaboratorUserAsOwner() throws Exception {
+        
+        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"owner\": \"mock_collaborator\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload).with(user(user)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.owner.login", is("mock_collaborator")))
+                .andReturn();
+    }
+    
+    @Test
+    public void testCreateGistWithCollaboratorAsUser() throws Exception {
+        
+        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload).with(user(user)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.owner.login", is("mock_collaborator")))
+                .andReturn();
+    }
+    
+    @Test
+    public void testCreateGistWithCollaboratorAndWrongOwnerUserShouldBeForbidden() throws Exception {
+        
+        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"owner\": \"non_collaborator_user\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload).with(user(user)))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+    
+    @Test
+    @WithMockUser("mock_user")
+    public void testListGistWithMockUser() throws Exception {
+        MvcResult result = mvc.perform(get("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.length()", is(1))).andReturn();
+    }
 
-	@Test
-	@WithMockUser("mock_user")
-	public void testGetGistWithMockUser() throws Exception {
-		MvcResult result = mvc
-			.perform(
-				get("/gists/" + this.defaultGistId)
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.id", is(this.defaultGistId)))
-			.andReturn();
-	}
+    @Test
+    @WithMockUser("mock_user_2")
+    public void testListGistWithMockUser2() throws Exception {
+        MvcResult result = mvc
+                .perform(get("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .with(user("mock_user_2")))
+                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.length()", is(0))).andReturn();
+    }
 
+    @Test
+    @WithMockUser("mock_user")
+    public void testGetGistWithMockUser() throws Exception {
+        MvcResult result = mvc
+                .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.id", is(this.defaultGistId))).andReturn();
+    }
 
-	@Test
-	@WithMockUser("mock_user")
-	public void testForkRepositoryWithMockUser() throws Exception {
+    @Test
+    @WithMockUser("mock_user")
+    public void testForkRepositoryWithMockUser() throws Exception {
 
-		//Get the gist response.
-		String originalGist = mvc
-			.perform(
-				get("/gists/" + this.defaultGistId)
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isOk())
-			.andReturn().getResponse().getContentAsString();
+        // Get the gist response.
+        String originalGist = mvc
+                .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
-		//Check that there are no forks.
-		mvc.perform(
-				get("/gists/" + this.defaultGistId + "/forks")
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.length()", is(0)));
+        // Check that there are no forks.
+        mvc.perform(get("/gists/" + this.defaultGistId + "/forks").accept(GITHUB_BETA_MEDIA_TYPE)
+                .contentType(GITHUB_BETA_MEDIA_TYPE)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(0)));
 
-		//Fork the repository
-		String forkResponse = mvc
-			.perform(
-				post("/gists/" + this.defaultGistId + "/forks")
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.files.length()", is(1)))
-			.andExpect(jsonPath("$.fork_of.id", is(this.defaultGistId)))
-			.andReturn().getResponse().getContentAsString();
-		String forkedGistId = JsonPath.read(forkResponse, "$.id");
-		
-		Assert.assertNotEquals(this.defaultGistId, forkedGistId);
-		String forkOfUrl = JsonPath.read(forkResponse, "$.fork_of.url");
-		Assert.assertTrue(forkOfUrl.endsWith(this.defaultGistId));
-		
-		//update the forked gist
-		String fileName = "file_in_new_gist.txt";
-		String fileContent = "String file contents";
-		String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
-		String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
-		mvc.perform(
-				patch("/gists/" + forkedGistId)
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-				.content(payload)
-			).andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.id", is(forkedGistId)))
-			.andExpect(jsonPath("$.files.length()", is(2)))
-			.andReturn();
+        // Fork the repository
+        String forkResponse = mvc
+                .perform(post("/gists/" + this.defaultGistId + "/forks").accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isCreated()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.files.length()", is(1)))
+                .andExpect(jsonPath("$.fork_of.id", is(this.defaultGistId))).andReturn().getResponse()
+                .getContentAsString();
+        String forkedGistId = JsonPath.read(forkResponse, "$.id");
 
-		//check that original gist hasn't changed
-		String originalGist2 = mvc
-				.perform(
-					get("/gists/" + this.defaultGistId)
-					.accept(GITHUB_BETA_MEDIA_TYPE)
-					.contentType(GITHUB_BETA_MEDIA_TYPE)
-				)
-				.andExpect(status().isOk())
-				.andReturn().getResponse().getContentAsString();
+        Assert.assertNotEquals(this.defaultGistId, forkedGistId);
+        String forkOfUrl = JsonPath.read(forkResponse, "$.fork_of.url");
+        Assert.assertTrue(forkOfUrl.endsWith(this.defaultGistId));
 
-		Assert.assertEquals(originalGist, originalGist2);
+        // update the forked gist
+        String fileName = "file_in_new_gist.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+        mvc.perform(patch("/gists/" + forkedGistId).accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                .content(payload)).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.id", is(forkedGistId))).andExpect(jsonPath("$.files.length()", is(2)))
+                .andReturn();
 
-		//get the list of forks
-		mvc.perform(
-				get("/gists/" + this.defaultGistId + "/forks")
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.length()", is(1)))
-			.andExpect(jsonPath("$.[0].id", is(forkedGistId)));
+        // check that original gist hasn't changed
+        String originalGist2 = mvc
+                .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
-	}
-	
-	
-	@Test
-	@WithMockUser("mock_user")
-	public void testForkRepositoryWithMockUserAndRenameFork() throws Exception {
+        Assert.assertEquals(originalGist, originalGist2);
 
-		//Get the gist response.
-		String originalGist = mvc
-			.perform(
-				get("/gists/" + this.defaultGistId)
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isOk())
-			.andReturn().getResponse().getContentAsString();
+        // get the list of forks
+        mvc.perform(get("/gists/" + this.defaultGistId + "/forks").accept(GITHUB_BETA_MEDIA_TYPE)
+                .contentType(GITHUB_BETA_MEDIA_TYPE)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()", is(1))).andExpect(jsonPath("$.[0].id", is(forkedGistId)));
 
-		//Fork the repository
-		String forkResponse = mvc
-			.perform(
-				post("/gists/" + this.defaultGistId + "/forks")
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isCreated())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.files.length()", is(1)))
-			.andExpect(jsonPath("$.fork_of.id", is(this.defaultGistId)))
-			.andReturn().getResponse().getContentAsString();
-		String forkedGistId = JsonPath.read(forkResponse, "$.id");
-		String description = "The new description for the gist";
-		String payloadTemplate = "{\"description\": \"{}\"}";
-		String payload = this.buildMessage(payloadTemplate, description);
-		mvc.perform(
-				patch("/gists/" + forkedGistId)
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-				.content(payload)
-			).andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.id", is(forkedGistId)))
-			.andExpect(jsonPath("$.files.length()", is(1)))
-			.andExpect(jsonPath("$.description", is(description)))
-			.andReturn();
+    }
 
-		
-		
-		
+    @Test
+    @WithMockUser("mock_user")
+    public void testForkRepositoryWithMockUserAndRenameFork() throws Exception {
 
-	}
+        // Get the gist response.
+        String originalGist = mvc
+                .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
 
-	@Test
-	@WithMockUser("mock_user_2")
-	public void testGetGistWithMockUser2() throws Exception {
-		MvcResult result = mvc
-			.perform(
-				get("/gists/" + this.defaultGistId)
-				.accept(GITHUB_BETA_MEDIA_TYPE)
-				.contentType(GITHUB_BETA_MEDIA_TYPE)
-			)
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-			.andExpect(jsonPath("$.id", is(this.defaultGistId)))
-			.andReturn();
-	}
+        // Fork the repository
+        String forkResponse = mvc
+                .perform(post("/gists/" + this.defaultGistId + "/forks").accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isCreated()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.files.length()", is(1)))
+                .andExpect(jsonPath("$.fork_of.id", is(this.defaultGistId))).andReturn().getResponse()
+                .getContentAsString();
+        String forkedGistId = JsonPath.read(forkResponse, "$.id");
+        String description = "The new description for the gist";
+        String payloadTemplate = "{\"description\": \"{}\"}";
+        String payload = this.buildMessage(payloadTemplate, description);
+        mvc.perform(patch("/gists/" + forkedGistId).accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                .content(payload)).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.id", is(forkedGistId))).andExpect(jsonPath("$.files.length()", is(1)))
+                .andExpect(jsonPath("$.description", is(description))).andReturn();
 
-	@Test
-	@WithMockUser("mock_user")
-	public void testGetGistHistory() throws Exception {
-		int historySize = 30;
-		int historyIndex = 10;
-		String historyVersion = null;
-		{
-			MvcResult result = mvc
-				.perform(
-					get("/gists/" + this.defaultGistId)
-					.accept(GITHUB_BETA_MEDIA_TYPE)
-					.contentType(GITHUB_BETA_MEDIA_TYPE)
-				)
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.id", is(this.defaultGistId)))
-				.andExpect(jsonPath("$.history.length()", is(1)))
-				.andExpect(jsonPath("$.files.length()", is(1)))
-				.andReturn();
-			addFilesToGist(this.defaultGistId, historySize);
-		}
-		{
-			MvcResult result = mvc
-				.perform(
-					get("/gists/" + this.defaultGistId)
-					.accept(GITHUB_BETA_MEDIA_TYPE)
-					.contentType(GITHUB_BETA_MEDIA_TYPE)
-				)
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.id", is(this.defaultGistId)))
-				.andExpect(jsonPath("$.history.length()", is(historySize + 1)))
-				.andExpect(jsonPath("$.files.length()", is(historySize + 1)))
-				.andReturn();
-			String response = result.getResponse().getContentAsString();
-			historyVersion = JsonPath.read(response, "$.history[" + historyIndex + "].version");
-		}
-		{
-			MvcResult result = mvc
-				.perform(
-					get("/gists/" + this.defaultGistId + "/" + historyVersion)
-					.accept(GITHUB_BETA_MEDIA_TYPE)
-					.contentType(GITHUB_BETA_MEDIA_TYPE)
-				)
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-				.andExpect(jsonPath("$.id", is(this.defaultGistId)))
-				.andExpect(jsonPath("$.files.length()", is(historySize + 1 - historyIndex)))
-				.andReturn();
-			String response = result.getResponse().getContentAsString();
-			System.out.println(response);
-			Map<?,?> files = JsonPath.read(response, "$.files");
-			Assert.assertEquals(historySize + 1 - historyIndex, files.size());
-		}
-	}
+    }
 
-	private void addFilesToGist(String gistId, int historySize) throws Exception {
-		for(int i = 0; i < historySize; i++) {
-			String fileName = i + "otherfile.txt";
-			String fileContent = "Some content for " + i;
-			String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
-			String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
-			MvcResult result = mvc
-				.perform(
-					patch("/gists/" + gistId)
-					.accept(GITHUB_BETA_MEDIA_TYPE)
-					.contentType(GITHUB_BETA_MEDIA_TYPE)
-					.content(payload)
-				)
-				.andExpect(status().isOk())
-				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-				.andReturn();
-		}
+    @Test
+    @WithMockUser("mock_user_2")
+    public void testGetGistWithMockUser2() throws Exception {
+        MvcResult result = mvc
+                .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(jsonPath("$.id", is(this.defaultGistId))).andReturn();
+    }
 
-	}
+    @Test
+    @WithMockUser("mock_user")
+    public void testGetGistHistory() throws Exception {
+        int historySize = 30;
+        int historyIndex = 10;
+        String historyVersion = null;
+        {
+            MvcResult result = mvc
+                    .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                            .contentType(GITHUB_BETA_MEDIA_TYPE))
+                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(jsonPath("$.id", is(this.defaultGistId)))
+                    .andExpect(jsonPath("$.history.length()", is(1))).andExpect(jsonPath("$.files.length()", is(1)))
+                    .andReturn();
+            addFilesToGist(this.defaultGistId, historySize);
+        }
+        {
+            MvcResult result = mvc
+                    .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                            .contentType(GITHUB_BETA_MEDIA_TYPE))
+                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(jsonPath("$.id", is(this.defaultGistId)))
+                    .andExpect(jsonPath("$.history.length()", is(historySize + 1)))
+                    .andExpect(jsonPath("$.files.length()", is(historySize + 1))).andReturn();
+            String response = result.getResponse().getContentAsString();
+            historyVersion = JsonPath.read(response, "$.history[" + historyIndex + "].version");
+        }
+        {
+            MvcResult result = mvc
+                    .perform(get("/gists/" + this.defaultGistId + "/" + historyVersion).accept(GITHUB_BETA_MEDIA_TYPE)
+                            .contentType(GITHUB_BETA_MEDIA_TYPE))
+                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(jsonPath("$.id", is(this.defaultGistId)))
+                    .andExpect(jsonPath("$.files.length()", is(historySize + 1 - historyIndex))).andReturn();
+            String response = result.getResponse().getContentAsString();
+            System.out.println(response);
+            Map<?, ?> files = JsonPath.read(response, "$.files");
+            Assert.assertEquals(historySize + 1 - historyIndex, files.size());
+        }
+    }
 
+    private void addFilesToGist(String gistId, int historySize) throws Exception {
+        for (int i = 0; i < historySize; i++) {
+            String fileName = i + "otherfile.txt";
+            String fileContent = "Some content for " + i;
+            String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+            String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
+            MvcResult result = mvc
+                    .perform(patch("/gists/" + gistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                            .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
+                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andReturn();
+        }
 
+    }
 
+    private String buildMessage(String format, Object... params) {
+        return MessageFormatter.arrayFormat(format, params).getMessage();
+    }
 
-	private String buildMessage(String format, Object... params) {
-		 return MessageFormatter.arrayFormat(format, params).getMessage();
-	}
-
+    private UserDetails createCollaboratorUserDetails(String username, String[] collaborations) {
+        CollaborationGrantedAuthority collaboratorGrantedAuthority = new CollaborationGrantedAuthority(collaborations);
+        Collection<GrantedAuthority> authorities = Arrays.asList(UserAuthorityResolver.USER_AUTHORITY, collaboratorGrantedAuthority, AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY);
+        return createUserDetails(username, authorities);
+    }
+    
+    private UserDetails createUserDetails(String name, Collection<GrantedAuthority> authorities) {
+        return new User(name, "", authorities);
+    }
 }

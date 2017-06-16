@@ -15,9 +15,13 @@ public interface GistSecurityManager {
 	}
 
 	public enum GistRole {
-		OWNER, COLLABORATOR
+		NONE, OWNER, COLLABORATOR
 	}
 
+	boolean canCreate(UserDetails userDetails);
+	
+	boolean canCreateAs(UserDetails userDetails, String otherUser);
+	
 	boolean canRead(GistRepository repository, UserDetails userDetails);
 
 	boolean canWrite(GistRepository repository, UserDetails userDetails);

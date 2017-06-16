@@ -14,42 +14,46 @@ import com.hazelcast.config.EvictionPolicy;
 
 @ConfigurationProperties()
 public class CacheConfigurationProperties {
-	
-	private List<GistCacheConfiguration> caches;
+
+    private List<GistCacheConfiguration> caches;
 
     public List<GistCacheConfiguration> getCaches() {
-		return caches;
-	}
+        return caches;
+    }
 
-	public void setCaches(List<GistCacheConfiguration> caches) {
-		this.caches = caches;
-	}
+    public void setCaches(List<GistCacheConfiguration> caches) {
+        this.caches = caches;
+    }
 
-	public static class GistCacheConfiguration { 
-		
-		private String name;
+    public static class GistCacheConfiguration {
+
+        private String name;
         private EvictionPolicy evictionPolicy = EvictionPolicy.LFU;
         private int ttl = 300;
-		
+
         public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		public EvictionPolicy getEvictionPolicy() {
-			return evictionPolicy;
-		}
-		public void setEvictionPolicy(EvictionPolicy evictionPolicy) {
-			this.evictionPolicy = evictionPolicy;
-		}
-		public int getTtl() {
-			return ttl;
-		}
-		public void setTtl(int ttl) {
-			this.ttl = ttl;
-		}
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public EvictionPolicy getEvictionPolicy() {
+            return evictionPolicy;
+        }
+
+        public void setEvictionPolicy(EvictionPolicy evictionPolicy) {
+            this.evictionPolicy = evictionPolicy;
+        }
+
+        public int getTtl() {
+            return ttl;
+        }
+
+        public void setTtl(int ttl) {
+            this.ttl = ttl;
+        }
     }
-	
 
 }

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import com.mangosolutions.rcloud.rawgist.model.FileDefinition;
 import com.mangosolutions.rcloud.rawgist.model.GistRequest;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryService;
+import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 
 @Component
 public class GistTestHelper {
@@ -72,7 +74,7 @@ public class GistTestHelper {
 		def.setContent(fileContent);
 		files.put(fileName, def);
 		request.setFiles(files);
-		Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
+		Collection<? extends GrantedAuthority> authorities = Arrays.asList(UserAuthorityResolver.USER_AUTHORITY);
 		UserDetails userDetails = new User(user, "gist_user_pwd", authorities);
 		GistResponse response = this.service.createGist(request, userDetails);
 		return response.getId();

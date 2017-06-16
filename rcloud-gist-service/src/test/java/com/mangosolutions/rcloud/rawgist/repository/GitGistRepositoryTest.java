@@ -203,7 +203,7 @@ public class GitGistRepositoryTest {
 			Assert.assertEquals(Long.valueOf(i + 1), response.getId());
 		}
 	}
-
+	
 	private GistResponse updateGist(String[] contents) {
 		GistRequest request = createGistRequest(null, contents);
 		return repository.updateGist(request, userDetails);
@@ -237,6 +237,7 @@ public class GitGistRepositoryTest {
 		return request;
 	}
 
+	
 
 
 }
