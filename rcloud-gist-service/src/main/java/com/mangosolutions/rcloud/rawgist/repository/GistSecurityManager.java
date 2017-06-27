@@ -6,6 +6,8 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
+import java.util.Collection;
+
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface GistSecurityManager {
@@ -31,5 +33,5 @@ public interface GistSecurityManager {
 	boolean isOwner(GistRepository repository, UserDetails userDetails);
 
 	GistRole getRole(GistRepository repository, UserDetails userDetails);
-
+	
 }

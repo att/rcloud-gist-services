@@ -6,8 +6,9 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.api;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,6 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -35,6 +38,7 @@ import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfig
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,15 +48,14 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.jayway.jsonpath.JsonPath;
 import com.mangosolutions.rcloud.rawgist.Application;
-import com.mangosolutions.rcloud.rawgist.repository.security.CollaborationGrantedAuthority;
-import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUserAuthorityResolver;
-import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
+import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
 @WebAppConfiguration
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @ActiveProfiles({ "test", "default" })
+@TestPropertySource(properties = { "management.port=", "security.user.password=abcd" })
 public class GistRestControllerTest {
 
     public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
@@ -66,11 +69,15 @@ public class GistRestControllerTest {
     private WebApplicationContext webApplicationContext;
 
     @Autowired
+    private CollaborationDataStore collaborationDataStore;
+
+    @Autowired
     private GistTestHelper gistTestHelper;
 
     @Before
     public void setup() throws Exception {
-        this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).apply(SecurityMockMvcConfigurers.springSecurity()).build();
+        this.mvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
+                .apply(SecurityMockMvcConfigurers.springSecurity()).build();
         gistTestHelper.clearGistRepository();
         defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt",
                 "This is some default content");
@@ -91,26 +98,25 @@ public class GistRestControllerTest {
                 .andExpect(status().isCreated()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$.owner.login", is("mock_user")))
                 .andExpect(jsonPath("$.description", is(description))).andExpect(jsonPath("$.comments", is(0)))
-                .andReturn();
+                .andExpect(jsonPath("$.collaborators.length()", is(1)))
+                .andExpect(jsonPath("$.collaborators[0].login", is("mock_collab_user"))).andReturn();
     }
 
     @Test
-    @WithMockUser(username="anonymous", roles={"ANONYMOUS"})
+    @WithMockUser(username = "anonymous", roles = { "ANONYMOUS" })
     public void testCreateGistWithAnonymousUserShouldBeForbidden() throws Exception {
         String description = "the description for this gist";
         String fileName = "file1.txt";
         String fileContent = "String file contents";
         String payloadTemplate = "{\"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
         String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
-        MvcResult result = mvc
-                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
-                        .content(payload))
-                .andExpect(status().isForbidden())
-                .andReturn();
+        MvcResult result = mvc.perform(
+                post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
+                .andExpect(status().isForbidden()).andReturn();
     }
-    
+
     @Test
-    @WithMockUser(username="mock_user2", roles={"USER"})
+    @WithMockUser(username = "mock_user2", roles = { "USER" })
     public void testUpdateGistWithNonCollaboratorUserShouldBeForbidden() throws Exception {
         String fileName = "anotherfile.txt";
         String fileContent = "Some content";
@@ -119,82 +125,71 @@ public class GistRestControllerTest {
         MvcResult result = mvc
                 .perform(patch("/gists/" + defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
                         .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
-                .andExpect(status().isForbidden())
-                .andReturn();
+                .andExpect(status().isForbidden()).andReturn();
     }
-    
+
     @Test
+    @WithMockUser(username = "mock_collab_user", roles = { "USER" })
     public void testUpdateGistWithCollaboratorUserShouldBeOk() throws Exception {
-        
-        
-        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"mock_user"});
-        
-        
         String fileName = "anotherfile.txt";
         String fileContent = "Some content";
         String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
         String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
         MvcResult result = mvc
                 .perform(patch("/gists/" + defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
-                        .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload).with(user(user)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.owner.login", is("mock_user")))
-                .andReturn();
+                        .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.owner.login", is("mock_user"))).andReturn();
     }
-    
+
     @Test
+    @WithMockUser(username = "another_mock_collab_user", roles = { "USER" })
     public void testUpdateGistWithWrongCollaboratorUserShouldBeForbidden() throws Exception {
-        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"different_mock_user"});
-        
+
         String fileName = "anotherfile.txt";
         String fileContent = "Some content";
         String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
         String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
         MvcResult result = mvc
                 .perform(patch("/gists/" + defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
-                        .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload).with(user(user)))
-                .andExpect(status().isForbidden())
+                        .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
+                .andExpect(status().isForbidden()).andReturn();
+    }
+
+    @Test
+    @WithMockUser(username = "mock_collab_user", roles = { "USER" })
+    public void testCreateGistWithCollaboratorAsCollaboratorUser() throws Exception {
+
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"owner\": \"mock_user\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.owner.login", is("mock_user"))).andReturn();
+    }
+
+    @Test
+    @WithMockUser(username = "mock_collab_user", roles = { "USER" })
+    public void testCreateGistWithCollaboratorUserAsOwner() throws Exception {
+
+        String description = "the description for this gist";
+        String fileName = "file1.txt";
+        String fileContent = "String file contents";
+        String payloadTemplate = "{\"owner\": \"mock_collab_user\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
+        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
+        MvcResult result = mvc
+                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                        .content(payload))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.owner.login", is("mock_collab_user")))
                 .andReturn();
     }
 
     @Test
-    public void testCreateGistWithCollaboratorAsCollaboratorUser() throws Exception {
-        
-        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
-        String description = "the description for this gist";
-        String fileName = "file1.txt";
-        String fileContent = "String file contents";
-        String payloadTemplate = "{\"owner\": \"another_mock_user\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
-        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
-        MvcResult result = mvc
-                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
-                        .content(payload).with(user(user)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.owner.login", is("another_mock_user")))
-                .andReturn();
-    }
-    
-    @Test
-    public void testCreateGistWithCollaboratorUserAsOwner() throws Exception {
-        
-        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
-        String description = "the description for this gist";
-        String fileName = "file1.txt";
-        String fileContent = "String file contents";
-        String payloadTemplate = "{\"owner\": \"mock_collaborator\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
-        String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
-        MvcResult result = mvc
-                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
-                        .content(payload).with(user(user)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.owner.login", is("mock_collaborator")))
-                .andReturn();
-    }
-    
-    @Test
+    @WithMockUser(username = "mock_collab_user", roles = { "USER" })
     public void testCreateGistWithCollaboratorAsUser() throws Exception {
-        
-        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
+
         String description = "the description for this gist";
         String fileName = "file1.txt";
         String fileContent = "String file contents";
@@ -202,28 +197,25 @@ public class GistRestControllerTest {
         String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
         MvcResult result = mvc
                 .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
-                        .content(payload).with(user(user)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.owner.login", is("mock_collaborator")))
+                        .content(payload))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.owner.login", is("mock_collab_user")))
                 .andReturn();
     }
-    
+
     @Test
+    @WithMockUser(username = "mock_collab_user", roles = { "USER" })
     public void testCreateGistWithCollaboratorAndWrongOwnerUserShouldBeForbidden() throws Exception {
-        
-        UserDetails user =  this.createCollaboratorUserDetails("mock_collaborator", new String[]{"another_mock_user"});
+
         String description = "the description for this gist";
         String fileName = "file1.txt";
         String fileContent = "String file contents";
         String payloadTemplate = "{\"owner\": \"non_collaborator_user\", \"description\": \"{}\",\"public\": true,\"files\": {\"{}\": {\"content\": \"{}\"}}}";
         String payload = this.buildMessage(payloadTemplate, description, fileName, fileContent);
-        MvcResult result = mvc
-                .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
-                        .content(payload).with(user(user)))
-                .andExpect(status().isForbidden())
-                .andReturn();
+        MvcResult result = mvc.perform(
+                post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
+                .andExpect(status().isForbidden()).andReturn();
     }
-    
+
     @Test
     @WithMockUser("mock_user")
     public void testListGistWithMockUser() throws Exception {
@@ -388,6 +380,47 @@ public class GistRestControllerTest {
         }
     }
 
+    @Test
+    @WithMockUser("mock_user")
+    public void testGistCacheRefresh() throws Exception {
+
+        // get the gist and check the collaborators
+        mvc.perform(
+                get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(jsonPath("$.collaborators.length()", is(1)))
+                .andExpect(jsonPath("$.collaborators[0].login", is("mock_collab_user"))).andReturn();
+
+        // refresh the application context (should clear the cache)
+        mvc.perform(post("/manage/refresh").with(httpBasic("admin", "abcd"))).andExpect(status().isOk());
+
+        // update the collaborators
+
+        Map<String, List<String>> collabs = new HashMap<>();
+        collabs.put("mock_user", Arrays.asList("dino", "gerry"));
+        this.collaborationDataStore.updateCollaborators(collabs);
+
+        // get the gist again this should have the new collaborators
+        mvc.perform(
+                get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(jsonPath("$.collaborators.length()", is(2)))
+                .andExpect(jsonPath("$.collaborators[0].login", is("dino")))
+                .andExpect(jsonPath("$.collaborators[1].login", is("gerry"))).andReturn();
+        
+        // refresh the application (should clear the cache)
+        mvc.perform(post("/manage/refresh").with(httpBasic("admin", "abcd"))).andExpect(status().isOk());
+
+        // get the gist again should have the original collaborators
+        MvcResult result = mvc
+                .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                        .contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(jsonPath("$.collaborators.length()", is(1)))
+                .andExpect(jsonPath("$.collaborators[0].login", is("mock_collab_user"))).andReturn();
+
+        String response = result.getResponse().getContentAsString();
+        System.out.println(response);
+
+    }
+
     private void addFilesToGist(String gistId, int historySize) throws Exception {
         for (int i = 0; i < historySize; i++) {
             String fileName = i + "otherfile.txt";
@@ -399,6 +432,7 @@ public class GistRestControllerTest {
                             .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
                     .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andReturn();
+
         }
 
     }
@@ -407,12 +441,6 @@ public class GistRestControllerTest {
         return MessageFormatter.arrayFormat(format, params).getMessage();
     }
 
-    private UserDetails createCollaboratorUserDetails(String username, String[] collaborations) {
-        CollaborationGrantedAuthority collaboratorGrantedAuthority = new CollaborationGrantedAuthority(collaborations);
-        Collection<GrantedAuthority> authorities = Arrays.asList(UserAuthorityResolver.USER_AUTHORITY, collaboratorGrantedAuthority, AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY);
-        return createUserDetails(username, authorities);
-    }
-    
     private UserDetails createUserDetails(String name, Collection<GrantedAuthority> authorities) {
         return new User(name, "", authorities);
     }

@@ -350,7 +350,6 @@ public class GitGistRepositoryService implements GistRepositoryService {
                 throw new GistAccessDeniedException(error);
             }
         }
-        
     }
-
+    
 }

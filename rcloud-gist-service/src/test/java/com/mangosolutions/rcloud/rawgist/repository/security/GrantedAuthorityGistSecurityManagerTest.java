@@ -14,6 +14,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +28,7 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager.GistAccessRight;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager.GistRole;
+import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadata;
 import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUser;
 import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUserAuthorityResolver;
@@ -33,13 +37,16 @@ import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 public class GrantedAuthorityGistSecurityManagerTest {
 
     private static final String OWNER_NAME = "owner_name";
-    private static final String NOT_OWNER_NAME = "not_owner_name";
+    private static final String COLLABORATOR_NAME = "collaborator_name";
+    private static final String NON_COLLABORATOR_NAME = "non_collaborator_name";
     
     private GistRepository mockGistRepository;
 
     private GistMetadata metadata;
     
     private GistSecurityManager securityManager;
+    
+    private Map<String, List<String>> collaborations;
 
     @Before
     public void setup() {
@@ -47,7 +54,9 @@ public class GrantedAuthorityGistSecurityManagerTest {
         metadata = new GistMetadata();
         when(mockGistRepository.getMetadata()).thenReturn(metadata);
         metadata.setOwner(OWNER_NAME);
-        securityManager = new GrantedAuthorityGistSecurityManager();
+        collaborations = new HashMap<>();
+        CollaborationDataStore collaborationDataStore = new CollaborationDataStore(collaborations);
+        securityManager = new GrantedAuthorityGistSecurityManager(collaborationDataStore);
     }
     
     //User tests
@@ -187,14 +196,14 @@ public class GrantedAuthorityGistSecurityManagerTest {
     @Test
     public void testCollaboratorCannotCreateGistAsUser() {
         UserDetails userDetails = createCollaboratorUserDetails();
-        boolean canCreate = securityManager.canCreateAs(userDetails, "non_collab_user");
+        boolean canCreate = securityManager.canCreateAs(userDetails, NON_COLLABORATOR_NAME);
         assertFalse(canCreate);
     }
     
     @Test
     public void testCollaboratorCanCreateGistAsThemself() {
         UserDetails userDetails = createCollaboratorUserDetails();
-        boolean canCreate = securityManager.canCreateAs(userDetails, NOT_OWNER_NAME);
+        boolean canCreate = securityManager.canCreateAs(userDetails, COLLABORATOR_NAME);
         assertTrue(canCreate);
     }
     
@@ -314,7 +323,7 @@ public class GrantedAuthorityGistSecurityManagerTest {
     }
     
     private UserDetails createNotOwnerUserDetails() {
-        return createUserDetails(NOT_OWNER_NAME);
+        return createUserDetails(COLLABORATOR_NAME);
     }
 
     private UserDetails createUserDetails(String name) {
@@ -331,9 +340,8 @@ public class GrantedAuthorityGistSecurityManagerTest {
     }
     
     private UserDetails createCollaboratorUserDetails() {
-        CollaborationGrantedAuthority collaboratorGrantedAuthority = new CollaborationGrantedAuthority(new String[]{OWNER_NAME});
-        Collection<GrantedAuthority> authorities = Arrays.asList(UserAuthorityResolver.USER_AUTHORITY, collaboratorGrantedAuthority, AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY);
-        return createUserDetails(NOT_OWNER_NAME, authorities);
+        collaborations.put(OWNER_NAME, Arrays.asList(COLLABORATOR_NAME));
+        return createNotOwnerUserDetails();
     }
     
 }

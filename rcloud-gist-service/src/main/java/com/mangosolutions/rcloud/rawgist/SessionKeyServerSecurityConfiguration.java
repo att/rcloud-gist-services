@@ -8,7 +8,7 @@ package com.mangosolutions.rcloud.rawgist;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -27,6 +27,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
@@ -36,6 +37,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.util.StringUtils;
 
+import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 import com.mangosolutions.rcloud.rawgist.repository.security.CollaborationGrantedAuthorityResolver;
 import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUserAuthorityResolver;
 import com.mangosolutions.rcloud.sessionkeyauth.AuthorityResolver;
@@ -55,16 +57,18 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Autowired
-    private GistServiceProperties gistServiceProperties;
-    
-    @Autowired
     private SessionKeyServerProperties keyserverProperties;
 
     @Autowired
     private ManagementServerProperties managementProperties;
 
+    @Autowired
+    private CollaborationDataStore collaborationDataStore;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http.requestMatchers()
                 .requestMatchers(new NegatedRequestMatcher(
@@ -88,16 +92,18 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
         userDetailsService.setGrantedAuthorityFactory(factory);
         return userDetailsService;
     }
-    
+
     @Bean
     @RefreshScope
     public SessionKeyServerService getSessionKeyServerService() {
-        Map<String, KeyServerConfiguration> config = this.keyserverProperties.getKeyservers();
-        logger.info("Configured key servers: {}", config);
-        SessionKeyServerService service = new SessionKeyServerService(config);
+        Map<String, KeyServerConfiguration> config = new HashMap<>(this.keyserverProperties.getKeyservers());
+        Map<String, KeyServerConfiguration> keyServers = new HashMap<>(config);
+        logger.info("Configured key servers: {}", keyServers);
+        config.clear();
+        SessionKeyServerService service = new SessionKeyServerService(keyServers);
         return service;
     }
-    
+
     @Bean
     public GrantedAuthorityFactory getAuthorityFactory() {
         GrantedAuthorityFactory factory = new GrantedAuthorityFactory();
@@ -105,14 +111,12 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
         factory.setAuthorityResolvers(authorityResolvers);
         return factory;
     }
-    
+
     @Bean
     public Collection<AuthorityResolver> getAuthorityResolvers() {
-        //TODO need to clear the user details cache on a reload
-        Map<String, List<String>> collaborations = gistServiceProperties.getUsers().getCollaborations();
-                
-        return Arrays.asList(new AnonymousUserAuthorityResolver(),
-                new UserAuthorityResolver(), new CollaborationGrantedAuthorityResolver(collaborations));
+
+        return Arrays.asList(new AnonymousUserAuthorityResolver(), new UserAuthorityResolver(),
+                new CollaborationGrantedAuthorityResolver(this.collaborationDataStore));
     }
 
     @Bean

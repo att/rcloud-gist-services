@@ -47,7 +47,7 @@ public class SessionKeyServerService {
         this.restTemplate = restTemplate;
     }
     
-    @Cacheable(value = "sessionkeys", key = "{clientId, sessionKey}")
+    @Cacheable(value = "sessionkeys")
     public SessionKeyServerResponse authenticate(String clientId, String sessionKey) {
         KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
         ResponseEntity<SessionKeyServerResponse> response = doAuthentication(sessionKey, keyServer);

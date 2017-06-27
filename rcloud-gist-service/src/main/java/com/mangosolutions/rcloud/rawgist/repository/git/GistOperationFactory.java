@@ -25,121 +25,123 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
 @Component
 public class GistOperationFactory {
 
+    @Autowired
+    private HistoryCache historyCache = new HistoryCache() {
 
-	@Autowired
-	private HistoryCache historyCache = new HistoryCache() {
+        @Override
+        public List<GistHistory> load(String commitId) {
+            return new LinkedList<>();
+        }
 
-		@Override
-		public List<GistHistory> load(String commitId) {
-			return new LinkedList<>();
-		}
+        @Override
+        public List<GistHistory> save(String commitId, List<GistHistory> history) {
+            return history;
+        }
 
-		@Override
-		public List<GistHistory> save(String commitId, List<GistHistory> history) {
-			return history;
-		}
+    };
 
-	};
+    @Autowired
+    private FileContentCache fileContentCache = new FileContentCache() {
 
+        @Override
+        public FileContent load(String contentId, String path) {
+            return null;
+        }
 
-	@Autowired
-	private FileContentCache fileContentCache = new FileContentCache() {
+        @Override
+        public FileContent save(String contentId, String path, FileContent content) {
+            return content;
+        }
 
-		@Override
-		public FileContent load(String contentId, String path) {
-			return null;
-		}
+    };
 
-		@Override
-		public FileContent save(String contentId, String path, FileContent content) {
-			return content;
-		}
+    @Autowired
+    private MetadataStore metadataStore;
 
-	};
+    @Autowired
+    private CommentStore commentStore;
 
-	@Autowired
-	private MetadataStore metadataStore;
+    public GistOperationFactory() {
+        this(new ObjectMapper());
+    }
 
-	@Autowired
-	private CommentStore commentStore;
+    public GistOperationFactory(ObjectMapper objectMapper) {
+        this.metadataStore = new GistMetadataStore(objectMapper);
+        this.commentStore = new GistCommentStore(objectMapper);
+    }
 
-	public GistOperationFactory() {
-		this(new ObjectMapper());
-	}
+    @Autowired
+    public GistOperationFactory(MetadataStore metadataStore, CommentStore commentStore, HistoryCache historyCache,
+            FileContentCache fileContentCache) {
+        this.metadataStore = metadataStore;
+        this.commentStore = commentStore;
+        this.historyCache = historyCache;
+        this.fileContentCache = fileContentCache;
+    }
 
-	public GistOperationFactory(ObjectMapper objectMapper) {
-		this.metadataStore = new GistMetadataStore(objectMapper);
-		this.commentStore = new GistCommentStore(objectMapper);
-	}
+    public HistoryCache getHistoryCache() {
+        return historyCache;
+    }
 
-	@Autowired
-	public GistOperationFactory(MetadataStore metadataStore, CommentStore commentStore, HistoryCache historyCache, FileContentCache fileContentCache) {
-		this.metadataStore = metadataStore;
-		this.commentStore = commentStore;
-		this.historyCache = historyCache;
-		this.fileContentCache = fileContentCache;
-	}
+    public void setHistoryCache(HistoryCache historyCache) {
+        this.historyCache = historyCache;
+    }
 
-	public HistoryCache getHistoryCache() {
-		return historyCache;
-	}
+    public MetadataStore getMetadataStore() {
+        return metadataStore;
+    }
 
-	public void setHistoryCache(HistoryCache historyCache) {
-		this.historyCache = historyCache;
-	}
+    public void setMetadataStore(MetadataStore metadataStore) {
+        this.metadataStore = metadataStore;
+    }
 
-	public MetadataStore getMetadataStore() {
-		return metadataStore;
-	}
+    public CommentStore getCommentStore() {
+        return commentStore;
+    }
 
-	public void setMetadataStore(MetadataStore metadataStore) {
-		this.metadataStore = metadataStore;
-	}
+    public void setCommentStore(CommentStore commentStore) {
+        this.commentStore = commentStore;
+    }
 
-	public CommentStore getCommentStore() {
-		return commentStore;
-	}
+    public ReadGistOperation getReadOperation(RepositoryLayout layout, String gistId, UserDetails user,
+            String commitId) {
+        GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
+        ReadGistOperation op = new ReadGistOperation(layout, gistId, user);
+        if (!StringUtils.isEmpty(commitId)) {
+            op.setCommitId(commitId);
+        }
+        op.setCommentRepository(repository);
+        op.setCommitId(commitId);
+        op.setHistorycache(historyCache);
+        op.setMetadataStore(this.metadataStore);
+        op.setFileContentCache(fileContentCache);
+        return op;
+    }
 
-	public void setCommentStore(CommentStore commentStore) {
-		this.commentStore = commentStore;
-	}
+    public CreateOrUpdateGistOperation getCreateOrUpdateOperation(RepositoryLayout layout, String gistId,
+            GistRequest gistRequest, UserDetails user) {
+        GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
+        CreateOrUpdateGistOperation op = new CreateOrUpdateGistOperation(layout, gistId, gistRequest, user);
+        op.setCommentRepository(repository);
+        op.setHistorycache(historyCache);
+        op.setMetadataStore(this.metadataStore);
+        op.setFileContentCache(fileContentCache);
+        return op;
+    }
 
-	public ReadGistOperation getReadOperation(RepositoryLayout layout, String gistId, UserDetails user, String commitId) {
-		GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
-		ReadGistOperation op = new ReadGistOperation(layout, gistId, user);
-		if(!StringUtils.isEmpty(commitId)) {
-			op.setCommitId(commitId);
-		}
-		op.setCommentRepository(repository);
-		op.setCommitId(commitId);
-		op.setHistorycache(historyCache);
-		op.setMetadataStore(this.metadataStore);
-		op.setFileContentCache(fileContentCache);
-		return op;
-	}
+    public ForkGistOperation getForkOperation(RepositoryLayout layout, String gistId, GistRepository originalRepository,
+            GistRepository newRepository, UserDetails user) {
+        GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
+        ForkGistOperation op = new ForkGistOperation(layout, originalRepository, newRepository, gistId, user);
+        op.setCommentRepository(repository);
+        op.setHistorycache(historyCache);
+        op.setMetadataStore(this.metadataStore);
+        op.setFileContentCache(fileContentCache);
+        return op;
+    }
 
-	public CreateOrUpdateGistOperation getCreateOrUpdateOperation(RepositoryLayout layout, String gistId, GistRequest gistRequest, UserDetails user) {
-		GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
-		CreateOrUpdateGistOperation op = new CreateOrUpdateGistOperation(layout, gistId, gistRequest, user);
-		op.setCommentRepository(repository);
-		op.setHistorycache(historyCache);
-		op.setMetadataStore(this.metadataStore);
-		op.setFileContentCache(fileContentCache);
-		return op;
-	}
-
-	public ForkGistOperation getForkOperation(RepositoryLayout layout, String gistId, GistRepository originalRepository, GistRepository newRepository, UserDetails user) {
-		GistCommentRepository repository = new GitGistCommentRepository(layout.getCommentsFile(), commentStore);
-		ForkGistOperation op = new ForkGistOperation(layout, originalRepository, newRepository, gistId, user);
-		op.setCommentRepository(repository);
-		op.setHistorycache(historyCache);
-		op.setMetadataStore(this.metadataStore);
-		op.setFileContentCache(fileContentCache);
-		return op;
-	}
-
-	public InitRepositoryLayoutOperation getInitRepositoryLayoutOperation(File repositoryRoot) {
-		return new InitRepositoryLayoutOperation(repositoryRoot);
-	}
+    public InitRepositoryLayoutOperation getInitRepositoryLayoutOperation(File repositoryRoot) {
+        return new InitRepositoryLayoutOperation(repositoryRoot);
+    }
 
 }

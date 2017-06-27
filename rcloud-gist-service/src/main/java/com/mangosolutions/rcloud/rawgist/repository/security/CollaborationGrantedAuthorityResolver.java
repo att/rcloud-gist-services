@@ -6,24 +6,23 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository.security;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 
+import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 
 public class CollaborationGrantedAuthorityResolver extends UserAuthorityResolver {
 
-    private Map<String, List<String>> collaborators = Collections.emptyMap();
+    private CollaborationDataStore collaborationDataStore = new CollaborationDataStore();
     
     public CollaborationGrantedAuthorityResolver() {
         
     }
     
-    public CollaborationGrantedAuthorityResolver(Map<String, List<String>> collaborators) {
-        this.collaborators = collaborators;
+    public CollaborationGrantedAuthorityResolver(CollaborationDataStore collaborationDataStore) {
+        this.collaborationDataStore = collaborationDataStore;
     }
     
     @Override
@@ -37,11 +36,8 @@ public class CollaborationGrantedAuthorityResolver extends UserAuthorityResolver
     }
 
     private String[] resolveAliases(String username) {
-        if(collaborators.containsKey(username)) {
-            List<String> aliasList = collaborators.get(username);
-            return aliasList.toArray(new String[aliasList.size()]);
-        }
-        return null;
+        Collection<String> aliasList = collaborationDataStore.getCollaborators(username);
+        return aliasList.toArray(new String[aliasList.size()]);
     }
 
 }

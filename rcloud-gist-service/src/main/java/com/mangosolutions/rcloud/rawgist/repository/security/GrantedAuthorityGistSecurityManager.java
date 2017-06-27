@@ -8,7 +8,6 @@ package com.mangosolutions.rcloud.rawgist.repository.security;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
+import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 
 public class GrantedAuthorityGistSecurityManager implements GistSecurityManager {
@@ -24,6 +24,12 @@ public class GrantedAuthorityGistSecurityManager implements GistSecurityManager 
     private static final Set<GistAccessRight> READ_RIGHTS = new HashSet<>(
             Arrays.asList(GistAccessRight.READ, GistAccessRight.WRITE));
     private static final Set<GistAccessRight> WRITE_RIGHTS = new HashSet<>(Arrays.asList(GistAccessRight.WRITE));
+
+    private CollaborationDataStore collaborationDataStore = new CollaborationDataStore();
+
+    public GrantedAuthorityGistSecurityManager(CollaborationDataStore collaborationDataStore) {
+        this.collaborationDataStore = collaborationDataStore;
+    }
 
     @Override
     public boolean canRead(GistRepository repository, UserDetails userDetails) {
@@ -84,8 +90,9 @@ public class GrantedAuthorityGistSecurityManager implements GistSecurityManager 
         if (userDetails == null || otherUser == null) {
             return false;
         }
-        return this.hasUserAuthority(userDetails) && (this.getCollaborations(userDetails).contains(otherUser)
-                || userDetails.getUsername().equals(otherUser));
+        return this.hasUserAuthority(userDetails)
+                && (this.getCollaborators(otherUser).contains(userDetails.getUsername())
+                        || userDetails.getUsername().equals(otherUser));
     }
 
     private GistRole calculateRole(GistRepository repository, UserDetails userDetails) {
@@ -100,22 +107,19 @@ public class GrantedAuthorityGistSecurityManager implements GistSecurityManager 
 
     private boolean hasCollaboratorRole(GistRepository repository, UserDetails userDetails) {
         boolean collaborator = false;
-        Collection<String> collaborations = getCollaborations(userDetails);
-        String repositoryOwner = repository.getMetadata().getOwner();
-        if (hasUserAuthority(userDetails) && collaborations.contains(repositoryOwner)) {
+        Collection<String> collaborations = getCollaborators(repository);
+        if (hasUserAuthority(userDetails) && collaborations.contains(userDetails.getUsername())) {
             collaborator = true;
         }
         return collaborator;
     }
 
-    private Collection<String> getCollaborations(UserDetails userDetails) {
-        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
-        for (GrantedAuthority authority : authorities) {
-            if (authority instanceof CollaborationGrantedAuthority) {
-                return ((CollaborationGrantedAuthority) authority).getCollaborations();
-            }
-        }
-        return Collections.emptySet();
+    private Collection<String> getCollaborators(GistRepository repository) {
+        return this.getCollaborators(repository.getMetadata().getOwner());
+    }
+
+    private Collection<String> getCollaborators(String user) {
+        return this.collaborationDataStore.getCollaborators(user);
     }
 
     private boolean hasOwnerRole(GistRepository repository, UserDetails userDetails) {
