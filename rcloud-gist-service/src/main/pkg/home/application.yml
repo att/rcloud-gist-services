@@ -38,19 +38,19 @@
 ################################################################################
 # Gist Repository configuration:
 # root:
-#   Folder location for storing the gists. This needs to be writable by the 
+#   Folder location for storing the gists. This needs to be writable by the
 #   rcloudgistservice user/group.
 # lockTimeout:
-#    Timeout to acquire read/write locks on a gist to prevent concurrent 
+#    Timeout to acquire read/write locks on a gist to prevent concurrent
 #    modification. This value is in seconds.
 # keyservers:
 #    The configuration block for the Session Key Servers. The immediate child
 #    of this is the client_id name for the key server as is received in the
-#    request from rcloud. A value of 'default' indicates that this is to 
-#    be used if no matching client_id is specified for a key service 
+#    request from rcloud. A value of 'default' indicates that this is to
+#    be used if no matching client_id is specified for a key service
 #    configuration.
 # keyservers.active:
-#    Whether this configuration for the keyserver is active, default is true. 
+#    Whether this configuration for the keyserver is active, default is true.
 # keyservers.host:
 #    The host machine running the Session Key Server
 # keyservers.port:
@@ -59,13 +59,16 @@
 #    The URL template for the session key server.
 # route.redirect:
 #    A static route that when hit will return a redirect to the client
-# route.redirect.from: 
+# route.redirect.from:
 #    The relative URL that this service uses to issue the redirect from.
 # route.redirect.to:
 #    The URL to redirect to
 # route.redirect.copyparams:
 #     Whether to copy the parameters from the request into the redirection URL.
 #     defaults to 'true' if not specified
+# users.collaborations:
+#     YAML map syntax mapping gist owners with other users who can access and
+#     manipulate their gists
 ################################################################################
 #gists:
 #  root: /var/rcloud-gist-service/gists/
@@ -81,6 +84,15 @@
 #      from: '/login/*'
 #      to: 'http://example.com'
 #      copyparams: true
+#  users:
+#    collaborations:
+#      james:
+#        - steve
+#        - angela
+#      grace:
+#        - david
+#        - hannah
+#        - evan
 
 
 

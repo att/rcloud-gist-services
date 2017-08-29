@@ -57,6 +57,13 @@ gists:
       from: '/login/*'
       to: http://example.com
       copyparams: true
+  users:
+    collaborations:
+      mock_user:
+        - mock_collab_user
+      another_mock_user:
+        - another_mock_collab_user
+
     
 caches:
   - 

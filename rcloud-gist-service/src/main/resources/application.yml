@@ -37,7 +37,7 @@ security:
 gists:
   root: /var/rcloud-gist-service/gists/
   lockTimeout: 30
-  security: permissive
+  security: default
   keyservers:
     default:
       host: 127.0.0.1
@@ -56,6 +56,10 @@ gists:
       from: '/login/*'
       to: http://example.com
       copyparams: true
+  users:
+    collaborations: {}
+
+
   
 caches:
   - 
