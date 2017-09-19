@@ -10,19 +10,11 @@ project.description = "Spring security integration with RCloud Session Key Serve
 dependencies {
   compile 'org.springframework.security:spring-security-core'
   compile 'org.springframework.security:spring-security-web'
-
   compile 'commons-io:commons-io:2.5'
-
   compile 'org.apache.commons:commons-collections4:4.1'
-  
   compile 'org.apache.commons:commons-lang3:3.5'
-  
-
   compile 'org.slf4j:slf4j-api'
-
-  
   runtime 'org.slf4j:jcl-over-slf4j'
-
 
   testCompile 'junit:junit:4.11'
   testCompile 'org.mockito:mockito-all:1.10.8'

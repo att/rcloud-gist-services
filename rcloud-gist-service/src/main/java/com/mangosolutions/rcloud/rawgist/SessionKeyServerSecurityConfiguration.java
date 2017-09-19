@@ -35,6 +35,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.util.StringUtils;
 
 import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
@@ -63,19 +64,28 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
     private ManagementServerProperties managementProperties;
 
     @Autowired
+    private GistServiceProperties gistServiceProperties;
+
+    @Autowired
     private CollaborationDataStore collaborationDataStore;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
+        String gitServerPath = gistServiceProperties.getGitServerPath();
+        String managementPath = managementProperties.getContextPath();
+
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http.requestMatchers()
-                .requestMatchers(new NegatedRequestMatcher(
-                        new AntPathRequestMatcher("/" + managementProperties.getContextPath() + "/**")))
-                .and().addFilterBefore(ssoFilter(), RequestHeaderAuthenticationFilter.class)
-                .authenticationProvider(preAuthAuthProvider()).csrf().disable().authorizeRequests().anyRequest()
-                .authenticated();
+        http.requestMatchers().requestMatchers(
+                new OrRequestMatcher(
+                    new NegatedRequestMatcher(new AntPathRequestMatcher("/" + managementPath + "/**")), 
+                    new NegatedRequestMatcher(new AntPathRequestMatcher(gitServerPath + "/**"))
+                )
+            )
+            .and().addFilterBefore(ssoFilter(), RequestHeaderAuthenticationFilter.class)
+            .authenticationProvider(preAuthAuthProvider()).csrf().disable().authorizeRequests().anyRequest()
+            .authenticated();
     }
 
     @Autowired

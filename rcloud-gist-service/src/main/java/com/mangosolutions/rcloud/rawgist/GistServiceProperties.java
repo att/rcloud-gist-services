@@ -32,6 +32,16 @@ public class GistServiceProperties {
     private String sessionKeyServerUrl = null;
 
     private String sessionKeyServerRealm = "rcloud";
+    
+    private String gitServerPath = "/repositories";
+
+    public String getGitServerPath() {
+        return gitServerPath;
+    }
+
+    public void setGitServerPath(String gitServerPath) {
+        this.gitServerPath = gitServerPath;
+    }
 
     private List<String> mediatypes = new ArrayList<>();
 
