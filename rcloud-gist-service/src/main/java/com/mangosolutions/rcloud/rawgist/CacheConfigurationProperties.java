@@ -30,6 +30,8 @@ public class CacheConfigurationProperties {
         private String name;
         private EvictionPolicy evictionPolicy = EvictionPolicy.LFU;
         private int ttl = 300;
+        private int maxSize = 1000;
+        private int maxIdleSeconds = 300;
 
         public String getName() {
             return name;
@@ -53,6 +55,22 @@ public class CacheConfigurationProperties {
 
         public void setTtl(int ttl) {
             this.ttl = ttl;
+        }
+
+        public int getMaxSize() {
+            return maxSize;
+        }
+
+        public void setMaxSize(int maxSize) {
+            this.maxSize = maxSize;
+        }
+
+        public int getMaxIdleSeconds() {
+            return maxIdleSeconds;
+        }
+
+        public void setMaxIdleSeconds(int maxIdleSeconds) {
+            this.maxIdleSeconds = maxIdleSeconds;
         }
     }
 
