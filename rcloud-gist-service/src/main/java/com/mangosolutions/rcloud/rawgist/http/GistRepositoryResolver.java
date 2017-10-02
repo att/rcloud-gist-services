@@ -31,7 +31,6 @@ public class GistRepositoryResolver<C> implements RepositoryResolver<C> {
         OpenOp openOp = new OpenOp();
         openOp.setDir(gistRepositoryFolder);
         Grgit git = openOp.call();
-
         return git.getRepository().getJgit().getRepository();
     }
 
