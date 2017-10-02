@@ -65,29 +65,43 @@ caches:
   - 
     name: 'sessionkeys'
     evictionPolicy: LRU
-    ttl: 300
+    ttl: 60
+    maxSize: 100
+    maxIdleSeconds: 60
   - 
     name: 'gists'
     evictionPolicy: LRU
     ttl: 300
+    maxSize: 200
+    maxIdleSeconds: 300
   - 
     name: 'comments'
     evictionPolicy: LRU
     ttl: 300
+    maxSize: 200
+    maxIdleSeconds: 300
   - 
     name: 'commentstore'
     evictionPolicy: LRU
     ttl: 300
+    maxSize: 200
+    maxIdleSeconds: 300
   - 
     name: 'metadatatore'
     evictionPolicy: LRU
     ttl: 300
+    maxSize: 200
+    maxIdleSeconds: 300
   - 
     name: 'historystore'
     evictionPolicy: LRU
     ttl: 300
+    maxSize: 200
+    maxIdleSeconds: 300
   - 
     name: 'filecontentcache'
     evictionPolicy: LRU
-    ttl: 300    
+    ttl: 300
+    maxSize: 200
+    maxIdleSeconds: 300    
     

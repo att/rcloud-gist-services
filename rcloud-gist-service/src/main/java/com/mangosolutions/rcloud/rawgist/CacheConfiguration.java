@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.GroupConfig;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MaxSizeConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.spring.cache.HazelcastCacheManager;
@@ -78,19 +79,39 @@ public class CacheConfiguration {
             GistCacheConfiguration cacheConfig) {
         Config config = hazelcastInstance.getConfig();
         Map<String, MapConfig> mapConfigs = config.getMapConfigs();
+        MapConfig defaultMapConfig = getDefaultMapConfig(mapConfigs);
         String cacheName = cacheConfig.getName();
         emptyCache(cacheName, hazelcastInstance);
+        MapConfig mapConfig = null;
         if (mapConfigs.containsKey(cacheName)) {
-            logger.warn("Altering existing configuration of cache config {}", mapConfigs.get(cacheName));
+            mapConfig = mapConfigs.get(cacheName);
+            logger.warn("Altering existing configuration of cache config {} with values {}", mapConfig, cacheConfig);
+        } else {
+            mapConfig = new MapConfig(defaultMapConfig);
+            mapConfig.setName(cacheName);
+            mapConfig.setEvictionPolicy(cacheConfig.getEvictionPolicy());
+            mapConfig.setTimeToLiveSeconds(cacheConfig.getTtl());
+            mapConfig.setMaxIdleSeconds(cacheConfig.getMaxIdleSeconds());
+            MaxSizeConfig maxSizeConfig = mapConfig.getMaxSizeConfig();
+            maxSizeConfig.setSize(cacheConfig.getMaxSize());
+            mapConfig.setMaxSizeConfig(maxSizeConfig);
         }
-        MapConfig mapConfig = new MapConfig(cacheName);// config.getMapConfig(cacheConfig.getName());
-        mapConfig.setEvictionPolicy(cacheConfig.getEvictionPolicy());
-        mapConfig.setTimeToLiveSeconds(cacheConfig.getTtl());
         config.addMapConfig(mapConfig);
         
         
         logger.info("Configured cache {} with with settings: {}", cacheName, mapConfig);
     }
+
+    private MapConfig getDefaultMapConfig(Map<String, MapConfig> mapConfigs) {
+        MapConfig mapConfig = null;
+        if (mapConfigs.containsKey("default")) {
+            mapConfig = mapConfigs.get("default");
+        } else {
+            mapConfig = new MapConfig("default");
+        }
+        return mapConfig;
+    }
+
 
     private void emptyCache(String cacheName, HazelcastInstance hazelcastInstance2) {
         IMap<Object, Object> mapCache = hazelcastInstance.getMap(cacheName);
