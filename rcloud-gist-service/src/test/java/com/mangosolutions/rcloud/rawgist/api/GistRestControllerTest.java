@@ -405,7 +405,7 @@ public class GistRestControllerTest {
                 .andExpect(jsonPath("$.collaborators.length()", is(2)))
                 .andExpect(jsonPath("$.collaborators[0].login", is("dino")))
                 .andExpect(jsonPath("$.collaborators[1].login", is("gerry"))).andReturn();
-        
+
         // refresh the application (should clear the cache)
         mvc.perform(post("/manage/refresh").with(httpBasic("admin", "abcd"))).andExpect(status().isOk());
 
