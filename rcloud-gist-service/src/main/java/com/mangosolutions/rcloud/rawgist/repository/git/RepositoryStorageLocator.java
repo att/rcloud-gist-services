@@ -10,6 +10,14 @@ import java.io.File;
 
 public interface RepositoryStorageLocator {
 
-	File getStoragePath(String gistId);
+    /**
+     * Gets the absolute location of the gist folder.
+     * 
+     * @param gistId
+     *            the gistId to resolve to a location
+     * @return A File object representing the root folder of the gist storage
+     *         location
+     */
+    File getStorageFolder(String gistId);
 
 }

@@ -21,7 +21,7 @@ public class SymetricFourPartRepositoryStorageLocator implements RepositoryStora
 	}
 
 	@Override
-	public File getStoragePath(String gistId) {
+	public File getStorageFolder(String gistId) {
 		File folder = root;
 		for (String path : REPOSITORYID_FOLDER_SPLITTER.split(gistId)) {
 			folder = new File(folder, path);

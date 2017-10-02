@@ -300,7 +300,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
 
     private File getAndValidateRepositoryFolder(String id) {
         for (RepositoryStorageLocator locator : this.locators) {
-            File repositoryFolder = locator.getStoragePath(id);
+            File repositoryFolder = locator.getStorageFolder(id);
             if (repositoryFolder.exists()) {
                 return repositoryFolder;
             }
@@ -312,7 +312,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
     }
 
     private File getRepositoryFolder(String id) {
-        return this.locators.get(0).getStoragePath(id);
+        return this.locators.get(0).getStorageFolder(id);
     }
 
     private void ensureReadable(GistRepository repository, UserDetails user) {

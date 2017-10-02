@@ -21,7 +21,7 @@ public class AsymetricFourFolderRepositoryStorageLocator implements RepositorySt
 	}
 
 	@Override
-	public File getStoragePath(String gistId) {
+	public File getStorageFolder(String gistId) {
 		File path = null;
 		Matcher matcher = REPOSITORYID_FOLDER_PATTERN.matcher(gistId);
 		if(matcher.matches()) {
