@@ -14,7 +14,7 @@ import org.eclipse.jgit.transport.resolver.ServiceNotEnabledException;
 import com.mangosolutions.rcloud.rawgist.repository.git.RepositoryLayout;
 import com.mangosolutions.rcloud.rawgist.repository.git.RepositoryStorageLocator;
 
-public class GistRepositoryResolver<C> implements RepositoryResolver<C> {
+public class GistRepositoryResolver<HttpServletRequest> implements RepositoryResolver<HttpServletRequest> {
 
     private Collection<RepositoryStorageLocator> locators = new CopyOnWriteArrayList<>();
     
@@ -24,7 +24,7 @@ public class GistRepositoryResolver<C> implements RepositoryResolver<C> {
     }
 
     @Override
-    public Repository open(final C req, final String name)
+    public Repository open(final HttpServletRequest req, final String name)
             throws RepositoryNotFoundException, ServiceNotEnabledException {
         // resolve the storage location
         File gistRepositoryFolder = this.getGistRepositoryFolder(name);

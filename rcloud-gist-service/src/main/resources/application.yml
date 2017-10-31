@@ -11,6 +11,8 @@ management:
   port: 13021
   security:
     enabled: true
+    roles:
+      - ADMIN
   context_path: /manage
 
 info:
@@ -87,7 +89,7 @@ caches:
     maxSize: 200
     maxIdleSeconds: 300
   - 
-    name: 'metadatatore'
+    name: 'metadatastore'
     evictionPolicy: LRU
     ttl: 300
     maxSize: 200

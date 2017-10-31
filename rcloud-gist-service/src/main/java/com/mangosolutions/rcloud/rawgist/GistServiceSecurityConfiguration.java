@@ -14,7 +14,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.ManagementServerProperties;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -34,8 +33,8 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 
 import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
@@ -53,18 +52,16 @@ import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 @EnableConfigurationProperties(SessionKeyServerProperties.class)
-public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+    private static final String GIST_SERVICE_PATH = "/gists/**";
+    private static final String USER_SERVICE_PATH = "/user/**";
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+    
 
     @Autowired
     private SessionKeyServerProperties keyserverProperties;
-
-    @Autowired
-    private ManagementServerProperties managementProperties;
-
-    @Autowired
-    private GistServiceProperties gistServiceProperties;
 
     @Autowired
     private CollaborationDataStore collaborationDataStore;
@@ -72,21 +69,28 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        String gitServerPath = gistServiceProperties.getGitServerPath();
-        String managementPath = managementProperties.getContextPath();
 
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http.requestMatchers().requestMatchers(
-                new OrRequestMatcher(
-                    new NegatedRequestMatcher(new AntPathRequestMatcher("/" + managementPath + "/**")), 
-                    new NegatedRequestMatcher(new AntPathRequestMatcher(gitServerPath + "/**"))
-                )
-            )
-            .and().addFilterBefore(ssoFilter(), RequestHeaderAuthenticationFilter.class)
+        RequestMatcher matcher = new OrRequestMatcher(
+//                new AntPathRequestMatcher("/repositories/**"),
+                new AntPathRequestMatcher(GIST_SERVICE_PATH),
+                new AntPathRequestMatcher(USER_SERVICE_PATH)
+            );
+        
+        http.requestMatchers().requestMatchers(matcher)
+            .and().addFilterBefore(ssoFilter(matcher), RequestHeaderAuthenticationFilter.class)
             .authenticationProvider(preAuthAuthProvider()).csrf().disable().authorizeRequests().anyRequest()
             .authenticated();
     }
+    
+//    private RequestMatcher getGitGistSecurityRequestMatcher() {
+//        String gitServerPath = gistServiceProperties.getGitServerPath();
+//        return new AndRequestMatcher(
+//                new AntPathRequestMatcher("/" + gitServerPath + "/**"),
+//                new NegatedRequestMatcher(new HttpMethodRequestMatcher("GET"))
+//                );
+//    }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -141,8 +145,8 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
         return new SessionKeyServerWebAuthenticationDetailsSource(this.keyserverProperties.getClientIdParam());
     }
 
-    @Bean
-    public AbstractPreAuthenticatedProcessingFilter ssoFilter() throws Exception {
+//    @Bean
+    public AbstractPreAuthenticatedProcessingFilter ssoFilter(RequestMatcher matcher) throws Exception {
         RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
         filter.setExceptionIfParameterMissing(false);
         filter.setAuthenticationManager(authenticationManager());

@@ -7,6 +7,8 @@
 package com.mangosolutions.rcloud.rawgist.http;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Status;
@@ -17,12 +19,15 @@ import org.ajoberstar.grgit.operation.CommitOp;
 import org.ajoberstar.grgit.operation.PushOp;
 import org.ajoberstar.grgit.operation.StatusOp;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootContextLoader;
@@ -41,6 +46,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.mangosolutions.rcloud.rawgist.Application;
 import com.mangosolutions.rcloud.rawgist.api.GistTestHelper;
+import com.mangosolutions.rcloud.sessionkeyauth.SessionKeyServerService;
 
 
 
@@ -70,6 +76,9 @@ public class GitGistHttpServerTest {
 
     @Autowired
     private GistTestHelper gistTestHelper;
+    
+    @Autowired
+    private GitServiceAuthenticationManager gitServiceAuthenticationManager;
 
     @Before
     public void setup() throws Exception {
@@ -79,6 +88,12 @@ public class GitGistHttpServerTest {
         defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt",
                 "This is some default content");
         gistTestHelper.emptyHazelcast();
+        
+        CredentialsProvider.setDefault(new UsernamePasswordCredentialsProvider("mock_user", "abcdefg"));
+        SessionKeyServerService service = Mockito.mock(SessionKeyServerService.class);
+        Mockito.when(service.authenticate("mock_user", "abcdefg")).thenReturn("1234567890");
+        gitServiceAuthenticationManager.setSessionKeyServerService(service);
+        
     }
 
     @Test
@@ -108,6 +123,9 @@ public class GitGistHttpServerTest {
         FileUtils.write(file1, " this is some updated content", true);
         AddOp addOp = new AddOp(git.getRepository());
         addOp.setUpdate(true);
+        Set<String> patterns = new HashSet<>();
+        patterns.add(".");
+        addOp.setPatterns(patterns);
         addOp.call();
         CommitOp commitOp = new CommitOp(git.getRepository());
         commitOp.setMessage("Updated file for test case");

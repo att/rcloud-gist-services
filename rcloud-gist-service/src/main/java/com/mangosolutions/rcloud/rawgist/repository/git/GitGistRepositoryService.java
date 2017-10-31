@@ -280,7 +280,8 @@ public class GitGistRepositoryService implements GistRepositoryService {
         }
     }
 
-    private Lock acquireGistLock(String gistId) {
+    @Override
+    public Lock acquireGistLock(String gistId) {
         Lock lock = hazelcastInstance.getLock(gistId);
         try {
             if (!lock.tryLock(lockTimeout, TimeUnit.SECONDS)) {
@@ -313,6 +314,30 @@ public class GitGistRepositoryService implements GistRepositoryService {
 
     private File getRepositoryFolder(String id) {
         return this.locators.get(0).getStorageFolder(id);
+    }
+    
+    @Override
+    public boolean isReadable(String gistId, UserDetails user) {
+        try {
+            File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+            GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
+            this.ensureReadable(repository, user);
+            return true;
+        } catch (GistAccessDeniedException|GistRepositoryException e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean isWritable(String gistId, UserDetails user) {
+        try {
+            File repositoryFolder = getAndValidateRepositoryFolder(gistId);
+            GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
+            this.ensureWritable(repository, user);
+            return true;
+        } catch (GistAccessDeniedException|GistRepositoryException e) {
+            return false;
+        }
     }
 
     private void ensureReadable(GistRepository repository, UserDetails user) {

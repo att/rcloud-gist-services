@@ -48,7 +48,7 @@ public class SessionKeyServerUserDetailsService
     private SessionKeyServerResponse querySessionKeyServer(PreAuthenticatedAuthenticationToken token,
             String sessionKey) {
         String clientId = getClientId(token);
-        SessionKeyServerResponse response = this.sessionKeyServerService.authenticate(clientId, sessionKey);
+        SessionKeyServerResponse response = this.sessionKeyServerService.validateToken(clientId, sessionKey);
         return response;
     }
 

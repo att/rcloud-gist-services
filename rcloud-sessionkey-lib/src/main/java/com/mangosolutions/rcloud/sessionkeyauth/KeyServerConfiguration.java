@@ -10,7 +10,9 @@ public class KeyServerConfiguration {
 
 	private static final String DEFAULT_REALM_VALUE = "rcloud";
 
-	private static final String DEFAULT_URL_VALUE = "http://{host}:{port}/valid?token={token}&realm={realm}";
+	private static final String DEFAULT_TOKEN_URL_VALUE = "http://{host}:{port}/valid?token={token}&realm={realm}";
+	
+	private static final String DEFAULT_AUTH_URL_VALUE = "http://{host}:{port}/auth_token?user={user}&pwd={pwd}&realm={realm}";
 
 	private static final String DEFAULT_HOST_VALUE = "127.0.0.1";
 
@@ -19,7 +21,8 @@ public class KeyServerConfiguration {
 	private String host = DEFAULT_HOST_VALUE;
 	private Integer port = DEFAULT_PORT_VALUE;
 	private String realm = DEFAULT_REALM_VALUE;
-	private String url = DEFAULT_URL_VALUE;
+	private String url = DEFAULT_TOKEN_URL_VALUE;
+	private String authUrl = DEFAULT_AUTH_URL_VALUE;
 	private boolean active = true;
 
 
@@ -56,7 +59,15 @@ public class KeyServerConfiguration {
 	}
 	
 	
-	public boolean isActive() {
+	public String getAuthUrl() {
+        return authUrl;
+    }
+
+    public void setAuthUrl(String authUrl) {
+        this.authUrl = authUrl;
+    }
+
+    public boolean isActive() {
 		return active;
 	}
 

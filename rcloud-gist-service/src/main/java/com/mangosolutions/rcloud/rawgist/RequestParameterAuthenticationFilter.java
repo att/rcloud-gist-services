@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 
 public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
@@ -17,6 +19,16 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	private String principalRequestParameter = "access_token";
 	private String credentialsRequestParameter;
 	private boolean exceptionIfParameterMissing = true;
+	
+	private RequestMatcher matcher = AnyRequestMatcher.INSTANCE;
+	
+	public RequestParameterAuthenticationFilter() {
+	    
+	}
+	
+	public RequestParameterAuthenticationFilter(RequestMatcher matcher) {
+	    this.matcher = matcher;
+	}
 
 	/**
 	 * Read and returns the header named by {@code principalRequestParameter} from the
@@ -27,7 +39,9 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	 */
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-		String principal = request.getParameter(principalRequestParameter);
+	    String principal = null; 
+	    if(matcher.matches(request)) {
+		principal = request.getParameter(principalRequestParameter);
 
 		if (principal == null && exceptionIfParameterMissing) {
 			throw new PreAuthenticatedCredentialsNotFoundException(principalRequestParameter
@@ -35,8 +49,8 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 		} else {
 			principal = principal == null? "": principal;
 		}
-		
-		return principal;
+	    }
+	    return principal;
 	}
 
 	/**

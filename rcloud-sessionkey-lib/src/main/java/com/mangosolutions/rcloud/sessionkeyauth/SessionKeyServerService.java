@@ -22,7 +22,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
 
@@ -43,14 +45,22 @@ public class SessionKeyServerService {
         this.keyServers = keyServers;
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
         converters.add(new SessionKeyServerMessageConverter());
+        converters.add(new StringHttpMessageConverter());
         restTemplate.setMessageConverters(converters);
         this.restTemplate = restTemplate;
     }
     
     @Cacheable(value = "sessionkeys")
-    public SessionKeyServerResponse authenticate(String clientId, String sessionKey) {
+    public SessionKeyServerResponse validateToken(String clientId, String sessionKey) {
         KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
-        ResponseEntity<SessionKeyServerResponse> response = doAuthentication(sessionKey, keyServer);
+        ResponseEntity<SessionKeyServerResponse> response = doTokenValidation(sessionKey, keyServer);
+        return response.getBody();
+    }
+    
+    public String authenticate(String username, String password) {
+        //TODO this needs to check all of the sessionkey servers?
+        KeyServerConfiguration keyServer = getKeyServerConfiguration("default");
+        ResponseEntity<String> response = doAuthentication(username, password, keyServer);
         return response.getBody();
     }
     
@@ -67,13 +77,57 @@ public class SessionKeyServerService {
         return configuration;
     }
     
-    private ResponseEntity<SessionKeyServerResponse> doAuthentication(String sessionKey,
+    private ResponseEntity<String> doAuthentication(String username, String password,
+            KeyServerConfiguration keyServer) {
+        try {
+            
+            Map<String, Object> params = buildParams(username, password, keyServer);
+            HttpHeaders headers = buildHeaders();
+    
+            URI uri = buildUri(keyServer.getAuthUrl(), params);
+            RequestEntity<String> requestEntity = buildAuthenticationRequest(headers, uri);
+    
+            ResponseEntity<String> response = restTemplate.exchange(requestEntity,
+                    String.class);
+
+            if (!HttpStatus.OK.equals(response.getStatusCode())) {
+                if(HttpStatus.FORBIDDEN.equals(response.getStatusCode())) {
+                    logger.info("Credentials provided for {} are not correct", username);
+                } else {
+                    logger.error("Bad response from the Session Key Server: {}, response: {}", keyServer, response);
+                }
+                throw new UsernameNotFoundException("Response from SessionKeyServer was not successful");
+            }
+            return response;
+        } catch (HttpClientErrorException e) {
+            HttpStatus status = e.getStatusCode();
+            if(HttpStatus.FORBIDDEN.equals(status)) {
+                logger.info("Credentials provided for {} are not correct.", username);
+                throw new UsernameNotFoundException("Response from SessionKeyServer was not successful");
+            } else {
+                throw e;
+            }
+        }
+    }
+    
+    private Map<String, Object> buildParams(String username, String password, KeyServerConfiguration server) {
+        Map<String, Object> params = new HashMap<>();
+
+        params.put("user", username);
+        params.put("pwd", password);
+        params.put("realm", server.getRealm());
+        params.put("host", server.getHost());
+        params.put("port", server.getPort());
+        return params;
+    }
+
+    private ResponseEntity<SessionKeyServerResponse> doTokenValidation(String sessionKey,
             KeyServerConfiguration keyServer) {
         Map<String, Object> params = buildParams(keyServer, sessionKey);
         HttpHeaders headers = buildHeaders();
 
-        URI uri = buildUri(keyServer, params);
-        RequestEntity<SessionKeyServerResponse> requestEntity = buildRequest(headers, uri);
+        URI uri = buildUri(keyServer.getUrl(), params);
+        RequestEntity<SessionKeyServerResponse> requestEntity = buildTokenValidationRequest(headers, uri);
 
         ResponseEntity<SessionKeyServerResponse> response = restTemplate.exchange(requestEntity,
                 SessionKeyServerResponse.class);
@@ -85,8 +139,8 @@ public class SessionKeyServerService {
         return response;
     }
     
-    private URI buildUri(KeyServerConfiguration server, Map<String, Object> params) {
-        URI uri = new UriTemplate(server.getUrl()).expand(params);
+    private URI buildUri(String urlTemplate, Map<String, Object> params) {
+        URI uri = new UriTemplate(urlTemplate).expand(params);
         return uri;
     }
 
@@ -108,7 +162,13 @@ public class SessionKeyServerService {
     }
 
     
-    private RequestEntity<SessionKeyServerResponse> buildRequest(HttpHeaders headers, URI uri) {
+    private RequestEntity<String> buildAuthenticationRequest(HttpHeaders headers, URI uri) {
+        RequestEntity<String> requestEntity = new RequestEntity<>(new String(),
+                headers, HttpMethod.GET, uri);
+        return requestEntity;
+    }
+    
+    private RequestEntity<SessionKeyServerResponse> buildTokenValidationRequest(HttpHeaders headers, URI uri) {
         RequestEntity<SessionKeyServerResponse> requestEntity = new RequestEntity<>(new SessionKeyServerResponse(),
                 headers, HttpMethod.GET, uri);
         return requestEntity;
