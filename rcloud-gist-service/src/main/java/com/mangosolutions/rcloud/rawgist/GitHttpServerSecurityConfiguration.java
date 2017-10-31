@@ -8,8 +8,6 @@ package com.mangosolutions.rcloud.rawgist;
 
 import javax.servlet.Filter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,10 +38,9 @@ public class GitHttpServerSecurityConfiguration extends WebSecurityConfigurerAda
 
     private static final String REPOSITORY_ANT_MATCH = "/" + GitHttpServerServletConfiguration.REPOSITORY_PATH + "/**"; 
     
-    private static final Logger logger = LoggerFactory.getLogger(GitHttpServerSecurityConfiguration.class);
+    private static final String GIT_RECEIVE_PACK = "git-receive-pack";
     
-    @Autowired
-    private GistServiceProperties gistServiceProperties;
+    private static final String GIT_RECEIEVE_PACK_PATH = "/**/" + GIT_RECEIVE_PACK;
     
     @Autowired
     private SessionKeyServerService sessionKeyServerService;
@@ -62,11 +59,11 @@ public class GitHttpServerSecurityConfiguration extends WebSecurityConfigurerAda
                 new AntPathRequestMatcher(REPOSITORY_ANT_MATCH),
                 new OrRequestMatcher(
                   new AndRequestMatcher(
-                      new AntPathRequestMatcher("/**/git-receive-pack"),
+                      new AntPathRequestMatcher(GIT_RECEIEVE_PACK_PATH),
                       new HttpMethodRequestMatcher("POST")
                   ),
                   new AndRequestMatcher(
-                      new HttpRequestParameterRequestMatcher("service", "git-receive-pack"),
+                      new HttpRequestParameterRequestMatcher("service", GIT_RECEIVE_PACK),
                       new HttpMethodRequestMatcher("GET")
                   )
               )

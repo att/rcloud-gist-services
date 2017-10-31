@@ -15,16 +15,16 @@ import com.mangosolutions.rcloud.rawgist.model.FileContent;
 @Component
 public class DefaultFileContentCache implements FileContentCache {
 
-	@Override
-	@Cacheable(value = "filecontentcache", key = "{#contentId, #path}")
-	public FileContent load(String contentId, String path) {
-		return null;
-	}
+    @Override
+    @Cacheable(value = "filecontentcache", key = "{#contentId, #path}")
+    public FileContent load(String contentId, String path) {
+        return null;
+    }
 
-	@Override
-	@CachePut(cacheNames = "filecontentcache", key = "{#contentId, #path}")
-	public FileContent save(String contentId, String path, FileContent content) {
-		return content;
-	}
+    @Override
+    @CachePut(cacheNames = "filecontentcache", key = "{#contentId, #path}")
+    public FileContent save(String contentId, String path, FileContent content) {
+        return content;
+    }
 
 }

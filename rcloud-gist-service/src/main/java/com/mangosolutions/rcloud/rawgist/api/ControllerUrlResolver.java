@@ -15,52 +15,38 @@ import org.springframework.stereotype.Component;
 @Component
 public class ControllerUrlResolver {
 
-	public String getGistUrl(String gistId, User activeUser) {
-		String url = null;
-		if(gistId != null) {
-			url = linkTo(
-					methodOn(GistRestController.class)
-					.getGist(gistId, activeUser))
-					.withSelfRel()
-					.getHref();
-			}
-		return url;
-	}
+    public String getGistUrl(String gistId, User activeUser) {
+        String url = null;
+        if (gistId != null) {
+            url = linkTo(methodOn(GistRestController.class).getGist(gistId, activeUser)).withSelfRel().getHref();
+        }
+        return url;
+    }
 
-	public String getCommentsUrl(String gistId, User activeUser) {
-		String url = null;
-		if(gistId != null) {
-			url = linkTo(
-					methodOn(GistCommentRestController.class)
-					.getComments(gistId, activeUser))
-					.withSelfRel()
-					.getHref();
-			}
-		return url;
-	}
+    public String getCommentsUrl(String gistId, User activeUser) {
+        String url = null;
+        if (gistId != null) {
+            url = linkTo(methodOn(GistCommentRestController.class).getComments(gistId, activeUser)).withSelfRel()
+                    .getHref();
+        }
+        return url;
+    }
 
-	public String getCommentUrl(String gistId, Long commentId, User activeUser) {
-		String url = null;
-		if(gistId != null && commentId != null) {
-			url = linkTo(
-					methodOn(GistCommentRestController.class)
-					.getComment(gistId, commentId, activeUser))
-					.withSelfRel()
-					.getHref();
-			}
-		return url;
-	}
-	
-	public String getForksUrl(String gistId, User activeUser) {
-		String url = null;
-		if(gistId != null) {
-			url = linkTo(
-					methodOn(GistRestController.class)
-					.forkGist(gistId, activeUser))
-					.withSelfRel()
-					.getHref();
-			}
-		return url;
-	}
+    public String getCommentUrl(String gistId, Long commentId, User activeUser) {
+        String url = null;
+        if (gistId != null && commentId != null) {
+            url = linkTo(methodOn(GistCommentRestController.class).getComment(gistId, commentId, activeUser))
+                    .withSelfRel().getHref();
+        }
+        return url;
+    }
+
+    public String getForksUrl(String gistId, User activeUser) {
+        String url = null;
+        if (gistId != null) {
+            url = linkTo(methodOn(GistRestController.class).forkGist(gistId, activeUser)).withSelfRel().getHref();
+        }
+        return url;
+    }
 
 }

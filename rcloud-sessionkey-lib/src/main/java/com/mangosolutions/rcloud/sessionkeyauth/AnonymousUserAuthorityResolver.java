@@ -12,7 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class AnonymousUserAuthorityResolver implements AuthorityResolver {
 
     public static final GrantedAuthority ANONYMOUS_AUTHORITY = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
-    
+
     @Override
     public GrantedAuthority resolve(String username) {
         return ANONYMOUS_AUTHORITY;

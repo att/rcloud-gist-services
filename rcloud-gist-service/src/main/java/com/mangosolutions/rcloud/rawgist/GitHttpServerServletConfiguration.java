@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import java.io.File;
@@ -23,17 +29,17 @@ import com.mangosolutions.rcloud.rawgist.repository.git.SymetricFourPartReposito
 @Configuration
 @EnableConfigurationProperties(GistServiceProperties.class)
 public class GitHttpServerServletConfiguration {
-    
+
     public static final String REPOSITORY_PATH = "repositories";
-    
+
     public static final String REPOSITORY_SERVLET_PATH = "/" + REPOSITORY_PATH + "/*";
 
     @Autowired
     private GistServiceProperties serviceProperties;
-    
+
     @Autowired
     private GistRepositoryService gistRepositoryService;
-    
+
     @Autowired
     private HazelcastInstance hazelcastInstance;
 
@@ -41,7 +47,6 @@ public class GitHttpServerServletConfiguration {
     public ServletRegistrationBean servletRegistrationBean() {
         String root = serviceProperties.getRoot();
         File rootFolder = new File(root);
-//        String gitServerPath = serviceProperties.getGitServerPath();
         Collection<RepositoryStorageLocator> locators = Arrays.asList(
                 new AsymetricFourFolderRepositoryStorageLocator(rootFolder),
                 new SymetricFourPartRepositoryStorageLocator(rootFolder));

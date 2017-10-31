@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import java.util.Collection;
@@ -10,18 +16,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 public class HttpMethodRequestMatcher implements RequestMatcher {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(HttpMethodRequestMatcher.class);
-    
+
     private Collection<String> methods = new HashSet<>();
 
     public HttpMethodRequestMatcher(String... methods) {
-        for(String method: methods) {
+        for (String method : methods) {
             logger.debug("Adding method {} as http method request filter", method);
             this.methods.add(method.toUpperCase());
         }
     }
-    
+
     @Override
     public boolean matches(HttpServletRequest request) {
         String method = request.getMethod();
@@ -31,6 +37,4 @@ public class HttpMethodRequestMatcher implements RequestMatcher {
         return match;
     }
 
-    
-    
 }

@@ -54,119 +54,117 @@ import com.mangosolutions.rcloud.rawgist.model.GitChangeStatus;
  */
 public class GitHistoryOperation implements Callable<List<GistHistory>> {
 
-	private static final Logger logger = Logger.getLogger(GitHistoryOperation.class);
+    private static final Logger logger = Logger.getLogger(GitHistoryOperation.class);
 
-	private Repository repository;
+    private Repository repository;
 
-	private String commitId;
-	
-	private HistoryCache historyStore = new HistoryCache() {
+    private String commitId;
 
-		@Override
-		public List<GistHistory> load(String commitId) {
-			return new LinkedList<>();
-		}
+    private HistoryCache historyStore = new HistoryCache() {
 
-		@Override
-		public List<GistHistory> save(String commitId, List<GistHistory> history) {
-			return history;
-		}
-		
-	};
+        @Override
+        public List<GistHistory> load(String commitId) {
+            return new LinkedList<>();
+        }
 
-	public GitHistoryOperation(Grgit git, String commitId) {
-		this.repository = git.getRepository();
-		this.commitId = commitId;
-	}
-	
-	public Repository getRepository() {
-		return repository;
-	}
+        @Override
+        public List<GistHistory> save(String commitId, List<GistHistory> history) {
+            return history;
+        }
 
-	public void setRepository(Repository repository) {
-		this.repository = repository;
-	}
+    };
 
-	public List<GistHistory> call() {
-		LogOp logOp = new LogOp(repository);
-		List<Commit> commits = logOp.call();
-		return calculateHistory(repository, commits);
-	}
+    public GitHistoryOperation(Grgit git, String commitId) {
+        this.repository = git.getRepository();
+        this.commitId = commitId;
+    }
 
-	private List<GistHistory> calculateHistory(Repository repository, List<Commit> commits) {
-		List<GistHistory> histories = new ArrayList<>();
-		boolean recordHistory = commitId == null;
-		for (Commit logCommit : commits) {
-			if(this.commitId == null) {
-				this.commitId = logCommit.getId();
-			}
-			try {
-				if(commitId != null && logCommit.getId().equals(commitId)) {
-					recordHistory = true;
-				}
-				if(recordHistory) {
-					List<GistHistory> cachedHistory = historyStore.load(logCommit.getId());
-					if(!cachedHistory.isEmpty()) {
-						histories.addAll(cachedHistory);
-						break;
-					}
-					GistHistory history = create(repository, logCommit);
-					histories.add(history);
-					
-				}
-			} catch (GitAPIException | IOException e) {
-				logger.error(String.format("Could not extract diff of commit %s.", logCommit.getId()), e);
-			}
-		}
-		this.historyStore.save(this.commitId, histories);
-		return histories;
-	}
+    public Repository getRepository() {
+        return repository;
+    }
 
+    public void setRepository(Repository repository) {
+        this.repository = repository;
+    }
 
-	private GistHistory create(Repository repository, Commit logCommit) throws GitAPIException, IOException {
-		ShowOp showOp = new ShowOp(repository);
-		showOp.setCommit(logCommit);
-		CommitDiff diff = showOp.call();
-		GistHistory history = new GistHistory();
-		setVersion(history, logCommit);
-		setUsername(history, logCommit);
-		setCommitDate(history, logCommit);
-		setChanges(history, diff);
-		return history;
-	}
+    public List<GistHistory> call() {
+        LogOp logOp = new LogOp(repository);
+        List<Commit> commits = logOp.call();
+        return calculateHistory(repository, commits);
+    }
 
-	private void setChanges(GistHistory history, CommitDiff diff) {
-		GitChangeStatus status = new GitChangeStatus();
-		status.setAdditions(diff.getAdded().size());
-		status.setDeletions(diff.getRemoved().size());
-		status.setTotal(diff.getAllChanges().size());
-		history.setChangeStatus(status);
-	}
+    private List<GistHistory> calculateHistory(Repository repository, List<Commit> commits) {
+        List<GistHistory> histories = new ArrayList<>();
+        boolean recordHistory = commitId == null;
+        for (Commit logCommit : commits) {
+            if (this.commitId == null) {
+                this.commitId = logCommit.getId();
+            }
+            try {
+                if (commitId != null && logCommit.getId().equals(commitId)) {
+                    recordHistory = true;
+                }
+                if (recordHistory) {
+                    List<GistHistory> cachedHistory = historyStore.load(logCommit.getId());
+                    if (!cachedHistory.isEmpty()) {
+                        histories.addAll(cachedHistory);
+                        break;
+                    }
+                    GistHistory history = create(repository, logCommit);
+                    histories.add(history);
 
-	private void setCommitDate(GistHistory history, Commit commit) {
-		long timeInSeconds = commit.getTime();
-		DateTime dateTime = new DateTime(timeInSeconds * 1000, DateTimeZone.UTC);
-		history.setCommittedAt(dateTime);
-	}
+                }
+            } catch (GitAPIException | IOException e) {
+                logger.error(String.format("Could not extract diff of commit %s.", logCommit.getId()), e);
+            }
+        }
+        this.historyStore.save(this.commitId, histories);
+        return histories;
+    }
 
-	private void setUsername(GistHistory history, Commit commit) {
-		Person author = commit.getAuthor();
-		GistIdentity user = new GistIdentity();
-		user.setLogin(author.getName());
-		history.setUser(user);
-	}
+    private GistHistory create(Repository repository, Commit logCommit) throws GitAPIException, IOException {
+        ShowOp showOp = new ShowOp(repository);
+        showOp.setCommit(logCommit);
+        CommitDiff diff = showOp.call();
+        GistHistory history = new GistHistory();
+        setVersion(history, logCommit);
+        setUsername(history, logCommit);
+        setCommitDate(history, logCommit);
+        setChanges(history, diff);
+        return history;
+    }
 
-	private void setVersion(GistHistory history, Commit logCommit) {
-		history.setVersion(logCommit.getId());
-	}
+    private void setChanges(GistHistory history, CommitDiff diff) {
+        GitChangeStatus status = new GitChangeStatus();
+        status.setAdditions(diff.getAdded().size());
+        status.setDeletions(diff.getRemoved().size());
+        status.setTotal(diff.getAllChanges().size());
+        history.setChangeStatus(status);
+    }
 
-	public void setCommitId(String commitId) {
-		this.commitId = commitId;
-	}
+    private void setCommitDate(GistHistory history, Commit commit) {
+        long timeInSeconds = commit.getTime();
+        DateTime dateTime = new DateTime(timeInSeconds * 1000, DateTimeZone.UTC);
+        history.setCommittedAt(dateTime);
+    }
 
-	public void setHistoryCache(HistoryCache historyStore) {
-		this.historyStore = historyStore;
-	}
+    private void setUsername(GistHistory history, Commit commit) {
+        Person author = commit.getAuthor();
+        GistIdentity user = new GistIdentity();
+        user.setLogin(author.getName());
+        history.setUser(user);
+    }
 
+    private void setVersion(GistHistory history, Commit logCommit) {
+        history.setVersion(logCommit.getId());
+    }
+
+    public void setCommitId(String commitId) {
+        this.commitId = commitId;
+    }
+
+    public void setHistoryCache(HistoryCache historyStore) {
+        this.historyStore = historyStore;
+    }
 
 }

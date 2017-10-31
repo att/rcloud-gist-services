@@ -12,26 +12,26 @@ import java.util.regex.Pattern;
 
 public class AsymetricFourFolderRepositoryStorageLocator implements RepositoryStorageLocator {
 
-	private static final Pattern REPOSITORYID_FOLDER_PATTERN = Pattern.compile("(.)(.)(.)(.*)");
+    private static final Pattern REPOSITORYID_FOLDER_PATTERN = Pattern.compile("(.)(.)(.)(.*)");
 
-	private File root;
+    private File root;
 
-	public AsymetricFourFolderRepositoryStorageLocator(File root) {
-		this.root = root;
-	}
+    public AsymetricFourFolderRepositoryStorageLocator(File root) {
+        this.root = root;
+    }
 
-	@Override
-	public File getStorageFolder(String gistId) {
-		File path = null;
-		Matcher matcher = REPOSITORYID_FOLDER_PATTERN.matcher(gistId);
-		if(matcher.matches()) {
-			int groups = matcher.groupCount();
-			path = root;
-			for(int i = 1; i <= groups; i++) {
-				path = new File(path, matcher.group(i));
-			}
-		}
-		return path;
-	}
+    @Override
+    public File getStorageFolder(String gistId) {
+        File path = null;
+        Matcher matcher = REPOSITORYID_FOLDER_PATTERN.matcher(gistId);
+        if (matcher.matches()) {
+            int groups = matcher.groupCount();
+            path = root;
+            for (int i = 1; i <= groups; i++) {
+                path = new File(path, matcher.group(i));
+            }
+        }
+        return path;
+    }
 
 }

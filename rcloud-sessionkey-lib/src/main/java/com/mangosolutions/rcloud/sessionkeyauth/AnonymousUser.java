@@ -21,9 +21,9 @@ public final class AnonymousUser extends User {
     public AnonymousUser() {
         this(Arrays.asList(AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY));
     }
-    
+
     public AnonymousUser(Collection<? extends GrantedAuthority> authorities) {
         super(ANONYMOUS_USER_NAME, "", authorities);
     }
-    
+
 }

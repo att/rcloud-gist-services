@@ -19,17 +19,17 @@ public class GrantedAuthorityFactory {
 
     public Collection<GrantedAuthority> resolve(String username) {
         Collection<GrantedAuthority> authorities = new ArrayList<>(authorityResolvers.size());
-        for(AuthorityResolver resolver: authorityResolvers) {
+        for (AuthorityResolver resolver : authorityResolvers) {
             GrantedAuthority authority = resolver.resolve(username);
-            if(authority != null) {
+            if (authority != null) {
                 authorities.add(authority);
             }
         }
-        return authorities; 
+        return authorities;
     }
 
     public void setAuthorityResolvers(Collection<AuthorityResolver> authorityResolvers) {
         this.authorityResolvers = authorityResolvers;
     }
-    
+
 }

@@ -10,6 +10,6 @@ import java.io.File;
 
 public interface GistRepositoryFactory {
 
-	GistRepository getRepository(File folder);
+    GistRepository getRepository(File folder);
 
 }

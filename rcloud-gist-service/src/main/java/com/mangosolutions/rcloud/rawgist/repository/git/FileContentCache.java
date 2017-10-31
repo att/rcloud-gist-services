@@ -10,8 +10,8 @@ import com.mangosolutions.rcloud.rawgist.model.FileContent;
 
 public interface FileContentCache {
 
-	FileContent load(String contentId, String path);
+    FileContent load(String contentId, String path);
 
-	FileContent save(String contentId, String path, FileContent content);
+    FileContent save(String contentId, String path, FileContent content);
 
 }

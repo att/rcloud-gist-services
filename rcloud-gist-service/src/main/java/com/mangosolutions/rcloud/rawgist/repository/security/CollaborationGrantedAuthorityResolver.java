@@ -16,19 +16,19 @@ import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 public class CollaborationGrantedAuthorityResolver extends UserAuthorityResolver {
 
     private CollaborationDataStore collaborationDataStore = new CollaborationDataStore();
-    
+
     public CollaborationGrantedAuthorityResolver() {
-        
+
     }
-    
+
     public CollaborationGrantedAuthorityResolver(CollaborationDataStore collaborationDataStore) {
         this.collaborationDataStore = collaborationDataStore;
     }
-    
+
     @Override
     public GrantedAuthority resolve(String username) {
         GrantedAuthority authority = super.resolve(username);
-        if(authority != null) {
+        if (authority != null) {
             String[] aliases = resolveAliases(username);
             return new CollaborationGrantedAuthority(aliases);
         }

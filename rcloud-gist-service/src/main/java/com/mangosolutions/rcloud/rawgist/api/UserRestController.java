@@ -20,24 +20,21 @@ import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
 import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 
 @RestController()
-@RequestMapping(value = "/user", produces = { 
-		MediaType.APPLICATION_JSON_VALUE,
-		"application/vnd.github.beta+json",
-		"application/vnd.github.v3+json"
-		})
+@RequestMapping(value = "/user", produces = { MediaType.APPLICATION_JSON_VALUE, "application/vnd.github.beta+json",
+        "application/vnd.github.v3+json" })
 public class UserRestController {
 
-	@RequestMapping(method = RequestMethod.GET)
-	public GistIdentity getUser(@AuthenticationPrincipal User activeUser) {
-		GistIdentity response = new GistIdentity();
-		String username = activeUser.getUsername();
-		response.setLogin(username);
-		return response;
-	}
-	
-	@RequestMapping(value = "/{username}/gists", method = RequestMethod.GET)
-	public List<GistResponse> getUsersPublicGists() {
-		return Collections.emptyList();
-	}
+    @RequestMapping(method = RequestMethod.GET)
+    public GistIdentity getUser(@AuthenticationPrincipal User activeUser) {
+        GistIdentity response = new GistIdentity();
+        String username = activeUser.getUsername();
+        response.setLogin(username);
+        return response;
+    }
+
+    @RequestMapping(value = "/{username}/gists", method = RequestMethod.GET)
+    public List<GistResponse> getUsersPublicGists() {
+        return Collections.emptyList();
+    }
 
 }

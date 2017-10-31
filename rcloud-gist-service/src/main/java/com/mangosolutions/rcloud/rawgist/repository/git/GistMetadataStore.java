@@ -24,58 +24,59 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 @Component
 public class GistMetadataStore implements MetadataStore {
 
-	private static final Logger logger = LoggerFactory.getLogger(GistMetadataStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(GistMetadataStore.class);
 
-	@Autowired
-	private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-	public GistMetadataStore() {
-		this.objectMapper = new ObjectMapper();
-	}
+    public GistMetadataStore() {
+        this.objectMapper = new ObjectMapper();
+    }
 
-	@Autowired
-	public GistMetadataStore(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
+    @Autowired
+    public GistMetadataStore(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
-	public ObjectMapper getObjectMapper() {
-		return objectMapper;
-	}
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
 
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
+    @Override
+    @Cacheable(value = "metadatastore", key = "#store.getAbsolutePath()")
+    public GistMetadata load(File store) {
+        GistMetadata metadata = null;
+        if (store.exists()) {
+            try {
+                metadata = objectMapper.readValue(store, GistMetadata.class);
+            } catch (IOException e) {
+                GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_READABLE,
+                        "Could not read metadata for this gist");
+                logger.error(error.getFormattedMessage() + " with path {}", store);
+                throw new GistRepositoryError(error, e);
+            }
+        } else {
+            metadata = new GistMetadata();
+        }
+        return metadata;
+    }
 
-	@Override
-	@Cacheable(value = "metadatastore", key = "#store.getAbsolutePath()")
-	public GistMetadata load(File store) {
-		GistMetadata metadata = null;
-		if(store.exists()) {
-			try {
-				metadata = objectMapper.readValue(store, GistMetadata.class);
-			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_READABLE, "Could not read metadata for this gist");
-				logger.error(error.getFormattedMessage() + " with path {}", store);
-				throw new GistRepositoryError(error, e);
-			}
-		} else {
-			metadata = new GistMetadata();
-		}
-		return metadata;
-	}
-
-	@Override
-	@CachePut(cacheNames = "metadatastore", key = "#store.getAbsolutePath()")
-	public GistMetadata save(File store, GistMetadata metadata) {
-		try {
-			objectMapper.writeValue(store, metadata);
-		} catch (IOException e) {
-			GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_WRITEABLE, "Could not update metadata for gist {}", metadata.getId());
-			logger.error(error.getFormattedMessage() + " with path {}", store);
-			throw new GistRepositoryError(error, e);
-		}
-		return metadata;
-	}
+    @Override
+    @CachePut(cacheNames = "metadatastore", key = "#store.getAbsolutePath()")
+    public GistMetadata save(File store, GistMetadata metadata) {
+        try {
+            objectMapper.writeValue(store, metadata);
+        } catch (IOException e) {
+            GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_WRITEABLE,
+                    "Could not update metadata for gist {}", metadata.getId());
+            logger.error(error.getFormattedMessage() + " with path {}", store);
+            throw new GistRepositoryError(error, e);
+        }
+        return metadata;
+    }
 
 }

@@ -15,7 +15,6 @@ import org.springframework.security.core.GrantedAuthority;
 
 public class GrantedAuthorityFactoryTest {
 
-    
     @Test
     public void nullUsernameAnonymousAuthority() {
         Collection<GrantedAuthority> authorities = new GrantedAuthorityFactory().resolve(null);
@@ -23,7 +22,7 @@ public class GrantedAuthorityFactoryTest {
         assertEquals(1, authorities.size());
         authorities.contains(AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY);
     }
-    
+
     @Test
     public void emptyUsernameAnonymousAuthority() {
         Collection<GrantedAuthority> authorities = new GrantedAuthorityFactory().resolve("");
@@ -31,7 +30,7 @@ public class GrantedAuthorityFactoryTest {
         assertEquals(1, authorities.size());
         authorities.contains(AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY);
     }
-    
+
     @Test
     public void blankUsernameAnonymousAuthority() {
         Collection<GrantedAuthority> authorities = new GrantedAuthorityFactory().resolve("   ");
@@ -39,7 +38,7 @@ public class GrantedAuthorityFactoryTest {
         assertEquals(1, authorities.size());
         authorities.contains(AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY);
     }
-    
+
     @Test
     public void usernameUserAuthority() {
         Collection<GrantedAuthority> authorities = new GrantedAuthorityFactory().resolve("adam");
@@ -48,5 +47,5 @@ public class GrantedAuthorityFactoryTest {
         authorities.contains(AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY);
         authorities.contains(UserAuthorityResolver.USER_AUTHORITY);
     }
-    
+
 }

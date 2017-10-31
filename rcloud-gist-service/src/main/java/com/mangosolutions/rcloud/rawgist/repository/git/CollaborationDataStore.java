@@ -26,10 +26,10 @@ public class CollaborationDataStore {
             return Collections.emptySet();
         }
     }
-    
+
     public void updateCollaborators(Map<String, List<String>> collaborators) {
         this.collaborators.clear();
-        for(Map.Entry<String, List<String>> entry: collaborators.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : collaborators.entrySet()) {
             this.collaborators.put(entry.getKey(), entry.getValue());
         }
     }

@@ -48,14 +48,11 @@ import com.mangosolutions.rcloud.rawgist.Application;
 import com.mangosolutions.rcloud.rawgist.api.GistTestHelper;
 import com.mangosolutions.rcloud.sessionkeyauth.SessionKeyServerService;
 
-
-
-
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = { Application.class }, webEnvironment=WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { Application.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(loader = SpringBootContextLoader.class)
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-@ActiveProfiles({"test", "default"})
+@ActiveProfiles({ "test", "default" })
 public class GitGistHttpServerTest {
 
     public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
@@ -67,16 +64,16 @@ public class GitGistHttpServerTest {
 
     @LocalServerPort
     int randomServerPort;
-    
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
-    
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
     @Autowired
     private GistTestHelper gistTestHelper;
-    
+
     @Autowired
     private GitServiceAuthenticationManager gitServiceAuthenticationManager;
 
@@ -88,12 +85,12 @@ public class GitGistHttpServerTest {
         defaultGistId = gistTestHelper.createGist("mock_user", "The default gist", "file1.txt",
                 "This is some default content");
         gistTestHelper.emptyHazelcast();
-        
+
         CredentialsProvider.setDefault(new UsernamePasswordCredentialsProvider("mock_user", "abcdefg"));
         SessionKeyServerService service = Mockito.mock(SessionKeyServerService.class);
         Mockito.when(service.authenticate("mock_user", "abcdefg")).thenReturn("1234567890");
         gitServiceAuthenticationManager.setSessionKeyServerService(service);
-        
+
     }
 
     @Test
@@ -106,7 +103,7 @@ public class GitGistHttpServerTest {
         op.call();
         Assert.assertTrue(cloneFolder.exists());
     }
-    
+
     @Test
     public void testUpdateGistFileAndPush() throws Exception {
         CloneOp op = new CloneOp();
@@ -139,7 +136,7 @@ public class GitGistHttpServerTest {
         Assert.assertEquals(0, stagedChanges.getAllChanges().size());
         Changes unstagedChanges = status.getUnstaged();
         Assert.assertEquals(0, unstagedChanges.getAllChanges().size());
-        
+
     }
 
 }

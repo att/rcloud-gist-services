@@ -32,62 +32,55 @@ import org.springframework.util.ReflectionUtils;
 @Order(ManagementServerProperties.ACCESS_OVERRIDE_ORDER)
 public class ManagementSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-	@Autowired
-	private ManagementServerProperties managementProperties;
+    @Autowired
+    private ManagementServerProperties managementProperties;
 
-	@Autowired
-	private SecurityProperties securityProperties;
+    @Autowired
+    private SecurityProperties securityProperties;
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http
-		.antMatcher("/" + managementProperties.getContextPath() + "/**")
-		.csrf()
-		.disable()
-		.authorizeRequests()
-		.anyRequest()
-		.hasRole("ADMIN")
-		.and().httpBasic();
-	}
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.antMatcher("/" + managementProperties.getContextPath() + "/**").csrf().disable().authorizeRequests()
+                .anyRequest().hasRole("ADMIN").and().httpBasic();
+    }
 
-	@Autowired
-	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-		auth.apply(new DefaultInMemoryUserDetailsManagerConfigurer(
-				this.securityProperties));
-	}
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.apply(new DefaultInMemoryUserDetailsManagerConfigurer(this.securityProperties));
+    }
 
-	private static class DefaultInMemoryUserDetailsManagerConfigurer
-			extends InMemoryUserDetailsManagerConfigurer<AuthenticationManagerBuilder> {
+    private static class DefaultInMemoryUserDetailsManagerConfigurer
+            extends InMemoryUserDetailsManagerConfigurer<AuthenticationManagerBuilder> {
 
-		private final SecurityProperties securityProperties;
+        private final SecurityProperties securityProperties;
 
-		private static final Logger logger = LoggerFactory.getLogger(DefaultInMemoryUserDetailsManagerConfigurer.class);
+        private static final Logger logger = LoggerFactory.getLogger(DefaultInMemoryUserDetailsManagerConfigurer.class);
 
-		DefaultInMemoryUserDetailsManagerConfigurer(SecurityProperties securityProperties) {
-			this.securityProperties = securityProperties;
-		}
+        DefaultInMemoryUserDetailsManagerConfigurer(SecurityProperties securityProperties) {
+            this.securityProperties = securityProperties;
+        }
 
-		@Override
-		public void configure(AuthenticationManagerBuilder auth) throws Exception {
-			User user = this.securityProperties.getUser();
-			if (user.isDefaultPassword()) {
-				logger.info("\n\nUsing default security password: " + user.getPassword() + "\n");
-			}
-			Set<String> roles = new LinkedHashSet<String>(user.getRole());
-			withUser(user.getName()).password(user.getPassword()).roles(roles.toArray(new String[roles.size()]));
-			setField(auth, "defaultUserDetailsService", getUserDetailsService());
-			super.configure(auth);
-		}
+        @Override
+        public void configure(AuthenticationManagerBuilder auth) throws Exception {
+            User user = this.securityProperties.getUser();
+            if (user.isDefaultPassword()) {
+                logger.info("\n\nUsing default security password: " + user.getPassword() + "\n");
+            }
+            Set<String> roles = new LinkedHashSet<String>(user.getRole());
+            withUser(user.getName()).password(user.getPassword()).roles(roles.toArray(new String[roles.size()]));
+            setField(auth, "defaultUserDetailsService", getUserDetailsService());
+            super.configure(auth);
+        }
 
-		private void setField(Object target, String name, Object value) {
-			try {
-				Field field = ReflectionUtils.findField(target.getClass(), name);
-				ReflectionUtils.makeAccessible(field);
-				ReflectionUtils.setField(field, target, value);
-			} catch (Exception ex) {
-				logger.info("Could not set " + name);
-			}
-		}
+        private void setField(Object target, String name, Object value) {
+            try {
+                Field field = ReflectionUtils.findField(target.getClass(), name);
+                ReflectionUtils.makeAccessible(field);
+                ReflectionUtils.setField(field, target, value);
+            } catch (Exception ex) {
+                logger.info("Could not set " + name);
+            }
+        }
 
-	}
+    }
 }

@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.http;
 
 import java.util.Collection;
@@ -27,17 +33,14 @@ public class GitServiceAuthenticationManager implements AuthenticationManager {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getPrincipal() != null ? authentication.getPrincipal().toString() : "";
         String password = authentication.getCredentials() != null ? authentication.getCredentials().toString() : "";
-        // TODO delegate auth to the session key server
         this.sessionKeyServerService.authenticate(username, password);
 
         Collection<GrantedAuthority> authorities = grantedAuthorityFactory.resolve(authentication.getName());
         Authentication trustedAuth = new UsernamePasswordAuthenticationToken(username, password, authorities);
         return trustedAuth;
     }
-    
+
     public void setSessionKeyServerService(SessionKeyServerService sessionKeyServerService) {
         this.sessionKeyServerService = sessionKeyServerService;
     }
 }
-
-

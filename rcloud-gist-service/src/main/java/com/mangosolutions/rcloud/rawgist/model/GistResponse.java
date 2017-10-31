@@ -146,7 +146,7 @@ public class GistResponse implements Serializable {
     public void setUser(GistIdentity user) {
         this.user = user;
     }
-    
+
     @JsonProperty("collaborators")
     public Collection<GistIdentity> getCollaborators() {
         return collaborators;

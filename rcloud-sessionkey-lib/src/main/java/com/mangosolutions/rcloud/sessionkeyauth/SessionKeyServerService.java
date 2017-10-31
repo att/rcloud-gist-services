@@ -29,19 +29,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
 
 public class SessionKeyServerService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(SessionKeyServerService.class);
 
     private RestTemplate restTemplate;
-    
+
     private Map<String, KeyServerConfiguration> keyServers = new HashMap<>();
-    
+
     public SessionKeyServerService(Map<String, KeyServerConfiguration> keyServers) {
         this(new RestTemplate(), keyServers);
     }
-    
-    public SessionKeyServerService(RestTemplate restTemplate,
-            Map<String, KeyServerConfiguration> keyServers) {
+
+    public SessionKeyServerService(RestTemplate restTemplate, Map<String, KeyServerConfiguration> keyServers) {
         this.keyServers = keyServers;
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
         converters.add(new SessionKeyServerMessageConverter());
@@ -49,21 +48,21 @@ public class SessionKeyServerService {
         restTemplate.setMessageConverters(converters);
         this.restTemplate = restTemplate;
     }
-    
+
     @Cacheable(value = "sessionkeys")
     public SessionKeyServerResponse validateToken(String clientId, String sessionKey) {
         KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
         ResponseEntity<SessionKeyServerResponse> response = doTokenValidation(sessionKey, keyServer);
         return response.getBody();
     }
-    
+
     public String authenticate(String username, String password) {
-        //TODO this needs to check all of the sessionkey servers?
+        // TODO this needs to check all of the sessionkey servers?
         KeyServerConfiguration keyServer = getKeyServerConfiguration("default");
         ResponseEntity<String> response = doAuthentication(username, password, keyServer);
         return response.getBody();
     }
-    
+
     private KeyServerConfiguration getKeyServerConfiguration(String clientId) {
         KeyServerConfiguration configuration = this.keyServers.get(clientId);
         if (configuration == null || !configuration.isActive()) {
@@ -76,22 +75,21 @@ public class SessionKeyServerService {
         }
         return configuration;
     }
-    
+
     private ResponseEntity<String> doAuthentication(String username, String password,
             KeyServerConfiguration keyServer) {
         try {
-            
+
             Map<String, Object> params = buildParams(username, password, keyServer);
             HttpHeaders headers = buildHeaders();
-    
+
             URI uri = buildUri(keyServer.getAuthUrl(), params);
             RequestEntity<String> requestEntity = buildAuthenticationRequest(headers, uri);
-    
-            ResponseEntity<String> response = restTemplate.exchange(requestEntity,
-                    String.class);
+
+            ResponseEntity<String> response = restTemplate.exchange(requestEntity, String.class);
 
             if (!HttpStatus.OK.equals(response.getStatusCode())) {
-                if(HttpStatus.FORBIDDEN.equals(response.getStatusCode())) {
+                if (HttpStatus.FORBIDDEN.equals(response.getStatusCode())) {
                     logger.info("Credentials provided for {} are not correct", username);
                 } else {
                     logger.error("Bad response from the Session Key Server: {}, response: {}", keyServer, response);
@@ -101,7 +99,7 @@ public class SessionKeyServerService {
             return response;
         } catch (HttpClientErrorException e) {
             HttpStatus status = e.getStatusCode();
-            if(HttpStatus.FORBIDDEN.equals(status)) {
+            if (HttpStatus.FORBIDDEN.equals(status)) {
                 logger.info("Credentials provided for {} are not correct.", username);
                 throw new UsernameNotFoundException("Response from SessionKeyServer was not successful");
             } else {
@@ -109,7 +107,7 @@ public class SessionKeyServerService {
             }
         }
     }
-    
+
     private Map<String, Object> buildParams(String username, String password, KeyServerConfiguration server) {
         Map<String, Object> params = new HashMap<>();
 
@@ -138,7 +136,7 @@ public class SessionKeyServerService {
         }
         return response;
     }
-    
+
     private URI buildUri(String urlTemplate, Map<String, Object> params) {
         URI uri = new UriTemplate(urlTemplate).expand(params);
         return uri;
@@ -161,23 +159,21 @@ public class SessionKeyServerService {
         return params;
     }
 
-    
     private RequestEntity<String> buildAuthenticationRequest(HttpHeaders headers, URI uri) {
-        RequestEntity<String> requestEntity = new RequestEntity<>(new String(),
-                headers, HttpMethod.GET, uri);
+        RequestEntity<String> requestEntity = new RequestEntity<>(new String(), headers, HttpMethod.GET, uri);
         return requestEntity;
     }
-    
+
     private RequestEntity<SessionKeyServerResponse> buildTokenValidationRequest(HttpHeaders headers, URI uri) {
         RequestEntity<SessionKeyServerResponse> requestEntity = new RequestEntity<>(new SessionKeyServerResponse(),
                 headers, HttpMethod.GET, uri);
         return requestEntity;
     }
-    
+
     public RestTemplate getRestTemplate() {
         return restTemplate;
     }
-    
+
     public void setRestTemplate(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }

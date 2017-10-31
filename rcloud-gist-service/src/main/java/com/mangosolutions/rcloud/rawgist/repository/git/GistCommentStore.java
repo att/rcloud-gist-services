@@ -28,60 +28,58 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
 @Component
 public class GistCommentStore implements CommentStore {
 
-	private static final Logger logger = LoggerFactory.getLogger(GistCommentStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(GistCommentStore.class);
 
-	@Autowired
-	private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-	public GistCommentStore() {
-		this.objectMapper = new ObjectMapper();
-	}
+    public GistCommentStore() {
+        this.objectMapper = new ObjectMapper();
+    }
 
-	@Autowired
-	public GistCommentStore(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
+    @Autowired
+    public GistCommentStore(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
-	public ObjectMapper getObjectMapper() {
-		return objectMapper;
-	}
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
 
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
-	@Override
-	@Cacheable(value = "commentstore", key = "#store.getAbsolutePath()")
-	public List<GistCommentResponse> load(File store) {
-		List<GistCommentResponse> comments = new ArrayList<>();
-		if (store.exists()) {
-			try {
-				comments = objectMapper.readValue(store, new TypeReference<List<GistCommentResponse>>() {
-				});
-			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.ERR_COMMENTS_NOT_READABLE, "Could not read comments");
-				logger.error(error.getFormattedMessage() + " with path {}", store);
-				throw new GistRepositoryError(error, e);
-			}
-		}
-		return comments == null? new ArrayList<GistCommentResponse>(): comments;
-	}
+    @Override
+    @Cacheable(value = "commentstore", key = "#store.getAbsolutePath()")
+    public List<GistCommentResponse> load(File store) {
+        List<GistCommentResponse> comments = new ArrayList<>();
+        if (store.exists()) {
+            try {
+                comments = objectMapper.readValue(store, new TypeReference<List<GistCommentResponse>>() {
+                });
+            } catch (IOException e) {
+                GistError error = new GistError(GistErrorCode.ERR_COMMENTS_NOT_READABLE, "Could not read comments");
+                logger.error(error.getFormattedMessage() + " with path {}", store);
+                throw new GistRepositoryError(error, e);
+            }
+        }
+        return comments == null ? new ArrayList<GistCommentResponse>() : comments;
+    }
 
-	@Override
-	@CachePut(cacheNames = "commentstore", key = "#store.getAbsolutePath()")
-	public List<GistCommentResponse> save(File store, List<GistCommentResponse> comments) {
-		if(comments != null) {
-			try {
-				objectMapper.writeValue(store, comments);
-			} catch (IOException e) {
-				GistError error = new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save comments");
-				logger.error(error.getFormattedMessage() + " with path {}", store);
-				throw new GistRepositoryError(error, e);
-			}
-		}
-		return comments;
-	}
-
-
+    @Override
+    @CachePut(cacheNames = "commentstore", key = "#store.getAbsolutePath()")
+    public List<GistCommentResponse> save(File store, List<GistCommentResponse> comments) {
+        if (comments != null) {
+            try {
+                objectMapper.writeValue(store, comments);
+            } catch (IOException e) {
+                GistError error = new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save comments");
+                logger.error(error.getFormattedMessage() + " with path {}", store);
+                throw new GistRepositoryError(error, e);
+            }
+        }
+        return comments;
+    }
 
 }

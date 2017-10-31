@@ -15,14 +15,14 @@ import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 
 public interface GistCommentRepository {
 
-	List<GistCommentResponse> getComments(UserDetails userDetails);
+    List<GistCommentResponse> getComments(UserDetails userDetails);
 
-	GistCommentResponse getComment(long commentId, UserDetails userDetails);
+    GistCommentResponse getComment(long commentId, UserDetails userDetails);
 
-	GistCommentResponse createComment(GistComment comment, UserDetails user);
+    GistCommentResponse createComment(GistComment comment, UserDetails user);
 
-	GistCommentResponse editComment(long commentId, GistComment comment, UserDetails user);
+    GistCommentResponse editComment(long commentId, GistComment comment, UserDetails user);
 
-	void deleteComment(long commentId, UserDetails userDetails);
+    void deleteComment(long commentId, UserDetails userDetails);
 
 }

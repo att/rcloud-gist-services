@@ -17,11 +17,11 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryFactory;
 @Component
 public class GitGistRepositoryFactory implements GistRepositoryFactory {
 
-	@Autowired
-	private GistOperationFactory gistOperationFactory;
+    @Autowired
+    private GistOperationFactory gistOperationFactory;
 
-	public GistRepository getRepository(File folder) {
-		return new GitGistRepository(folder, gistOperationFactory);
-	}
+    public GistRepository getRepository(File folder) {
+        return new GitGistRepository(folder, gistOperationFactory);
+    }
 
 }

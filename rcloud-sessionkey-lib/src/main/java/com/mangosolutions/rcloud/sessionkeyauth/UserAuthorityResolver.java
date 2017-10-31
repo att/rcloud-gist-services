@@ -13,10 +13,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 public class UserAuthorityResolver implements AuthorityResolver {
 
     public static final GrantedAuthority USER_AUTHORITY = new SimpleGrantedAuthority("ROLE_USER");
-    
+
     @Override
     public GrantedAuthority resolve(String username) {
-        if(StringUtils.isNotBlank(username)) {
+        if (StringUtils.isNotBlank(username)) {
             return USER_AUTHORITY;
         }
         return null;

@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.http;
 
 import java.io.File;
@@ -17,8 +23,7 @@ import com.mangosolutions.rcloud.rawgist.repository.git.RepositoryStorageLocator
 public class GistRepositoryResolver<HttpServletRequest> implements RepositoryResolver<HttpServletRequest> {
 
     private Collection<RepositoryStorageLocator> locators = new CopyOnWriteArrayList<>();
-    
-    
+
     public GistRepositoryResolver(Collection<RepositoryStorageLocator> locators) {
         this.locators.addAll(locators);
     }
@@ -43,14 +48,14 @@ public class GistRepositoryResolver<HttpServletRequest> implements RepositoryRes
         File gitRepositoryFolder;
         RepositoryLayout layout = new RepositoryLayout(gistRepositoryFolder);
         gitRepositoryFolder = layout.getBareFolder();
-        if(!gitRepositoryFolder.exists()) {
+        if (!gitRepositoryFolder.exists()) {
             throw new RepositoryNotFoundException(name);
         }
         return gitRepositoryFolder;
     }
 
     private File getRepositoryRootLocation(String name) throws RepositoryNotFoundException {
-        for(RepositoryStorageLocator locator: locators) {
+        for (RepositoryStorageLocator locator : locators) {
             File repositoryFolder = locator.getStorageFolder(name);
             if (repositoryFolder.exists()) {
                 return repositoryFolder;

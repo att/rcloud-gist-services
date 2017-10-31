@@ -12,11 +12,13 @@ import com.mangosolutions.rcloud.rawgist.repository.GistIdGenerator;
 
 public class UUIDGistIdGenerator implements GistIdGenerator {
 
-	/* (non-Javadoc)
-	 * @see com.mangosolutions.rcloud.rawgist.api.GistIdGenerator#generateId()
-	 */
-	@Override
-	public String generateId() {
-		return UUID.randomUUID().toString().replace("-", "");
-	}
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.mangosolutions.rcloud.rawgist.api.GistIdGenerator#generateId()
+     */
+    @Override
+    public String generateId() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
 }

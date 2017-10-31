@@ -18,59 +18,59 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({ "filename", "type", "language", "content" })
 public class FileDefinition {
 
-	@JsonProperty("filename")
-	private String filename;
+    @JsonProperty("filename")
+    private String filename;
 
-	@JsonProperty("content")
-	private String content;
+    @JsonProperty("content")
+    private String content;
 
-	@JsonProperty("language")
-	private String language;
+    @JsonProperty("language")
+    private String language;
 
-	@JsonProperty("type")
-	private String type;
+    @JsonProperty("type")
+    private String type;
 
-	@JsonIgnore
-	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    @JsonIgnore
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-	public String getLanguage() {
-		return language;
-	}
+    public String getLanguage() {
+        return language;
+    }
 
-	public void setLanguage(String language) {
-		this.language = language;
-	}
+    public void setLanguage(String language) {
+        this.language = language;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getFilename() {
-		return filename;
-	}
+    public String getFilename() {
+        return filename;
+    }
 
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public Map<String, Object> getAdditionalProperties() {
-		return additionalProperties;
-	}
+    public Map<String, Object> getAdditionalProperties() {
+        return additionalProperties;
+    }
 
-	public void setAdditionalProperties(Map<String, Object> additionalProperties) {
-		this.additionalProperties = additionalProperties;
-	}
+    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
+        this.additionalProperties = additionalProperties;
+    }
 
 }

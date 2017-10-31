@@ -12,8 +12,8 @@ import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 
 public interface HistoryCache {
 
-	public List<GistHistory> load(String commitId);
+    public List<GistHistory> load(String commitId);
 
-	public List<GistHistory> save(String commitId, List<GistHistory> history);
+    public List<GistHistory> save(String commitId, List<GistHistory> history);
 
 }

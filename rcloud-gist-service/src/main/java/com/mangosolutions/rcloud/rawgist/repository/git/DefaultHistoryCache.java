@@ -18,16 +18,16 @@ import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 @Component
 public class DefaultHistoryCache implements HistoryCache {
 
-	@Override
-	@Cacheable(value = "historystore", key = "#commitId")
-	public List<GistHistory> load(String commitId) {
-		return new ArrayList<GistHistory>();
-	}
+    @Override
+    @Cacheable(value = "historystore", key = "#commitId")
+    public List<GistHistory> load(String commitId) {
+        return new ArrayList<GistHistory>();
+    }
 
-	@Override
-	@CachePut(cacheNames = "historystore", key = "#commitId")
-	public List<GistHistory> save(String commitId, List<GistHistory> history) {
-		return history;
-	}
+    @Override
+    @CachePut(cacheNames = "historystore", key = "#commitId")
+    public List<GistHistory> save(String commitId, List<GistHistory> history) {
+        return history;
+    }
 
 }

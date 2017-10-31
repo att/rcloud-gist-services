@@ -6,32 +6,30 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
-import java.util.Collection;
-
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface GistSecurityManager {
 
-	public enum GistAccessRight {
-		NONE, READ, WRITE
-	}
+    public enum GistAccessRight {
+        NONE, READ, WRITE
+    }
 
-	public enum GistRole {
-		NONE, OWNER, COLLABORATOR
-	}
+    public enum GistRole {
+        NONE, OWNER, COLLABORATOR
+    }
 
-	boolean canCreate(UserDetails userDetails);
-	
-	boolean canCreateAs(UserDetails userDetails, String otherUser);
-	
-	boolean canRead(GistRepository repository, UserDetails userDetails);
+    boolean canCreate(UserDetails userDetails);
 
-	boolean canWrite(GistRepository repository, UserDetails userDetails);
+    boolean canCreateAs(UserDetails userDetails, String otherUser);
 
-	GistAccessRight getAccessRight(GistRepository repository, UserDetails userDetails);
+    boolean canRead(GistRepository repository, UserDetails userDetails);
 
-	boolean isOwner(GistRepository repository, UserDetails userDetails);
+    boolean canWrite(GistRepository repository, UserDetails userDetails);
 
-	GistRole getRole(GistRepository repository, UserDetails userDetails);
-	
+    GistAccessRight getAccessRight(GistRepository repository, UserDetails userDetails);
+
+    boolean isOwner(GistRepository repository, UserDetails userDetails);
+
+    GistRole getRole(GistRepository repository, UserDetails userDetails);
+
 }

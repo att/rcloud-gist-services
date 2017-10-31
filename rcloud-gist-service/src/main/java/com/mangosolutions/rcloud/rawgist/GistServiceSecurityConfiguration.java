@@ -58,7 +58,6 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
     private static final String USER_SERVICE_PATH = "/user/**";
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
-    
 
     @Autowired
     private SessionKeyServerProperties keyserverProperties;
@@ -69,28 +68,16 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         RequestMatcher matcher = new OrRequestMatcher(
-//                new AntPathRequestMatcher("/repositories/**"),
-                new AntPathRequestMatcher(GIST_SERVICE_PATH),
-                new AntPathRequestMatcher(USER_SERVICE_PATH)
-            );
-        
-        http.requestMatchers().requestMatchers(matcher)
-            .and().addFilterBefore(ssoFilter(matcher), RequestHeaderAuthenticationFilter.class)
-            .authenticationProvider(preAuthAuthProvider()).csrf().disable().authorizeRequests().anyRequest()
-            .authenticated();
+                new AntPathRequestMatcher(GIST_SERVICE_PATH), new AntPathRequestMatcher(USER_SERVICE_PATH));
+
+        http.requestMatchers().requestMatchers(matcher).and()
+                .addFilterBefore(ssoFilter(matcher), RequestHeaderAuthenticationFilter.class)
+                .authenticationProvider(preAuthAuthProvider()).csrf().disable().authorizeRequests().anyRequest()
+                .authenticated();
     }
-    
-//    private RequestMatcher getGitGistSecurityRequestMatcher() {
-//        String gitServerPath = gistServiceProperties.getGitServerPath();
-//        return new AndRequestMatcher(
-//                new AntPathRequestMatcher("/" + gitServerPath + "/**"),
-//                new NegatedRequestMatcher(new HttpMethodRequestMatcher("GET"))
-//                );
-//    }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -145,7 +132,7 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
         return new SessionKeyServerWebAuthenticationDetailsSource(this.keyserverProperties.getClientIdParam());
     }
 
-//    @Bean
+    // @Bean
     public AbstractPreAuthenticatedProcessingFilter ssoFilter(RequestMatcher matcher) throws Exception {
         RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
         filter.setExceptionIfParameterMissing(false);

@@ -9,8 +9,6 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 import java.io.File;
 import java.io.Serializable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.mangosolutions.rcloud.rawgist.model.Fork;
@@ -22,8 +20,6 @@ import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
 public class GitGistRepository implements GistRepository, Serializable {
 
     private static final long serialVersionUID = -8235501365399798269L;
-
-    private static final Logger logger = LoggerFactory.getLogger(GitGistRepository.class);
 
     static final String B64_BINARY_EXTENSION = "b64";
 

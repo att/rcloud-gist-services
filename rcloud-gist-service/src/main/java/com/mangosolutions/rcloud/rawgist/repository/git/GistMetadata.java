@@ -22,134 +22,133 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.mangosolutions.rcloud.rawgist.model.Fork;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "id", "owner", "description", "public", "created_at", "updated_at", "fork_of", "forks"})
+@JsonPropertyOrder({ "id", "owner", "description", "public", "created_at", "updated_at", "fork_of", "forks" })
 public class GistMetadata implements Serializable {
 
-	private final static long serialVersionUID = -7352290872081419828L;
+    private final static long serialVersionUID = -7352290872081419828L;
 
-	@JsonProperty("id")
-	private String id;
+    @JsonProperty("id")
+    private String id;
 
-	@JsonProperty("owner")
-	private String owner;
+    @JsonProperty("owner")
+    private String owner;
 
-	@JsonProperty("description")
-	private String description;
-	
-	@JsonProperty("public")
-	private boolean _public = true;
+    @JsonProperty("description")
+    private String description;
 
-	@JsonProperty("created_at")
-	private DateTime createdAt;
+    @JsonProperty("public")
+    private boolean _public = true;
 
-	@JsonProperty("updated_at")
-	private DateTime updatedAt;
-	
-	@JsonProperty("fork_of")
-	private Fork forkOf = null;
-	
-	@JsonProperty("forks")
-	private List<Fork> forks = new ArrayList<>();
+    @JsonProperty("created_at")
+    private DateTime createdAt;
 
-	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    @JsonProperty("updated_at")
+    private DateTime updatedAt;
 
-	public String getId() {
-		return id;
-	}
+    @JsonProperty("fork_of")
+    private Fork forkOf = null;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    @JsonProperty("forks")
+    private List<Fork> forks = new ArrayList<>();
 
-	public String getOwner() {
-		return owner;
-	}
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
+    public String getId() {
+        return id;
+    }
 
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	@JsonProperty("description")
-	public String getDescription() {
-		return description;
-	}
+    public String getOwner() {
+        return owner;
+    }
 
-	@JsonProperty("description")
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	
-	@JsonProperty("public")
-	public boolean isPublic() {
-		return _public;
-	}
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
 
-	@JsonProperty("public")
-	public void setPublic(boolean _public) {
-		this._public = _public;
-	}
+    @JsonProperty("description")
+    public String getDescription() {
+        return description;
+    }
 
-	@JsonProperty("created_at")
-	public DateTime getCreatedAt() {
-		return createdAt;
-	}
+    @JsonProperty("description")
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	@JsonProperty("created_at")
-	public void setCreatedAt(DateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+    @JsonProperty("public")
+    public boolean isPublic() {
+        return _public;
+    }
 
-	@JsonProperty("updated_at")
-	public DateTime getUpdatedAt() {
-		return updatedAt;
-	}
+    @JsonProperty("public")
+    public void setPublic(boolean _public) {
+        this._public = _public;
+    }
 
-	@JsonProperty("updated_at")
-	public void setUpdatedAt(DateTime updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    @JsonProperty("created_at")
+    public DateTime getCreatedAt() {
+        return createdAt;
+    }
 
-	@JsonProperty("forks")
-	public List<Fork> getForks() {
-		return forks;
-	}
+    @JsonProperty("created_at")
+    public void setCreatedAt(DateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	@JsonProperty("forks")
-	public void setForks(List<Fork> forks) {
-		this.forks = forks;
-	}
+    @JsonProperty("updated_at")
+    public DateTime getUpdatedAt() {
+        return updatedAt;
+    }
 
-	@JsonAnyGetter
-	public Map<String, Object> getAdditionalProperties() {
-		return this.additionalProperties;
-	}
+    @JsonProperty("updated_at")
+    public void setUpdatedAt(DateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-	@JsonAnySetter
-	public void setAdditionalProperty(String name, Object value) {
-		this.additionalProperties.put(name, value);
-	}
+    @JsonProperty("forks")
+    public List<Fork> getForks() {
+        return forks;
+    }
 
-	public void addOrUpdateFork(Fork fork) {
-		
-		for(int i = 0; i < this.forks.size(); i++) {
-			Fork existingFork = this.forks.get(i);
-			if(existingFork.getId().equals(fork.getId())) {
-				this.forks.set(i, fork);
-				return;
-			}
-		}
-		this.forks.add(fork);
-	}
-	
-	@JsonProperty("fork_of")
-	public void setForkOf(Fork fork) {
-		this.forkOf = fork;
-	}
-	
-	@JsonProperty("fork_of")
-	public Fork getForkOf() {
-		return this.forkOf;
-	}
+    @JsonProperty("forks")
+    public void setForks(List<Fork> forks) {
+        this.forks = forks;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+    }
+
+    public void addOrUpdateFork(Fork fork) {
+
+        for (int i = 0; i < this.forks.size(); i++) {
+            Fork existingFork = this.forks.get(i);
+            if (existingFork.getId().equals(fork.getId())) {
+                this.forks.set(i, fork);
+                return;
+            }
+        }
+        this.forks.add(fork);
+    }
+
+    @JsonProperty("fork_of")
+    public void setForkOf(Fork fork) {
+        this.forkOf = fork;
+    }
+
+    @JsonProperty("fork_of")
+    public Fork getForkOf() {
+        return this.forkOf;
+    }
 
 }

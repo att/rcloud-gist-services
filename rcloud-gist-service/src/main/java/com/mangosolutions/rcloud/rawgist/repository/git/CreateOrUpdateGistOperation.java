@@ -293,7 +293,7 @@ public class CreateOrUpdateGistOperation extends ReadGistOperation {
         metadata.setId(this.getGistId());
         if (this.getUser() != null && StringUtils.isEmpty(metadata.getOwner())) {
             String owner = this.getUser().getUsername();
-            if(!StringUtils.isEmpty(this.gistRequest.getOwner())) {
+            if (!StringUtils.isEmpty(this.gistRequest.getOwner())) {
                 owner = this.gistRequest.getOwner();
             }
             metadata.setOwner(owner);

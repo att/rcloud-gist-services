@@ -20,15 +20,15 @@ public class CollaborationGrantedAuthority implements GrantedAuthority {
     private static final long serialVersionUID = -413651046802286010L;
 
     private static final String COLLABORATOR_ROLE = "COLLABORATOR_ROLE";
-    
+
     private Set<String> collaborations = Collections.emptySet();
 
     public CollaborationGrantedAuthority() {
         this(null);
     }
-    
+
     public CollaborationGrantedAuthority(String[] collaborations) {
-        if(collaborations != null) {
+        if (collaborations != null) {
             this.collaborations = new HashSet<>(Arrays.asList(collaborations));
         }
     }
@@ -37,7 +37,7 @@ public class CollaborationGrantedAuthority implements GrantedAuthority {
     public String getAuthority() {
         return COLLABORATOR_ROLE + ":" + StringUtils.join(collaborations, ",");
     }
-    
+
     public Collection<String> getCollaborations() {
         return Collections.unmodifiableSet(collaborations);
     }

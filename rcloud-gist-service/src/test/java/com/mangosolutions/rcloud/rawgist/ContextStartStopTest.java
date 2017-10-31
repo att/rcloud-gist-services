@@ -18,10 +18,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = { Application.class }, webEnvironment=WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { Application.class }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(loader = SpringBootContextLoader.class)
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-@ActiveProfiles({"test", "default"})
+@ActiveProfiles({ "test", "default" })
 public class ContextStartStopTest {
 
     @Test

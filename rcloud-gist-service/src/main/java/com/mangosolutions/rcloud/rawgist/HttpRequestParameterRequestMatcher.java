@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist;
 
 import java.util.Arrays;
@@ -9,9 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 public class HttpRequestParameterRequestMatcher implements RequestMatcher {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(HttpRequestParameterRequestMatcher.class);
-    
+
     private String parameter = null;
     private String value = null;
 
@@ -19,17 +25,15 @@ public class HttpRequestParameterRequestMatcher implements RequestMatcher {
         this.parameter = parameter;
         this.value = value;
     }
-    
+
     @Override
     public boolean matches(HttpServletRequest request) {
         boolean matches = false;
         String[] values = request.getParameterValues(parameter);
-        if(values != null) {
+        if (values != null) {
             return Arrays.asList(values).contains(value);
         }
         return matches;
     }
 
-    
-    
 }

@@ -315,7 +315,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
     private File getRepositoryFolder(String id) {
         return this.locators.get(0).getStorageFolder(id);
     }
-    
+
     @Override
     public boolean isReadable(String gistId, UserDetails user) {
         try {
@@ -323,11 +323,11 @@ public class GitGistRepositoryService implements GistRepositoryService {
             GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
             this.ensureReadable(repository, user);
             return true;
-        } catch (GistAccessDeniedException|GistRepositoryException e) {
+        } catch (GistAccessDeniedException | GistRepositoryException e) {
             return false;
         }
     }
-    
+
     @Override
     public boolean isWritable(String gistId, UserDetails user) {
         try {
@@ -335,7 +335,7 @@ public class GitGistRepositoryService implements GistRepositoryService {
             GistRepository repository = repositoryFactory.getRepository(repositoryFolder);
             this.ensureWritable(repository, user);
             return true;
-        } catch (GistAccessDeniedException|GistRepositoryException e) {
+        } catch (GistAccessDeniedException | GistRepositoryException e) {
             return false;
         }
     }
@@ -357,18 +357,18 @@ public class GitGistRepositoryService implements GistRepositoryService {
             throw new GistAccessDeniedException(error);
         }
     }
-    
+
     private void ensureCreateable(GistRequest request, UserDetails user) {
         String owner = request.getOwner();
-        if(StringUtils.isNotBlank(owner)) {
-            if(!this.securityManager.canCreateAs(user, owner)) {
+        if (StringUtils.isNotBlank(owner)) {
+            if (!this.securityManager.canCreateAs(user, owner)) {
                 GistError error = new GistError(GistErrorCode.ERR_ACL_CREATE_DENIED,
                         "Your user {} does not have permission to create a gist as {}.", user.getUsername(), owner);
                 logger.error(error.getFormattedMessage());
                 throw new GistAccessDeniedException(error);
             }
         } else {
-            if(!this.securityManager.canCreate(user)) {
+            if (!this.securityManager.canCreate(user)) {
                 GistError error = new GistError(GistErrorCode.ERR_ACL_CREATE_DENIED,
                         "Your user {} does not have permission to create a gist.", user.getUsername());
                 logger.error(error.getFormattedMessage());
@@ -376,5 +376,5 @@ public class GitGistRepositoryService implements GistRepositoryService {
             }
         }
     }
-    
+
 }
