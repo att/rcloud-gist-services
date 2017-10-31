@@ -16,7 +16,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,9 +25,9 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
 import com.mangosolutions.rcloud.rawgist.http.GitServiceAuthenticationManager;
-import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 import com.mangosolutions.rcloud.sessionkeyauth.GrantedAuthorityFactory;
 import com.mangosolutions.rcloud.sessionkeyauth.SessionKeyServerService;
 
@@ -41,7 +40,7 @@ public class GitHttpServerSecurityConfiguration extends WebSecurityConfigurerAda
 
     private static final String REPOSITORY_ANT_MATCH = "/" + GitHttpServerServletConfiguration.REPOSITORY_PATH + "/**"; 
     
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(GitHttpServerSecurityConfiguration.class);
     
     @Autowired
     private GistServiceProperties gistServiceProperties;
@@ -52,36 +51,26 @@ public class GitHttpServerSecurityConfiguration extends WebSecurityConfigurerAda
     @Autowired
     private GrantedAuthorityFactory grantedAuthorityFactory;
 
-    @Autowired
-    private SessionKeyServerProperties keyserverProperties;
-
-    @Autowired
-    private CollaborationDataStore collaborationDataStore;
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
 
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-//        
-//        String gitServerPath = getGitServerPath();
-//
-//        new AndRequestMatcher(
-//                new AntPathRequestMatcher(REPOSITORY_ANT_MATCH),
-//                new NegatedRequestMatcher(new HttpMethodRequestMatcher("GET"))
-//            )
-//        
         http
         .requestMatchers().requestMatchers(
             new AndRequestMatcher(
-                new AntPathRequestMatcher(REPOSITORY_ANT_MATCH)
-//                ,
-//                new OrRequestMatcher(
-//                    new HttpRequestParameterRequestMatcher("service", "git-receieve-pack"),
-//                    new HttpMethodRequestMatcher("GET", "PUT", "POST", "PATCH", "DELETE")
-//                )
+                new AntPathRequestMatcher(REPOSITORY_ANT_MATCH),
+                new OrRequestMatcher(
+                  new AndRequestMatcher(
+                      new AntPathRequestMatcher("/**/git-receive-pack"),
+                      new HttpMethodRequestMatcher("POST")
+                  ),
+                  new AndRequestMatcher(
+                      new HttpRequestParameterRequestMatcher("service", "git-receive-pack"),
+                      new HttpMethodRequestMatcher("GET")
+                  )
+              )
             )
-//                add in a request parameter request matcher
         )
         .and().addFilterBefore(getBasicAuthFilter(), RequestHeaderAuthenticationFilter.class)
         .csrf()
@@ -104,78 +93,4 @@ public class GitHttpServerSecurityConfiguration extends WebSecurityConfigurerAda
         return new GitServiceAuthenticationManager(this.sessionKeyServerService, grantedAuthorityFactory);
     }
     
-//    private String getGitServerPath() {
-//        String gitServerPath = gistServiceProperties.getGitServerPath();
-//        gitServerPath = StringUtils.startsWithIgnoreCase(gitServerPath, "/")? gitServerPath: "/" + gitServerPath;
-//        gitServerPath = gitServerPath + "/**"; 
-//        return gitServerPath; 
-//    }
-    
-
-//    @Autowired
-//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.authenticationProvider(preAuthAuthProvider());
-//    }
-//
-//    @Bean
-//    @RefreshScope
-//    public AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> getSessionKeyServerUserDetailsService() {
-//        SessionKeyServerService service = getSessionKeyServerService();
-//        SessionKeyServerUserDetailsService userDetailsService = new SessionKeyServerUserDetailsService(service);
-//        GrantedAuthorityFactory factory = getAuthorityFactory();
-//        userDetailsService.setGrantedAuthorityFactory(factory);
-//        return userDetailsService;
-//    }
-//
-//    @Bean
-//    @RefreshScope
-//    public SessionKeyServerService getSessionKeyServerService() {
-//        Map<String, KeyServerConfiguration> config = new HashMap<>(this.keyserverProperties.getKeyservers());
-//        Map<String, KeyServerConfiguration> keyServers = new HashMap<>(config);
-//        logger.info("Configured key servers: {}", keyServers);
-//        config.clear();
-//        SessionKeyServerService service = new SessionKeyServerService(keyServers);
-//        return service;
-//    }
-//
-//    @Bean
-//    public GrantedAuthorityFactory getAuthorityFactory() {
-//        GrantedAuthorityFactory factory = new GrantedAuthorityFactory();
-//        Collection<AuthorityResolver> authorityResolvers = getAuthorityResolvers();
-//        factory.setAuthorityResolvers(authorityResolvers);
-//        return factory;
-//    }
-//
-//    @Bean
-//    public Collection<AuthorityResolver> getAuthorityResolvers() {
-//
-//        return Arrays.asList(new AnonymousUserAuthorityResolver(), new UserAuthorityResolver(),
-//                new CollaborationGrantedAuthorityResolver(this.collaborationDataStore));
-//    }
-//
-//    @Bean
-//    public PreAuthenticatedAuthenticationProvider preAuthAuthProvider() {
-//        PreAuthenticatedAuthenticationProvider preAuthAuthProvider = new PreAuthenticatedAuthenticationProvider();
-//        preAuthAuthProvider.setPreAuthenticatedUserDetailsService(getSessionKeyServerUserDetailsService());
-//        return preAuthAuthProvider;
-//    }
-//
-//    @Bean
-//    public SessionKeyServerWebAuthenticationDetailsSource getDetailsSource() {
-//        return new SessionKeyServerWebAuthenticationDetailsSource(this.keyserverProperties.getClientIdParam());
-//    }
-//
-//    @Bean
-//    public AbstractPreAuthenticatedProcessingFilter ssoFilter() throws Exception {
-//        RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
-//        filter.setExceptionIfParameterMissing(false);
-//        filter.setAuthenticationManager(authenticationManager());
-//        filter.setAuthenticationDetailsSource(getDetailsSource());
-//        String tokenParameter = this.keyserverProperties.getAccessTokenParam();
-//        if (!StringUtils.isEmpty(tokenParameter)) {
-//            filter.setPrincipalRequestParameter(tokenParameter);
-//        }
-//        return filter;
-//    }
-
 }

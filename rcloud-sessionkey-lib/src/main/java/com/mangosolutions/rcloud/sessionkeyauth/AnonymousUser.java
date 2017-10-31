@@ -6,6 +6,7 @@
 *******************************************************************************/
 package com.mangosolutions.rcloud.sessionkeyauth;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -17,7 +18,12 @@ public final class AnonymousUser extends User {
 
     public static final String ANONYMOUS_USER_NAME = "anonymous";
 
+    public AnonymousUser() {
+        this(Arrays.asList(AnonymousUserAuthorityResolver.ANONYMOUS_AUTHORITY));
+    }
+    
     public AnonymousUser(Collection<? extends GrantedAuthority> authorities) {
         super(ANONYMOUS_USER_NAME, "", authorities);
     }
+    
 }
