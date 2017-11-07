@@ -28,12 +28,15 @@ dependencies {
   compile 'org.eclipse.jgit:org.eclipse.jgit.http.server:4.3.1.201605051710-r'
   compile 'com.google.guava:guava:20.0'
   compile project(':rcloud-sessionkey-lib')
+  compile project(':rcloud-gist-http-lib')
+  compile project(':rcloud-git-http-lib')
 
   testCompile 'junit:junit'
 //  testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'
   testCompile 'org.springframework.security:spring-security-test'
   testCompile 'org.apache.commons:commons-math3:3.6.1'
+  testCompile project(':rcloud-gist-commons-test-lib')
 
 
 }

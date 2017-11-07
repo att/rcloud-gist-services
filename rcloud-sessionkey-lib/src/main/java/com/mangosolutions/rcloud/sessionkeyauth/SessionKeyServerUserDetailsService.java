@@ -18,6 +18,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.util.StringUtils;
 
+import com.mangosolutions.rcloud.commons.spring.http.security.AnonymousUser;
+import com.mangosolutions.rcloud.commons.spring.http.security.GrantedAuthorityFactory;
+
 public class SessionKeyServerUserDetailsService
         implements AuthenticationUserDetailsService<PreAuthenticatedAuthenticationToken> {
 

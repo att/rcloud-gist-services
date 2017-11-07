@@ -24,15 +24,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.mangosolutions.rcloud.commons.spring.http.security.AnonymousUser;
+import com.mangosolutions.rcloud.commons.spring.http.security.AnonymousUserAuthorityResolver;
+import com.mangosolutions.rcloud.commons.spring.http.security.UserAuthorityResolver;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepository;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager.GistAccessRight;
 import com.mangosolutions.rcloud.rawgist.repository.GistSecurityManager.GistRole;
 import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadata;
-import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUser;
-import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUserAuthorityResolver;
-import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 
 public class GrantedAuthorityGistSecurityManagerTest {
 

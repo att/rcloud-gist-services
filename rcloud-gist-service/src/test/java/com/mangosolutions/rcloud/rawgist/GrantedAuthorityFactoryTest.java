@@ -16,12 +16,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.mangosolutions.rcloud.commons.spring.http.security.AnonymousUserAuthorityResolver;
+import com.mangosolutions.rcloud.commons.spring.http.security.AuthorityResolver;
+import com.mangosolutions.rcloud.commons.spring.http.security.GrantedAuthorityFactory;
+import com.mangosolutions.rcloud.commons.spring.http.security.UserAuthorityResolver;
 import com.mangosolutions.rcloud.rawgist.repository.security.CollaborationGrantedAuthority;
 import com.mangosolutions.rcloud.rawgist.repository.security.CollaborationGrantedAuthorityResolver;
-import com.mangosolutions.rcloud.sessionkeyauth.AnonymousUserAuthorityResolver;
-import com.mangosolutions.rcloud.sessionkeyauth.AuthorityResolver;
-import com.mangosolutions.rcloud.sessionkeyauth.GrantedAuthorityFactory;
-import com.mangosolutions.rcloud.sessionkeyauth.UserAuthorityResolver;
 
 public class GrantedAuthorityFactoryTest {
 
@@ -29,8 +29,8 @@ public class GrantedAuthorityFactoryTest {
 
     @Before
     public void setup() {
-        Collection<AuthorityResolver> authorityResolvers = Arrays.asList(new AnonymousUserAuthorityResolver(),
-                new UserAuthorityResolver(), new CollaborationGrantedAuthorityResolver());
+        Collection<AuthorityResolver> authorityResolvers = Arrays.asList((AuthorityResolver) new AnonymousUserAuthorityResolver(),
+                (AuthorityResolver) new UserAuthorityResolver(), (AuthorityResolver) new CollaborationGrantedAuthorityResolver());
         factory.setAuthorityResolvers(authorityResolvers);
     }
 

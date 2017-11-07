@@ -68,6 +68,10 @@ subprojects {
       mavenBom 'org.springframework.cloud:spring-cloud-starter-parent:Camden.SR6'
       mavenBom 'org.springframework.boot:spring-boot-starter-parent:1.5.2.RELEASE'
     }
+    dependencies {
+      dependency 'junit:junit:4.12'
+      dependency 'org.mockito:mockito-all:1.10.8'
+    }
   }
 
   //Exclude the log4j dependencies as will use logback

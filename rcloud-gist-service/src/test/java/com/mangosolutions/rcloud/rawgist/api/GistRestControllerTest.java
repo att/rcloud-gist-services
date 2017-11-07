@@ -47,7 +47,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.jayway.jsonpath.JsonPath;
-import com.mangosolutions.rcloud.rawgist.Application;
+import com.mangosolutions.rcloud.commons.test.Application;
+import com.mangosolutions.rcloud.commons.test.GistTestHelper;
 import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 
 @RunWith(SpringRunner.class)

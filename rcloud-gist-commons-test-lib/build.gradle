@@ -1,0 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+ *
+ * SPDX-License-Identifier:   MIT
+ *
+ *******************************************************************************/
+
+project.description = "RCloud Gists common test utility classes."
+
+dependencies {
+    compile project(':rcloud-gist-commons-lib')
+    compile project(':rcloud-gist-lib')
+    testCompile 'junit:junit'
+    //  testCompile 'org.mockito:mockito-all:1.10.8'
+    compile 'org.springframework.boot:spring-boot-starter-test'
+    compile 'org.springframework.security:spring-security-test'
+
+}

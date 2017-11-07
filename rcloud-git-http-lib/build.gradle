@@ -1,0 +1,43 @@
+/*******************************************************************************
+* Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
+
+project.description = "RCloud Git HTTP/S endpoint for accessing the gist git repository."
+
+dependencies {
+  compile 'org.springframework.boot:spring-boot-starter'
+  compile 'org.springframework.boot:spring-boot-starter-actuator'
+  compile 'org.springframework.boot:spring-boot-starter-security'
+  compile 'org.springframework.boot:spring-boot-starter-web'
+  compile 'org.springframework.security:spring-security-core'
+  compile 'org.springframework.security:spring-security-web'
+  compile 'commons-io:commons-io:2.5'
+  compile 'org.apache.commons:commons-collections4:4.1'
+  compile 'org.apache.commons:commons-lang3:3.5'
+  compile 'org.slf4j:slf4j-api'
+  
+  
+  compile 'org.ajoberstar:grgit:1.7.2'
+  compile 'org.eclipse.jgit:org.eclipse.jgit:4.3.1.201605051710-r'
+  compile 'org.eclipse.jgit:org.eclipse.jgit.http.server:4.3.1.201605051710-r'
+  compile 'org.springframework.boot:spring-boot-starter-undertow:1.4.3.RELEASE'
+  
+  compile 'com.hazelcast:hazelcast'
+  compile 'com.hazelcast:hazelcast-spring'
+  
+  compile project(':rcloud-gist-commons-lib')
+  compile project(':rcloud-gist-http-lib')
+  //TODO this should be hidden behind an interface and removed
+  compile project(':rcloud-sessionkey-lib')
+  
+  runtime 'org.slf4j:jcl-over-slf4j'
+  
+  testCompile project(':rcloud-gist-commons-test-lib')
+  testCompile 'junit:junit'
+  testCompile 'org.mockito:mockito-all'
+  testCompile 'org.springframework.boot:spring-boot-starter-test'
+
+}

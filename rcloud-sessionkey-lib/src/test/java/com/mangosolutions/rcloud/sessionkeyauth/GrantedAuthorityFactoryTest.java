@@ -13,6 +13,10 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.mangosolutions.rcloud.commons.spring.http.security.AnonymousUserAuthorityResolver;
+import com.mangosolutions.rcloud.commons.spring.http.security.GrantedAuthorityFactory;
+import com.mangosolutions.rcloud.commons.spring.http.security.UserAuthorityResolver;
+
 public class GrantedAuthorityFactoryTest {
 
     @Test

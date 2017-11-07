@@ -9,4 +9,9 @@ rootProject.name = 'rcloud-gist-service'
 
 include 'rcloud-gistproxy-service',
         'rcloud-gist-service',
-        'rcloud-sessionkey-lib'
+        'rcloud-sessionkey-lib',
+        'rcloud-git-http-lib',
+        'rcloud-gist-lib',
+        'rcloud-gist-http-lib',
+        'rcloud-gist-commons-lib',
+        'rcloud-gist-commons-test-lib'
