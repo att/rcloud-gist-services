@@ -18,59 +18,73 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
-@JsonPropertyOrder({ "description", "public", "files" })
+@JsonPropertyOrder({ "owner", "description", "public", "files" })
 public class GistRequest implements Serializable {
 
-	@JsonProperty("description")
-	private String description;
+    private final static long serialVersionUID = -7352290872081419828L;
 
-	@JsonProperty("public")
-	private Boolean _public;
+    @JsonProperty("description")
+    private String description;
 
-	@JsonProperty("files")
-	private Map<String, FileDefinition> files;
+    @JsonProperty("public")
+    private Boolean _public;
 
-	@JsonIgnore
-	private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-	private final static long serialVersionUID = -7352290872081419828L;
+    @JsonProperty("owner")
+    private String owner;
 
-	@JsonProperty("description")
-	public String getDescription() {
-		return description;
-	}
+    @JsonProperty("files")
+    private Map<String, FileDefinition> files;
 
-	@JsonProperty("description")
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    @JsonIgnore
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-	@JsonProperty("public")
-	public Boolean getPublic() {
-		return _public;
-	}
+    @JsonProperty("owner")
+    public String getOwner() {
+        return owner;
+    }
 
-	@JsonProperty("public")
-	public void setPublic(Boolean _public) {
-		this._public = _public;
-	}
+    @JsonProperty("owner")
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
 
-	@JsonProperty("files")
-	public Map<String, FileDefinition> getFiles() {
-		return files;
-	}
+    @JsonProperty("description")
+    public String getDescription() {
+        return description;
+    }
 
-	@JsonProperty("files")
-	public void setFiles(Map<String, FileDefinition> files) {
-		this.files = files;
-	}
+    @JsonProperty("description")
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	@JsonAnyGetter
-	public Map<String, Object> getAdditionalProperties() {
-		return this.additionalProperties;
-	}
+    @JsonProperty("public")
+    public Boolean getPublic() {
+        return _public;
+    }
 
-	@JsonAnySetter
-	public void setAdditionalProperty(String name, Object value) {
-		this.additionalProperties.put(name, value);
-	}
+    @JsonProperty("public")
+    public void setPublic(Boolean _public) {
+        this._public = _public;
+    }
+
+    @JsonProperty("files")
+    public Map<String, FileDefinition> getFiles() {
+        return files;
+    }
+
+    @JsonProperty("files")
+    public void setFiles(Map<String, FileDefinition> files) {
+        this.files = files;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+    }
 }

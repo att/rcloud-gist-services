@@ -4,7 +4,7 @@
 * SPDX-License-Identifier:   MIT
 *
 *******************************************************************************/
-package com.mangosolutions.rcloud.rawgist.repository.git;
+package com.mangosolutions.rcloud.rawgist.repository.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 

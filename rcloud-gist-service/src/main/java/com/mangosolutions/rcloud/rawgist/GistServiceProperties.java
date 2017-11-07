@@ -10,80 +10,94 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties(prefix = "gists")
 public class GistServiceProperties {
-	
-	public static String STRICT_SECURITY_MANAGER = "strict";
-	
-	private String security = "permissive";
-	
-	private String root;
 
-	private String cache = "gists";
+    public static final String STRICT_SECURITY_MANAGER = "strict";
+    public static final String PERMISSIVE_SECURITY_MANAGER = "permissive";
 
-	private int lockTimeout = 30;
+    @NestedConfigurationProperty
+    private GistUsersProperties users = new GistUsersProperties();
+    
+    private String security = "default";
 
-	private String sessionKeyServerUrl = null;
+    private String root;
 
-	private String sessionKeyServerRealm = "rcloud";
-	
-	private List<String> mediatypes = new ArrayList<>();
+    private String cache = "gists";
 
-	public String getSessionKeyServerRealm() {
-		return sessionKeyServerRealm;
-	}
+    private int lockTimeout = 30;
 
-	public void setSessionKeyServerRealm(String sessionKeyServerRealm) {
-		this.sessionKeyServerRealm = sessionKeyServerRealm;
-	}
+    private String sessionKeyServerUrl = null;
 
-	public int getLockTimeout() {
-		return lockTimeout;
-	}
+    private String sessionKeyServerRealm = "rcloud";
 
-	public void setLockTimeout(int lockTimeout) {
-		this.lockTimeout = lockTimeout;
-	}
+    private List<String> mediatypes = new ArrayList<>();
 
-	public String getRoot() {
-		return root;
-	}
 
-	public void setRoot(String root) {
-		this.root = root;
-	}
+    public String getSessionKeyServerRealm() {
+        return sessionKeyServerRealm;
+    }
 
-	public String getCache() {
-		return cache;
-	}
+    public void setSessionKeyServerRealm(String sessionKeyServerRealm) {
+        this.sessionKeyServerRealm = sessionKeyServerRealm;
+    }
 
-	public void setCache(String cacheName) {
-		this.cache = cacheName;
-	}
+    public int getLockTimeout() {
+        return lockTimeout;
+    }
 
-	public String getSessionKeyServerUrl() {
-		return sessionKeyServerUrl;
-	}
+    public void setLockTimeout(int lockTimeout) {
+        this.lockTimeout = lockTimeout;
+    }
 
-	public void setSessionKeyServerUrl(String sessionKeyServerUrl) {
-		this.sessionKeyServerUrl = sessionKeyServerUrl;
-	}
+    public String getRoot() {
+        return root;
+    }
 
-	public List<String> getMediatypes() {
-		return mediatypes;
-	}
+    public void setRoot(String root) {
+        this.root = root;
+    }
 
-	public void setMediatypes(List<String> mediatypes) {
-		this.mediatypes = mediatypes;
-	}
+    public String getCache() {
+        return cache;
+    }
 
-	public String getSecurity() {
-		return security;
-	}
+    public void setCache(String cacheName) {
+        this.cache = cacheName;
+    }
 
-	public void setSecurity(String securityManager) {
-		this.security = securityManager;
-	}
+    public String getSessionKeyServerUrl() {
+        return sessionKeyServerUrl;
+    }
+
+    public void setSessionKeyServerUrl(String sessionKeyServerUrl) {
+        this.sessionKeyServerUrl = sessionKeyServerUrl;
+    }
+
+    public List<String> getMediatypes() {
+        return mediatypes;
+    }
+
+    public void setMediatypes(List<String> mediatypes) {
+        this.mediatypes = mediatypes;
+    }
+
+    public String getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(String securityManager) {
+        this.security = securityManager;
+    }
+
+    public GistUsersProperties getUsers() {
+        return users;
+    }
+
+    public void setUsers(GistUsersProperties users) {
+        this.users = users;
+    }
 
 }
