@@ -11,6 +11,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -125,7 +126,7 @@ public class SessionKeyServerUserDetailsServiceTest {
                 userDetails.getAuthorities().toArray(new GrantedAuthority[0])[1].getAuthority());
     }
 
-    @Test(expected = UsernameNotFoundException.class)
+    @Test
     public void testNoRequest() {
 
         RestTemplate restTemplate = sessionKeyServerService.getRestTemplate();
@@ -135,10 +136,13 @@ public class SessionKeyServerUserDetailsServiceTest {
         PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken("abc", null);
         token.setDetails(details);
         UserDetails details = detailsService.loadUserDetails(token);
-        Assert.fail("User should not have been found: " + details);
+        Collection<? extends GrantedAuthority> auths =  details.getAuthorities();
+        Assert.assertEquals(1, auths.size());
+        GrantedAuthority auth = auths.toArray(new GrantedAuthority[1])[0];
+        Assert.assertEquals("ROLE_ANONYMOUS", auth.getAuthority());
     }
 
-    @Test(expected = UsernameNotFoundException.class)
+    @Test
     public void testSupercededRequest() {
 
         RestTemplate restTemplate = sessionKeyServerService.getRestTemplate();
@@ -149,7 +153,10 @@ public class SessionKeyServerUserDetailsServiceTest {
         token.setDetails(details);
 
         UserDetails details = detailsService.loadUserDetails(token);
-        Assert.fail("User should not have been found: " + details);
+        Collection<? extends GrantedAuthority> auths =  details.getAuthorities();
+        Assert.assertEquals(1, auths.size());
+        GrantedAuthority auth = auths.toArray(new GrantedAuthority[1])[0];
+        Assert.assertEquals("ROLE_ANONYMOUS", auth.getAuthority());
     }
 
     @Test(expected = UsernameNotFoundException.class)

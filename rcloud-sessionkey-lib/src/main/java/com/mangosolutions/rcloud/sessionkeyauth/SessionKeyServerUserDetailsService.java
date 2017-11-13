@@ -82,8 +82,8 @@ public class SessionKeyServerUserDetailsService
 
     private UserDetails convertToUserDetails(SessionKeyServerResponse response, String sessionKey) {
         if (!SessionKeyServerResult.YES.equals(response.getResult())) {
-            throw new UsernameNotFoundException(
-                    "Token provided is not valid. Response from SessionKeyServer is " + response.getResult());
+            logger.warn("Token {} is not valid. Response from SessionKeyServer is {}", response);
+            return this.createAnonymousUser();
         }
         String username = response.getName();
         Collection<GrantedAuthority> authorities = getAuthorities(username);

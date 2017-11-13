@@ -14,7 +14,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -47,7 +46,6 @@ public class SessionKeyServerService {
         this.restTemplate = restTemplate;
     }
     
-    @Cacheable(value = "sessionkeys")
     public SessionKeyServerResponse authenticate(String clientId, String sessionKey) {
         KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
         ResponseEntity<SessionKeyServerResponse> response = doAuthentication(sessionKey, keyServer);
