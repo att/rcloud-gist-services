@@ -36,6 +36,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import com.mangosolutions.rcloud.commons.spring.http.security.AnonymousUserAuthorityResolver;
 import com.mangosolutions.rcloud.commons.spring.http.security.AuthorityResolver;
@@ -66,7 +67,7 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
 
     @Autowired
     private CollaborationDataStore collaborationDataStore;
-
+    
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
@@ -103,9 +104,16 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
         Map<String, KeyServerConfiguration> keyServers = new HashMap<>(config);
         logger.info("Configured key servers: {}", keyServers);
         config.clear();
-        SessionKeyServerService service = new SessionKeyServerService(keyServers);
+        SessionKeyServerService service = new SessionKeyServerService(getSessionKeyServerTemplate(), keyServers);
         return service;
     }
+    
+    @Bean
+    @RefreshScope
+    public RestTemplate getSessionKeyServerTemplate() {
+        return new RestTemplate();
+    }
+    
 
     @Bean
     public GrantedAuthorityFactory getAuthorityFactory() {
