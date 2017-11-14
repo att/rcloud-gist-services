@@ -48,6 +48,7 @@ public class SessionKeyServerService {
     
     public SessionKeyServerResponse authenticate(String clientId, String sessionKey) {
         KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
+        logger.debug("Using key server for token authentication {}", keyServer);
         ResponseEntity<SessionKeyServerResponse> response = doAuthentication(sessionKey, keyServer);
         return response.getBody();
     }
@@ -75,6 +76,8 @@ public class SessionKeyServerService {
 
         ResponseEntity<SessionKeyServerResponse> response = restTemplate.exchange(requestEntity,
                 SessionKeyServerResponse.class);
+        
+        logger.debug("Received response {} for session key {}", response, sessionKey);
 
         if (!HttpStatus.OK.equals(response.getStatusCode())) {
             logger.error("Bad response from the Session Key Server: {}, response: {}", keyServer, response);

@@ -36,6 +36,7 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 import com.mangosolutions.rcloud.rawgist.repository.security.CollaborationGrantedAuthorityResolver;
@@ -64,7 +65,7 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
 
     @Autowired
     private CollaborationDataStore collaborationDataStore;
-
+    
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
@@ -100,9 +101,16 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
         Map<String, KeyServerConfiguration> keyServers = new HashMap<>(config);
         logger.info("Configured key servers: {}", keyServers);
         config.clear();
-        SessionKeyServerService service = new SessionKeyServerService(keyServers);
+        SessionKeyServerService service = new SessionKeyServerService(getSessionKeyServerTemplate(), keyServers);
         return service;
     }
+    
+    @Bean
+    @RefreshScope
+    public RestTemplate getSessionKeyServerTemplate() {
+        return new RestTemplate();
+    }
+    
 
     @Bean
     public GrantedAuthorityFactory getAuthorityFactory() {

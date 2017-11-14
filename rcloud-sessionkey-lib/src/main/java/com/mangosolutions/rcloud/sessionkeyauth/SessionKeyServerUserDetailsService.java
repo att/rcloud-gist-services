@@ -82,7 +82,7 @@ public class SessionKeyServerUserDetailsService
 
     private UserDetails convertToUserDetails(SessionKeyServerResponse response, String sessionKey) {
         if (!SessionKeyServerResult.YES.equals(response.getResult())) {
-            logger.warn("Token {} is not valid. Response from SessionKeyServer is {}", response);
+            logger.warn("Token {} is not valid. Response from SessionKeyServer is {}", sessionKey, response);
             return this.createAnonymousUser();
         }
         String username = response.getName();
