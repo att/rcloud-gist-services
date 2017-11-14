@@ -14,7 +14,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -48,10 +47,10 @@ public class SessionKeyServerService {
         restTemplate.setMessageConverters(converters);
         this.restTemplate = restTemplate;
     }
-
-    @Cacheable(value = "sessionkeys")
+    
     public SessionKeyServerResponse validateToken(String clientId, String sessionKey) {
         KeyServerConfiguration keyServer = getKeyServerConfiguration(clientId);
+        logger.debug("Using key server for token authentication {}", keyServer);
         ResponseEntity<SessionKeyServerResponse> response = doTokenValidation(sessionKey, keyServer);
         return response.getBody();
     }
@@ -59,6 +58,7 @@ public class SessionKeyServerService {
     public String authenticate(String username, String password) {
         // TODO this needs to check all of the sessionkey servers?
         KeyServerConfiguration keyServer = getKeyServerConfiguration("default");
+        logger.debug("Using key server for token authentication {}", keyServer);
         ResponseEntity<String> response = doAuthentication(username, password, keyServer);
         return response.getBody();
     }
@@ -129,6 +129,8 @@ public class SessionKeyServerService {
 
         ResponseEntity<SessionKeyServerResponse> response = restTemplate.exchange(requestEntity,
                 SessionKeyServerResponse.class);
+        
+        logger.debug("Received response {} for session key {}", response, sessionKey);
 
         if (!HttpStatus.OK.equals(response.getStatusCode())) {
             logger.error("Bad response from the Session Key Server: {}, response: {}", keyServer, response);

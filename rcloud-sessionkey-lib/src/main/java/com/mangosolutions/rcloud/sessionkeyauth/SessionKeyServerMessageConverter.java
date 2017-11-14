@@ -57,9 +57,12 @@ public class SessionKeyServerMessageConverter extends AbstractHttpMessageConvert
 
     private SessionKeyServerResponse convert(HttpInputMessage inputMessage) throws IOException {
         List<String> lines = IOUtils.readLines(inputMessage.getBody(), "UTF-8");
+        logger.info("Received response from session key server: {}", lines);
         if (lines == null || lines.isEmpty()) {
+            logger.error("Response from session key server is not valid, could not parse response {}", lines);
             throw new HttpMessageNotReadableException(
                     "Response from SessionKeyServer does not contain a valid result.");
+
         }
         SessionKeyServerResponse response = new SessionKeyServerResponse();
         for (int i = 0; i < lines.size(); i++) {

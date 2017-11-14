@@ -65,12 +65,6 @@ gists:
   
 caches:
   - 
-    name: 'sessionkeys'
-    evictionPolicy: LRU
-    ttl: 60
-    maxSize: 100
-    maxIdleSeconds: 60
-  - 
     name: 'gists'
     evictionPolicy: LRU
     ttl: 300
