@@ -33,6 +33,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
@@ -75,7 +76,7 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
                 new AntPathRequestMatcher(GIST_SERVICE_PATH), new AntPathRequestMatcher(USER_SERVICE_PATH));
 
         http.requestMatchers().requestMatchers(matcher).and()
-                .addFilterBefore(ssoFilter(matcher), RequestHeaderAuthenticationFilter.class)
+                .addFilterBefore(getSsoFilter(), RequestHeaderAuthenticationFilter.class)
                 .authenticationProvider(preAuthAuthProvider()).csrf().disable().authorizeRequests().anyRequest()
                 .authenticated();
     }
@@ -141,9 +142,10 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
     }
 
     // @Bean
-    public AbstractPreAuthenticatedProcessingFilter ssoFilter(RequestMatcher matcher) throws Exception {
-        RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
-        filter.setExceptionIfParameterMissing(false);
+    public AbstractPreAuthenticatedProcessingFilter getSsoFilter() throws Exception {
+        //only get the token of non get requests.
+        RequestMatcher matcher = new NegatedRequestMatcher(new HttpMethodRequestMatcher("GET"));
+        RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter(matcher);
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationDetailsSource(getDetailsSource());
         String tokenParameter = this.keyserverProperties.getAccessTokenParam();
