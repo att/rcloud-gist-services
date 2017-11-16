@@ -143,9 +143,7 @@ public class GistServiceSecurityConfiguration extends WebSecurityConfigurerAdapt
 
     // @Bean
     public AbstractPreAuthenticatedProcessingFilter getSsoFilter() throws Exception {
-        //only get the token of non get requests.
-        RequestMatcher matcher = new NegatedRequestMatcher(new HttpMethodRequestMatcher("GET"));
-        RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter(matcher);
+        RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationDetailsSource(getDetailsSource());
         String tokenParameter = this.keyserverProperties.getAccessTokenParam();

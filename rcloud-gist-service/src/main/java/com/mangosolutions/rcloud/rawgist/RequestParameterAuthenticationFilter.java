@@ -14,25 +14,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
-import org.springframework.security.web.util.matcher.AnyRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 
 public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 
-        private static final Logger logger = LoggerFactory.getLogger(RequestParameterAuthenticationFilter.class);
-        private String principalRequestParameter = "access_token";
-        private String credentialsRequestParameter;
-
-
-    private RequestMatcher matcher = AnyRequestMatcher.INSTANCE;
+    private static final Logger logger = LoggerFactory.getLogger(RequestParameterAuthenticationFilter.class);
+    private String principalRequestParameter = "access_token";
+    private String credentialsRequestParameter;
 
     public RequestParameterAuthenticationFilter() {
 
-    }
-
-    public RequestParameterAuthenticationFilter(RequestMatcher matcher) {
-        this.matcher = matcher;
     }
 
     /**
@@ -46,17 +37,14 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
     @Override
     protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
         String principal = "";
-        if (matcher.matches(request)) {
-            principal = request.getParameter(principalRequestParameter);
-            principal = StringUtils.trimToEmpty(principal);
-            if (HttpMethod.GET.equals(HttpMethod.resolve(request.getMethod()))) {
-                logger.info("Ignoring the access token on a GET request, setting it to an empty string");
-                principal = "";
-            }
+        principal = request.getParameter(principalRequestParameter);
+        principal = StringUtils.trimToEmpty(principal);
+        if (HttpMethod.GET.equals(HttpMethod.resolve(request.getMethod()))) {
+            logger.info("Ignoring the access token on a GET request, setting it to an empty string");
+            principal = "";
         }
         return principal;
     }
-        
 
     /**
      * Credentials aren't usually applicable, but if a
