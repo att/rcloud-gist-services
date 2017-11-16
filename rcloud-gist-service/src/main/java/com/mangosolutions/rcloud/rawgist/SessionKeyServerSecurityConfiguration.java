@@ -142,7 +142,6 @@ public class SessionKeyServerSecurityConfiguration extends WebSecurityConfigurer
     @Bean
     public AbstractPreAuthenticatedProcessingFilter ssoFilter() throws Exception {
         RequestParameterAuthenticationFilter filter = new RequestParameterAuthenticationFilter();
-        filter.setExceptionIfParameterMissing(false);
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationDetailsSource(getDetailsSource());
         String tokenParameter = this.keyserverProperties.getAccessTokenParam();

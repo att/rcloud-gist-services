@@ -8,15 +8,20 @@ package com.mangosolutions.rcloud.rawgist;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.util.Assert;
 
 public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 
+        private static final Logger logger = LoggerFactory.getLogger(RequestParameterAuthenticationFilter.class);
+    
 	private String principalRequestParameter = "access_token";
 	private String credentialsRequestParameter;
-	private boolean exceptionIfParameterMissing = true;
 
 	/**
 	 * Read and returns the header named by {@code principalRequestParameter} from the
@@ -27,19 +32,17 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 	 */
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-		String principal = request.getParameter(principalRequestParameter);
-
-		if (principal == null && exceptionIfParameterMissing) {
-			throw new PreAuthenticatedCredentialsNotFoundException(principalRequestParameter
-					+ " parameter not found in request.");
-		} else {
-			principal = principal == null? "": principal;
-		}
 		
-		return principal;
-	}
+	    String principal = request.getParameter(principalRequestParameter);
+	    principal = StringUtils.trimToEmpty(principal);
+	    if(HttpMethod.GET.equals(HttpMethod.resolve(request.getMethod()))) {
+                logger.info("Ignoring the access token on a GET request, setting it to an empty string");
+               principal = ""; 
+            }
+            return principal;
+        }
 
-	/**
+    /**
 	 * Credentials aren't usually applicable, but if a {@code credentialsRequestParameter} is
 	 * set, this will be read and used as the credentials value. Otherwise a dummy value
 	 * will be used.
@@ -63,17 +66,6 @@ public class RequestParameterAuthenticationFilter extends AbstractPreAuthenticat
 		Assert.hasText(credentialsRequestParameter,
 				"credentialsRequestHeader must not be empty or null");
 		this.credentialsRequestParameter = credentialsRequestParameter;
-	}
-
-	/**
-	 * Defines whether an exception should be raised if the principal paramater is missing.
-	 * Defaults to {@code true}.
-	 *
-	 * @param exceptionIfParameterMissing set to {@code false} to override the default
-	 * behaviour and allow the request to proceed if no header is found.
-	 */
-	public void setExceptionIfParameterMissing(boolean exceptionIfParameterMissing) {
-		this.exceptionIfParameterMissing = exceptionIfParameterMissing;
 	}
 
 }
