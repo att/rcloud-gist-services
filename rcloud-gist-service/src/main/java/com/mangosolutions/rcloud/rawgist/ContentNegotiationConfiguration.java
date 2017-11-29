@@ -38,7 +38,7 @@ public class ContentNegotiationConfiguration extends WebMvcConfigurerAdapter {
 
 	@Override
 	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-		configurer.ignoreAcceptHeader(true);
+		//configurer.ignoreAcceptHeader(true);
 		configurer.defaultContentType(MediaType.APPLICATION_JSON_UTF8);
 	}
 

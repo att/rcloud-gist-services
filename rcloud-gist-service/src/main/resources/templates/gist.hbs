@@ -32,7 +32,7 @@
 
 				<!-- Brand and toggle get grouped for better mobile display -->
 				<div class="navbar-header">
-					<a class="navbar-brand" href="#">RCloud Gist: {{gist.id}}</a>
+					<a class="navbar-brand" href="/gists/{{gist.id}}">RCloud Gist: {{gist.id}}</a>
 					{{#if gist.forkOf}} fork of {{gist.forkOf.id}}{{/if}}
 				</div>
 				
@@ -52,7 +52,7 @@
 						<a href="{{gist.forkOf.url}}">{{gist.forkOf.id}}</a>
 						{{/if}}
 						<p>Owner <span class="glyphicon glyphicon-user"></span><a href="#"> {{gist.owner.login}} </a> 
-						<span class="glyphicon glyphicon-time"></span> modified on {{jodaPattern gist.updatedAt "d MMM y, HH:mm z"}} 
+						<span class="glyphicon glyphicon-time"></span> modified on {{jodaPattern gist.history.0.committedAt "d MMM y, HH:mm z"}} 
 						</p>
 					</div>
 				</div>
@@ -60,7 +60,28 @@
 			<!-- /.row -->
 
 			<div class="row">
+
+			
+			
 				<div class="col-sm-8 col-sm-push-4">
+				
+					<!-- Panel Info -->
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h4 class="panel-title">Information</h4>
+						</div>
+						<div class="panel-body">
+							<p>
+							<label>Owner:</label> {{gist.owner.login}}<br/>
+							<label>Created On:</label> {{jodaPattern gist.createdAt "d MMM y, HH:mm z"}}<br/>
+							<label>Modified On:</label> {{jodaPattern gist.history.0.committedAt "d MMM y, HH:mm z"}}<br/>
+							<label>ID:</label> <a href="/gists/{{gist.id}}">{{gist.id}}</a><br/>
+							<label>Fork of:</label> {{#if gist.forkOf}}<a href="/gists/{{gist.forkOf.id}}">{{gist.forkOf.id}}</a>{{/if}}
+							</p>
+						</div>
+					</div>
+					
+					<hr>
 
 					<!-- Files -->
 					<h3>Files</h3>
@@ -98,21 +119,7 @@
 				</div>
 				<div class="col-sm-4 col-sm-pull-8">
 					
-					<!-- Panel Info -->
-					<div class="panel panel-default">
-						<div class="panel-heading">
-							<h4 class="panel-title">Information</h4>
-						</div>
-						<div class="panel-body">
-							<p>
-							<label>Owner:</label> {{gist.owner.login}}<br/>
-							<label>Created On:</label> {{jodaPattern gist.createdAt "d MMM y, HH:mm z"}}<br/>
-							<label>Updated On:</label> {{jodaPattern gist.updatedAt "d MMM y, HH:mm z"}}<br/>
-							<label>ID:</label> {{gist.id}}<br/>
-							<label>Fork of:</label> {{#if gist.forkOf}}{{gist.forkOf.id}}{{/if}}
-							</p>
-						</div>
-					</div>
+
 					
 					<!-- Panel Collaborators -->
 					<div class="panel panel-default">
@@ -150,7 +157,7 @@
 						<div class="panel-body">
 							<p>
 							{{#each gist.history}}
-							<span class="glyphicon glyphicon-time"></span> {{jodaPattern committedAt "d MMM y, HH:mm z"}} <span class="glyphicon glyphicon-user"></span> {{user.login}} <span class="glyphicon glyphicon-asterisk"></span> {{version}} <br/>
+							<span class="glyphicon glyphicon-time"></span> {{jodaPattern committedAt "d MMM y, HH:mm z"}} <span class="glyphicon glyphicon-user"></span> {{user.login}} <a href="/gists/{{gist.id}}/{{version}}">{{version}}</a> <br/>
 							{{/each}}
 							</p>
 						</div>
