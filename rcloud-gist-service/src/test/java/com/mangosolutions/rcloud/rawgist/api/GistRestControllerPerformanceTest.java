@@ -43,8 +43,8 @@ import com.mangosolutions.rcloud.rawgist.model.GistResponse;
 @ActiveProfiles({ "test", "default" })
 public class GistRestControllerPerformanceTest {
 
-    public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
-    public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");
+    public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json;charset=UTF-8");
+    public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json;charset=UTF-8");
 
     private MockMvc mvc;
 
@@ -102,7 +102,7 @@ public class GistRestControllerPerformanceTest {
             MvcResult result = mvc
                     .perform(patch("/gists/" + gistId).accept(GITHUB_BETA_MEDIA_TYPE)
                             .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
-                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk()).andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
                     .andReturn();
             long end = System.currentTimeMillis();
             double diff = end - start;

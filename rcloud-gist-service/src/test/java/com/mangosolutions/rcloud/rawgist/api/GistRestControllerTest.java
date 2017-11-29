@@ -58,8 +58,8 @@ import com.mangosolutions.rcloud.rawgist.repository.git.CollaborationDataStore;
 @TestPropertySource(properties = { "management.port=", "security.user.password=abcd" })
 public class GistRestControllerTest {
 
-    public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json");
-    public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json");
+    public static MediaType GITHUB_BETA_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.beta+json;charset=UTF-8");
+    public static MediaType GITHUB_V3_MEDIA_TYPE = MediaType.parseMediaType("application/vnd.github.v3+json;charset=UTF-8");
 
     private MockMvc mvc;
 
@@ -95,9 +95,11 @@ public class GistRestControllerTest {
         MvcResult result = mvc
                 .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
                         .content(payload))
-                .andExpect(status().isCreated()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
                 .andExpect(jsonPath("$.owner.login", is("mock_user")))
-                .andExpect(jsonPath("$.description", is(description))).andExpect(jsonPath("$.comments", is(0)))
+                .andExpect(jsonPath("$.description", is(description)))
+                .andExpect(jsonPath("$.comments", is(0)))
                 .andExpect(jsonPath("$.collaborators.length()", is(1)))
                 .andExpect(jsonPath("$.collaborators[0].login", is("mock_collab_user"))).andReturn();
     }
@@ -138,7 +140,8 @@ public class GistRestControllerTest {
         MvcResult result = mvc
                 .perform(patch("/gists/" + defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
                         .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.owner.login", is("mock_user"))).andReturn();
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.owner.login", is("mock_user"))).andReturn();
     }
 
     @Test
@@ -167,7 +170,9 @@ public class GistRestControllerTest {
         MvcResult result = mvc
                 .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
                         .content(payload))
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.owner.login", is("mock_user"))).andReturn();
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.owner.login", is("mock_user")))
+                .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE)).andReturn();
     }
 
     @Test
@@ -182,7 +187,8 @@ public class GistRestControllerTest {
         MvcResult result = mvc
                 .perform(post("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
                         .content(payload))
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.owner.login", is("mock_collab_user")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.owner.login", is("mock_collab_user")))
                 .andReturn();
     }
 
@@ -219,8 +225,9 @@ public class GistRestControllerTest {
     @Test
     @WithMockUser("mock_user")
     public void testListGistWithMockUser() throws Exception {
-        MvcResult result = mvc.perform(get("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE))
-                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+        MvcResult result = mvc.perform(get("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
                 .andExpect(jsonPath("$.length()", is(1))).andReturn();
     }
 
@@ -228,9 +235,10 @@ public class GistRestControllerTest {
     @WithMockUser("mock_user_2")
     public void testListGistWithMockUser2() throws Exception {
         MvcResult result = mvc
-                .perform(get("/gists").accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+                .perform(get("/gists").accept(MediaType.APPLICATION_JSON_UTF8).contentType(GITHUB_BETA_MEDIA_TYPE)
                         .with(user("mock_user_2")))
-                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$.length()", is(0))).andReturn();
     }
 
@@ -240,7 +248,8 @@ public class GistRestControllerTest {
         MvcResult result = mvc
                 .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
                         .contentType(GITHUB_BETA_MEDIA_TYPE))
-                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
                 .andExpect(jsonPath("$.id", is(this.defaultGistId))).andReturn();
     }
 
@@ -261,7 +270,7 @@ public class GistRestControllerTest {
 
         // Fork the repository
         String forkResponse = mvc
-                .perform(post("/gists/" + this.defaultGistId + "/forks").accept(GITHUB_BETA_MEDIA_TYPE)
+                .perform(post("/gists/" + this.defaultGistId + "/forks").accept(MediaType.APPLICATION_JSON_UTF8)
                         .contentType(GITHUB_BETA_MEDIA_TYPE))
                 .andExpect(status().isCreated()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$.files.length()", is(1)))
@@ -278,10 +287,11 @@ public class GistRestControllerTest {
         String fileContent = "String file contents";
         String payloadTemplate = "{\"files\": {\"{}\": {\"content\": \"{}\"}}}";
         String payload = this.buildMessage(payloadTemplate, fileName, fileContent);
-        mvc.perform(patch("/gists/" + forkedGistId).accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+        mvc.perform(patch("/gists/" + forkedGistId).accept(GITHUB_BETA_MEDIA_TYPE).contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(payload)).andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                .andExpect(jsonPath("$.id", is(forkedGistId))).andExpect(jsonPath("$.files.length()", is(2)))
+                .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
+                .andExpect(jsonPath("$.id", is(forkedGistId)))
+                .andExpect(jsonPath("$.files.length()", is(2)))
                 .andReturn();
 
         // check that original gist hasn't changed
@@ -313,7 +323,8 @@ public class GistRestControllerTest {
         String forkResponse = mvc
                 .perform(post("/gists/" + this.defaultGistId + "/forks").accept(GITHUB_BETA_MEDIA_TYPE)
                         .contentType(GITHUB_BETA_MEDIA_TYPE))
-                .andExpect(status().isCreated()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
                 .andExpect(jsonPath("$.files.length()", is(1)))
                 .andExpect(jsonPath("$.fork_of.id", is(this.defaultGistId))).andReturn().getResponse()
                 .getContentAsString();
@@ -321,7 +332,7 @@ public class GistRestControllerTest {
         String description = "The new description for the gist";
         String payloadTemplate = "{\"description\": \"{}\"}";
         String payload = this.buildMessage(payloadTemplate, description);
-        mvc.perform(patch("/gists/" + forkedGistId).accept(GITHUB_BETA_MEDIA_TYPE).contentType(GITHUB_BETA_MEDIA_TYPE)
+        mvc.perform(patch("/gists/" + forkedGistId).accept(MediaType.APPLICATION_JSON_UTF8).contentType(GITHUB_BETA_MEDIA_TYPE)
                 .content(payload)).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$.id", is(forkedGistId))).andExpect(jsonPath("$.files.length()", is(1)))
@@ -333,9 +344,10 @@ public class GistRestControllerTest {
     @WithMockUser("mock_user_2")
     public void testGetGistWithMockUser2() throws Exception {
         MvcResult result = mvc
-                .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
-                        .contentType(GITHUB_BETA_MEDIA_TYPE))
-                .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .perform(get("/gists/" + this.defaultGistId).accept(MediaType.APPLICATION_JSON_UTF8)
+                        .contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                 .andExpect(jsonPath("$.id", is(this.defaultGistId))).andReturn();
     }
 
@@ -347,19 +359,21 @@ public class GistRestControllerTest {
         String historyVersion = null;
         {
             MvcResult result = mvc
-                    .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                    .perform(get("/gists/" + this.defaultGistId).accept(MediaType.APPLICATION_JSON_UTF8)
                             .contentType(GITHUB_BETA_MEDIA_TYPE))
                     .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andExpect(jsonPath("$.id", is(this.defaultGistId)))
-                    .andExpect(jsonPath("$.history.length()", is(1))).andExpect(jsonPath("$.files.length()", is(1)))
+                    .andExpect(jsonPath("$.history.length()", is(1)))
+                    .andExpect(jsonPath("$.files.length()", is(1)))
                     .andReturn();
             addFilesToGist(this.defaultGistId, historySize);
         }
         {
             MvcResult result = mvc
-                    .perform(get("/gists/" + this.defaultGistId).accept(GITHUB_BETA_MEDIA_TYPE)
+                    .perform(get("/gists/" + this.defaultGistId).accept(MediaType.APPLICATION_JSON_UTF8)
                             .contentType(GITHUB_BETA_MEDIA_TYPE))
-                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
                     .andExpect(jsonPath("$.id", is(this.defaultGistId)))
                     .andExpect(jsonPath("$.history.length()", is(historySize + 1)))
                     .andExpect(jsonPath("$.files.length()", is(historySize + 1))).andReturn();
@@ -369,8 +383,9 @@ public class GistRestControllerTest {
         {
             MvcResult result = mvc
                     .perform(get("/gists/" + this.defaultGistId + "/" + historyVersion).accept(GITHUB_BETA_MEDIA_TYPE)
-                            .contentType(GITHUB_BETA_MEDIA_TYPE))
-                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                            .contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
                     .andExpect(jsonPath("$.id", is(this.defaultGistId)))
                     .andExpect(jsonPath("$.files.length()", is(historySize + 1 - historyIndex))).andReturn();
             String response = result.getResponse().getContentAsString();
@@ -430,7 +445,8 @@ public class GistRestControllerTest {
             MvcResult result = mvc
                     .perform(patch("/gists/" + gistId).accept(GITHUB_BETA_MEDIA_TYPE)
                             .contentType(GITHUB_BETA_MEDIA_TYPE).content(payload))
-                    .andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(GITHUB_BETA_MEDIA_TYPE))
                     .andReturn();
 
         }
