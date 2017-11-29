@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{gist.description}}</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="Description" lang="en" content="ADD SITE DESCRIPTION">
+	<meta name="author" content="ADD AUTHOR INFORMATION">
+	<meta name="robots" content="index, follow">
+
+	<!-- icons -->
+	<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<!-- Bootstrap Core CSS file -->
+	<link rel="stylesheet" href="/css/bootstrap.min.css">
+
+	<!-- Override CSS file - add your own CSS rules -->
+	<link rel="stylesheet" href="/css/styles.css">
+
+	<!-- Conditional comment containing JS files for IE6 - 8 -->
+	<!--[if lt IE 9]>
+		<script src="/js/html5.js"></script>
+		<script src="/js/respond.min.js"></script>
+	<![endif]-->
+</head>
+<body>
+<!-- Navigation -->
+	    <nav class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+			<div class="container-fluid">
+
+				<!-- Brand and toggle get grouped for better mobile display -->
+				<div class="navbar-header">
+					<a class="navbar-brand" href="#">RCloud Gist: {{gist.id}}</a>
+					{{#if gist.forkOf}} fork of {{gist.forkOf.id}}{{/if}}
+				</div>
+				
+			</div>
+			<!-- /.container-fluid -->
+		</nav>
+		<!-- /.navbar -->
+
+		<!-- Page Content -->
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-sm-8 col-sm-push-4">
+					<div class="page-header">
+						<h1>{{gist.description}}</h1>
+						{{#if gist.forkOf}}
+						Fork of:<br/>
+						<a href="{{gist.forkOf.url}}">{{gist.forkOf.id}}</a>
+						{{/if}}
+						<p>Owner <span class="glyphicon glyphicon-user"></span><a href="#"> {{gist.owner.login}} </a> 
+						<span class="glyphicon glyphicon-time"></span> modified on {{jodaPattern gist.updatedAt "d MMM y, HH:mm z"}} 
+						</p>
+					</div>
+				</div>
+			</div>
+			<!-- /.row -->
+
+			<div class="row">
+				<div class="col-sm-8 col-sm-push-4">
+
+					<!-- Files -->
+					<h3>Files</h3>
+					{{#each gist.files}}
+					<div class="well">
+						<div class="media">
+							<div class="media-body">
+								<h4 class="margin-t-0"><a href="#">{{filename}}</a></h4>
+								<pre>{{content}}</pre>
+							</div>
+						</div>
+					</div>
+					{{/each}}
+					<hr>
+
+					<!-- Comments -->
+					<h3>Comments</h3>
+					{{#each comments}}
+					<div class="well">
+						<div class="media">
+							<div class="media-body">
+								<h4 class="margin-t-0"><span class="glyphicon glyphicon-user"></span> <a href="#">{{user.login}}</a></h4>
+								<p><span class="glyphicon glyphicon-time"></span> <a href="#">{{jodaPattern updatedAt "d MMM y, HH:mm z"}}</a></p>
+								<p>{{{body}}}</p>
+							</div>
+						</div>
+					</div>
+					{{/each}}
+
+					
+					<hr>
+
+					
+
+				</div>
+				<div class="col-sm-4 col-sm-pull-8">
+					
+					<!-- Panel Info -->
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h4 class="panel-title">Information</h4>
+						</div>
+						<div class="panel-body">
+							<p>
+							<label>Owner:</label> {{gist.owner.login}}<br/>
+							<label>Created On:</label> {{jodaPattern gist.createdAt "d MMM y, HH:mm z"}}<br/>
+							<label>Updated On:</label> {{jodaPattern gist.updatedAt "d MMM y, HH:mm z"}}<br/>
+							<label>ID:</label> {{gist.id}}<br/>
+							<label>Fork of:</label> {{#if gist.forkOf}}{{gist.forkOf.id}}{{/if}}
+							</p>
+						</div>
+					</div>
+					
+					<!-- Panel Collaborators -->
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h4 class="panel-title">Collaborators</h4>
+						</div>
+						<div class="panel-body">
+							<p>
+							{{#each gist.collaborators}}
+							<span class="glyphicon glyphicon-user"></span> {{login}}<br/>
+							{{/each}}
+							</p>
+						</div>
+					</div>
+					
+					<!-- Panel Forks -->
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h4 class="panel-title">Forks</h4>
+						</div>
+						<div class="panel-body">
+							<p>
+							{{#each forks}}
+							<span class="glyphicon glyphicon-directions"></span> {{id}}<br/>
+							{{/each}}
+							</p>
+						</div>
+					</div>
+
+					<!-- Panel History -->
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h4 class="panel-title">History</h4>
+						</div>
+						<div class="panel-body">
+							<p>
+							{{#each gist.history}}
+							<span class="glyphicon glyphicon-time"></span> {{jodaPattern committedAt "d MMM y, HH:mm z"}} <span class="glyphicon glyphicon-user"></span> {{user.login}} <span class="glyphicon glyphicon-asterisk"></span> {{version}} <br/>
+							{{/each}}
+							</p>
+						</div>
+					</div>
+
+
+
+				</div>
+			</div>
+			<!-- /.row -->
+
+			<hr>
+			<footer class="margin-tb-3">
+				<div class="row">
+					<div class="col-lg-12">
+						<p></p>
+					</div>
+				</div>
+			</footer>
+		</div>
+		<!-- /.container-fluid -->
+
+		<!-- JQuery scripts -->
+	    <script src="assets/js/jquery-1.11.2.min.js"></script>
+
+		<!-- Bootstrap Core scripts -->
+		<script src="assets/js/bootstrap.min.js"></script>
+</body>
+</html>

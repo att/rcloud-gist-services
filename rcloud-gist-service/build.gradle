@@ -30,6 +30,14 @@ dependencies {
   compile 'com.google.guava:guava:20.0'
   compile project(':rcloud-sessionkey-lib')
 
+  compile 'org.webjars:handlebars:4.0.5'
+  compile 'pl.allegro.tech.boot:handlebars-spring-boot-starter:0.2.15'
+  compile 'com.github.jknack:handlebars-helpers:4.0.6'
+  compile 'com.github.jknack:handlebars-jackson2:4.0.6'
+  compile 'com.github.jknack:handlebars-humanize:4.0.6'
+  compile 'com.github.jknack:handlebars-markdown:4.0.6'
+
+
   testCompile 'junit:junit'
 //  testCompile 'org.mockito:mockito-all:1.10.8'
   testCompile 'org.springframework.boot:spring-boot-starter-test'

@@ -59,9 +59,14 @@ gists:
       to: http://example.com
       copyparams: true
   users:
-    collaborations: {}
+    collaborations: 
+      testuser__: 
+        - bob
+        - adam
+        - adrian
 
-
+handlebars:
+  cache: false
   
 caches:
   - 
