@@ -304,8 +304,10 @@ public class GistRestControllerTest {
 
         // get the list of forks
         mvc.perform(get("/gists/" + this.defaultGistId + "/forks").accept(GITHUB_BETA_MEDIA_TYPE)
-                .contentType(GITHUB_BETA_MEDIA_TYPE)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()", is(1))).andExpect(jsonPath("$.[0].id", is(forkedGistId)));
+                .contentType(GITHUB_BETA_MEDIA_TYPE))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()", is(1)))
+            .andExpect(jsonPath("$.[0].id", is(forkedGistId)));
 
     }
 

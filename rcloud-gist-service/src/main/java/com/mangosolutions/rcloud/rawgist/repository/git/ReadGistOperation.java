@@ -8,6 +8,7 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
+import com.google.common.collect.TreeMultiset;
 import com.mangosolutions.rcloud.rawgist.model.FileContent;
 import com.mangosolutions.rcloud.rawgist.model.GistHistory;
 import com.mangosolutions.rcloud.rawgist.model.GistIdentity;
@@ -148,6 +150,7 @@ public class ReadGistOperation implements Callable<GistResponse> {
     private Map<String, FileContent> getFileContent(Repository repository, RevCommit commit)
             throws MissingObjectException, IncorrectObjectTypeException, CorruptObjectException, IOException {
         Map<String, FileContent> fileContent = new LinkedHashMap<String, FileContent>();
+        Collection<FileContent> fileContents = TreeMultiset.create(new RCloudFilenameComparator());
         RevTree tree = commit.getTree();
         try (TreeWalk treeWalk = new TreeWalk(repository)) {
             treeWalk.addTree(tree);
@@ -157,6 +160,10 @@ public class ReadGistOperation implements Callable<GistResponse> {
             while (treeWalk.next()) {
 
                 FileContent content = readContent(repository, treeWalk);
+                fileContents.add(content);
+            }
+            //add the sorted contents to the map
+            for(FileContent content: fileContents) {
                 fileContent.put(content.getFilename(), content);
             }
         }
