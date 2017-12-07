@@ -11,7 +11,7 @@
 
 	<!-- icons -->
 	<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
-	<link rel="shortcut icon" href="/favicon.ico">
+	<link rel="shortcut icon" type="image/png" href="/favicon.png"/>
 
 	<!-- Bootstrap Core CSS file -->
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -32,7 +32,8 @@
 
 				<!-- Brand and toggle get grouped for better mobile display -->
 				<div class="navbar-header">
-					<a class="navbar-brand" href="/gists/{{gist.id}}">RCloud Gist: {{gist.id}}</a>
+					<img src="/img/logo_rcloud.png" class="img-responsive navbar-brand" alt="RCloud Gist"/>
+					<a class="navbar-brand" href="/gists/{{gist.id}}">{{gist.id}}</a>
 					{{#if gist.forkOf}} fork of {{gist.forkOf.id}}{{/if}}
 				</div>
 				
@@ -72,6 +73,7 @@
 							<label>Created On:</label> {{jodaPattern gist.createdAt "d MMM y, HH:mm z"}}<br/>
 							<label>Modified On:</label> {{jodaPattern gist.history.0.committedAt "d MMM y, HH:mm z"}}<br/>
 							<label>ID:</label> <a href="/gists/{{gist.id}}">{{gist.id}}</a><br/>
+							<label>Commit:</label> <a href="/gists/{{gist.id}}/{{gist.history.0.version}}">{{gist.history.0.version}}</a><br/>
 							<label>Fork of:</label> {{#if gist.forkOf}}<a href="/gists/{{gist.forkOf.id}}">{{gist.forkOf.id}}</a>{{/if}}
 							</p>
 						</div>
@@ -153,7 +155,7 @@
 						<div class="panel-body">
 							<p>
 							{{#each gist.history}}
-							<span class="glyphicon glyphicon-time"></span> {{jodaPattern committedAt "d MMM y, HH:mm z"}} <span class="glyphicon glyphicon-user"></span> {{user.login}} <a href="/gists/{{gist.id}}/{{version}}">{{version}}</a> <br/>
+							<span class="glyphicon glyphicon-time"></span> {{jodaPattern committedAt "d MMM y, HH:mm z"}} <span class="glyphicon glyphicon-user"></span> {{user.login}} <a href="/gists/{{gist.id}}/{{version}}">...{{substring version 30}}</a> <br/>
 							{{/each}}
 							</p>
 						</div>
