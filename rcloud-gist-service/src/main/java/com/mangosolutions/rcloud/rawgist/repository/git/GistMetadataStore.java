@@ -8,6 +8,8 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Files;
+import com.google.common.base.Preconditions;
 import com.mangosolutions.rcloud.rawgist.repository.GistError;
 import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
@@ -50,13 +52,13 @@ public class GistMetadataStore implements MetadataStore {
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
-
-
+	
 	@Override
 	@Cacheable(value = "metadatastore", key = "#store.getAbsolutePath()")
 	public GistMetadata load(File store) {
 		GistMetadata metadata = null;
-		if(store.exists()) {
+		File workingCopy = workingCopyFor(store);
+		if(store.exists() || loadState(workingCopy, store)) {
 			try {
 				metadata = objectMapper.readValue(store, GistMetadata.class);
 			} catch (IOException e) {
@@ -74,12 +76,15 @@ public class GistMetadataStore implements MetadataStore {
 	@CachePut(cacheNames = "metadatastore", key = "#store.getAbsolutePath()")
 	public GistMetadata save(File store, GistMetadata metadata) {
 		try {
-			File tmpStore = new File(store.getParent(), store.getName() + workingCopySuffix);
-			if(tmpStore.exists()) {
-				logger.warn("{} already exists, previous Gist metadata update seems to have failed.", tmpStore);
+			File workingCopy = workingCopyFor(store);
+			if(!store.exists()) {
+				loadState(workingCopy, store);
 			}
-			objectMapper.writeValue(tmpStore, metadata);
-			Files.move(tmpStore, store);
+			write(workingCopy, metadata);
+			if(store.exists()) {
+				Files.delete(store.toPath());
+			}
+			Files.move(workingCopy.toPath(), store.toPath(), StandardCopyOption.ATOMIC_MOVE);
 		} catch (IOException e) {
 			GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_WRITEABLE, "Could not update metadata for gist {}", metadata.getId());
 			logger.error(error.getFormattedMessage() + " with path {}", store);
@@ -88,4 +93,37 @@ public class GistMetadataStore implements MetadataStore {
 		return metadata;
 	}
 
+
+	private File workingCopyFor(File store) {
+		return new File(store.getParent(), store.getName() + workingCopySuffix);
+	}
+	
+	private boolean loadState(File from, File to) {
+		Preconditions.checkState(!to.exists(), "Target file '" + to.getAbsolutePath() + "' must not exist");
+		if(from.exists()) {
+			try {
+				Files.move(from.toPath(), to.toPath(), StandardCopyOption.ATOMIC_MOVE);
+				logger.warn("{} recreated state from working copy.", from);
+				return true;
+			} catch (IOException e) {
+				GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_READABLE, "Could not load metadata from working copy for this gist");
+				logger.error(error.getFormattedMessage() + " with path {}", to);
+				throw new GistRepositoryError(error, e);
+			}
+		}
+		return false;
+	}
+	
+	private void write(File output, GistMetadata metadata) throws IOException {
+		try {
+			objectMapper.writeValue(output, metadata);
+		} catch(IOException e) {
+			if(output.exists()) {
+				Files.delete(output.toPath());
+			}
+			GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_WRITEABLE, "Could not update metadata for gist {}", metadata.getId());
+			logger.error(error.getFormattedMessage() + " with path {}", output);
+			throw new GistRepositoryError(error, e);
+		}
+	}
 }

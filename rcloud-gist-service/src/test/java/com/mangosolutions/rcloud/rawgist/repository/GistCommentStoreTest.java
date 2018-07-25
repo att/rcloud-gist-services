@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2018 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import static org.junit.Assert.assertEquals;
@@ -19,6 +25,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistCommentStore;
 
@@ -97,10 +104,30 @@ public class GistCommentStoreTest {
 			instance.save(outputFile, comments2);
 			fail("Expected gist error provoked by IOException thrown by ObjectMapper");
 		} catch (GistRepositoryError error) {
-			// not interested
+			// expected, no need to process
 		}
 
 		instance.setObjectMapper(functionalObjectMapper);
+		List<GistCommentResponse> result = instance.load(outputFile);
+
+		assertEquals("Initial comments should be loaded from the comments file", comments, result);
+		
+	}
+	
+	@Test
+	public void shouldLoadStateFromWorkingCopyIfMainFileDoesNotExist() throws IOException {
+		File testDir = tempFolder.newFolder();
+		File outputFile = new File(testDir, "comments.json");
+
+		GistCommentResponse comment = new GistCommentResponse();
+		comment.setBody(MOCK_BODY);
+		comment.setId(MOCK_ID);
+		List<GistCommentResponse> comments = Lists.newArrayList(comment);
+
+		instance.save(outputFile, comments);
+		
+		Files.move(outputFile, new File(outputFile.getParentFile(), outputFile.getName() + ".tmp"));
+
 		List<GistCommentResponse> result = instance.load(outputFile);
 
 		assertEquals("Initial comments should be loaded from the comments file", comments, result);

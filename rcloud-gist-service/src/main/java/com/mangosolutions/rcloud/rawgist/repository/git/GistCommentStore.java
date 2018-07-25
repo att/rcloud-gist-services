@@ -8,6 +8,8 @@ package com.mangosolutions.rcloud.rawgist.repository.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Files;
+import com.google.common.base.Preconditions;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistError;
 import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
@@ -59,7 +61,8 @@ public class GistCommentStore implements CommentStore {
 	@Cacheable(value = "commentstore", key = "#store.getAbsolutePath()")
 	public List<GistCommentResponse> load(File store) {
 		List<GistCommentResponse> comments = new ArrayList<>();
-		if (store.exists()) {
+		File workingCopy = workingCopyFor(store);
+		if (store.exists() || loadState(workingCopy, store)) {
 			try {
 				comments = objectMapper.readValue(store, new TypeReference<List<GistCommentResponse>>() {
 				});
@@ -77,12 +80,15 @@ public class GistCommentStore implements CommentStore {
 	public List<GistCommentResponse> save(File store, List<GistCommentResponse> comments) {
 		if(comments != null) {
 			try {
-				File tmpStore = new File(store.getParent(), store.getName() + workingCopySuffix);
-				if(tmpStore.exists()) {
-					logger.warn("{} already exists, previous Gist comments update seems to have failed.", tmpStore);
+				File workingCopy = new File(store.getParent(), store.getName() + workingCopySuffix);
+				if(!store.exists()) {
+					loadState(workingCopy, store);
 				}
-				objectMapper.writeValue(tmpStore, comments);
-				Files.move(tmpStore, store);
+				write(workingCopy, comments);
+				if(store.exists()) {
+					Files.delete(store.toPath());
+				}
+				Files.move(workingCopy.toPath(), store.toPath(), StandardCopyOption.ATOMIC_MOVE);
 			} catch (IOException e) {
 				GistError error = new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save comments");
 				logger.error(error.getFormattedMessage() + " with path {}", store);
@@ -92,6 +98,37 @@ public class GistCommentStore implements CommentStore {
 		return comments;
 	}
 
+	private void write(File output, List<GistCommentResponse> comments) throws IOException {
+		try {
+			objectMapper.writeValue(output, comments);
+		} catch(IOException e) {
+			if(output.exists()) {
+				Files.delete(output.toPath());
+			}
+			GistError error = new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save comments");
+			logger.error(error.getFormattedMessage() + " with path {}", output);
+			throw new GistRepositoryError(error, e);
+		}
+	}
 
+	private File workingCopyFor(File store) {
+		return new File(store.getParent(), store.getName() + workingCopySuffix);
+	}
+	
+	private boolean loadState(File from, File to) {
+		Preconditions.checkState(!to.exists(), "Target file '" + to.getAbsolutePath() + "' must not exist");
+		if(from.exists()) {
+			try {
+				Files.move(from.toPath(), to.toPath(), StandardCopyOption.ATOMIC_MOVE);
+				logger.warn("{} recreated state from working copy.", from);
+				return true;
+			} catch (IOException e) {
+				GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_READABLE, "Could not load comments from working copy for this gist");
+				logger.error(error.getFormattedMessage() + " with path {}", to);
+				throw new GistRepositoryError(error, e);
+			}
+		}
+		return false;
+	}
 
 }

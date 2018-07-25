@@ -1,3 +1,9 @@
+/*******************************************************************************
+* Copyright (c) 2018 AT&T Intellectual Property, [http://www.att.com]
+*
+* SPDX-License-Identifier:   MIT
+*
+*******************************************************************************/
 package com.mangosolutions.rcloud.rawgist.repository;
 
 import static org.junit.Assert.assertEquals;
@@ -17,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadata;
 import com.mangosolutions.rcloud.rawgist.repository.git.GistMetadataStore;
 
@@ -85,13 +92,30 @@ public class GistMetadataStoreTest {
 		instance.setObjectMapper(mockObjectMapper);
 
 		try {
-			instance.save(outputFile, gistMetadata);
+			instance.save(outputFile, gistMetadataNew);
 			fail("Expected gist error provoked by IOException thrown by ObjectMapper");
 		} catch (GistRepositoryError error) {
-			// not interested
+			// expected, no need to process
 		}
 
 		instance.setObjectMapper(functionalObjectMapper);
+		GistMetadata result = instance.load(outputFile);
+
+		assertEquals("Initial Gist metadata should be loaded from metadata file", gistMetadata, result);
+	}
+	
+	@Test
+	public void shouldLoadStateFromTmpStateFileIfMainFileDoesNotExist() throws IOException {
+		File testDir = tempFolder.newFolder();
+		File outputFile = new File(testDir, "gist.json");
+
+		GistMetadata gistMetadata = new GistMetadata();
+		gistMetadata.setDescription(MOCK_DESCRIPTION);
+		gistMetadata.setId(MOCK_ID);
+		instance.save(outputFile, gistMetadata);
+		
+		Files.move(outputFile, new File(outputFile.getParentFile(), outputFile.getName() + ".tmp"));
+
 		GistMetadata result = instance.load(outputFile);
 
 		assertEquals("Initial Gist metadata should be loaded from metadata file", gistMetadata, result);
