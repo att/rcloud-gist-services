@@ -14,12 +14,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
 import com.mangosolutions.rcloud.rawgist.model.GistCommentResponse;
 import com.mangosolutions.rcloud.rawgist.repository.GistError;
 import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
@@ -33,6 +35,9 @@ public class GistCommentStore implements CommentStore {
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	@Value("${gists.commentstore.workingCopySuffix:.tmp}")
+	private String workingCopySuffix = ".tmp";
+	
 	public GistCommentStore() {
 		this.objectMapper = new ObjectMapper();
 	}
@@ -72,7 +77,12 @@ public class GistCommentStore implements CommentStore {
 	public List<GistCommentResponse> save(File store, List<GistCommentResponse> comments) {
 		if(comments != null) {
 			try {
-				objectMapper.writeValue(store, comments);
+				File tmpStore = new File(store.getParent(), store.getName() + workingCopySuffix);
+				if(tmpStore.exists()) {
+					logger.warn("{} already exists, previous Gist comments update seems to have failed.", tmpStore);
+				}
+				objectMapper.writeValue(tmpStore, comments);
+				Files.move(tmpStore, store);
 			} catch (IOException e) {
 				GistError error = new GistError(GistErrorCode.ERR_COMMENTS_NOT_WRITEABLE, "Could not save comments");
 				logger.error(error.getFormattedMessage() + " with path {}", store);

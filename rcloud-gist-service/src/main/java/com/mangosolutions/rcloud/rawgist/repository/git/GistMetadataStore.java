@@ -12,11 +12,13 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
 import com.mangosolutions.rcloud.rawgist.repository.GistError;
 import com.mangosolutions.rcloud.rawgist.repository.GistErrorCode;
 import com.mangosolutions.rcloud.rawgist.repository.GistRepositoryError;
@@ -28,6 +30,9 @@ public class GistMetadataStore implements MetadataStore {
 
 	@Autowired
 	private ObjectMapper objectMapper;
+
+	@Value("${gists.metadatastore.workingCopySuffix:.tmp}")
+	private String workingCopySuffix = ".tmp";
 
 	public GistMetadataStore() {
 		this.objectMapper = new ObjectMapper();
@@ -69,7 +74,12 @@ public class GistMetadataStore implements MetadataStore {
 	@CachePut(cacheNames = "metadatastore", key = "#store.getAbsolutePath()")
 	public GistMetadata save(File store, GistMetadata metadata) {
 		try {
-			objectMapper.writeValue(store, metadata);
+			File tmpStore = new File(store.getParent(), store.getName() + workingCopySuffix);
+			if(tmpStore.exists()) {
+				logger.warn("{} already exists, previous Gist metadata update seems to have failed.", tmpStore);
+			}
+			objectMapper.writeValue(tmpStore, metadata);
+			Files.move(tmpStore, store);
 		} catch (IOException e) {
 			GistError error = new GistError(GistErrorCode.ERR_METADATA_NOT_WRITEABLE, "Could not update metadata for gist {}", metadata.getId());
 			logger.error(error.getFormattedMessage() + " with path {}", store);
