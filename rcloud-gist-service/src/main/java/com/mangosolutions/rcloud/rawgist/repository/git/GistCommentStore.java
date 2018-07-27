@@ -62,7 +62,7 @@ public class GistCommentStore implements CommentStore {
 	public List<GistCommentResponse> load(File store) {
 		List<GistCommentResponse> comments = new ArrayList<>();
 		File workingCopy = workingCopyFor(store);
-		if (store.exists() || loadState(workingCopy, store)) {
+		if (store.exists() || restoreState(workingCopy, store)) {
 			try {
 				comments = objectMapper.readValue(store, new TypeReference<List<GistCommentResponse>>() {
 				});
@@ -82,7 +82,7 @@ public class GistCommentStore implements CommentStore {
 			try {
 				File workingCopy = new File(store.getParent(), store.getName() + workingCopySuffix);
 				if(!store.exists()) {
-					loadState(workingCopy, store);
+					restoreState(workingCopy, store);
 				}
 				write(workingCopy, comments);
 				if(store.exists()) {
@@ -115,7 +115,16 @@ public class GistCommentStore implements CommentStore {
 		return new File(store.getParent(), store.getName() + workingCopySuffix);
 	}
 	
-	private boolean loadState(File from, File to) {
+	/**
+	 * Restores state of <code>to</code> file from <code>from</code> by performing atomic move.
+	 * 
+	 * @param from file
+	 * @param to file
+	 * @return <code>true</code> if the state was restored, <code>false</code> if from file does not exist.
+	 * @throws GistRepositoryError if file could not be restored
+	 * @throws IllegalStateException if to file already exists
+	 */
+	private boolean restoreState(File from, File to) {
 		Preconditions.checkState(!to.exists(), "Target file '" + to.getAbsolutePath() + "' must not exist");
 		if(from.exists()) {
 			try {

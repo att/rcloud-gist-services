@@ -58,7 +58,7 @@ public class GistMetadataStore implements MetadataStore {
 	public GistMetadata load(File store) {
 		GistMetadata metadata = null;
 		File workingCopy = workingCopyFor(store);
-		if(store.exists() || loadState(workingCopy, store)) {
+		if(store.exists() || restoreState(workingCopy, store)) {
 			try {
 				metadata = objectMapper.readValue(store, GistMetadata.class);
 			} catch (IOException e) {
@@ -78,7 +78,7 @@ public class GistMetadataStore implements MetadataStore {
 		try {
 			File workingCopy = workingCopyFor(store);
 			if(!store.exists()) {
-				loadState(workingCopy, store);
+				restoreState(workingCopy, store);
 			}
 			write(workingCopy, metadata);
 			if(store.exists()) {
@@ -97,8 +97,17 @@ public class GistMetadataStore implements MetadataStore {
 	private File workingCopyFor(File store) {
 		return new File(store.getParent(), store.getName() + workingCopySuffix);
 	}
-	
-	private boolean loadState(File from, File to) {
+
+	/**
+	 * Restores state of <code>to</code> file from <code>from</code> by performing atomic move.
+	 * 
+	 * @param from file
+	 * @param to file
+	 * @return <code>true</code> if the state was restored, <code>false</code> if from file does not exist.
+	 * @throws GistRepositoryError if file could not be restored
+	 * @throws IllegalStateException if to file already exists
+	 */
+	private boolean restoreState(File from, File to) {
 		Preconditions.checkState(!to.exists(), "Target file '" + to.getAbsolutePath() + "' must not exist");
 		if(from.exists()) {
 			try {
