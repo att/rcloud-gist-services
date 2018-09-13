@@ -48,7 +48,7 @@ An lite implementation of the GitHub gist API.
 Java library implementing an integration with Spring Security and the RCloud
 Session Key Server.
 
-## Installation
+## Installation of the gist service
 The following installation instructions assume that you have rcloud installed,
 and that you have the RCloud SessionKeyServer installed, if not then please
 ensure that are installed first.
@@ -56,18 +56,17 @@ ensure that are installed first.
 1. Ensure that Java is installed, the minimum version is Java 7.
 1. Download the rcloud-gist-service from the [GitHub repository](https://github.com/MangoTheCat/rcloud-gist-services/releases) for your platform.
 1. Install the archive using the appropriate tool e.g. for debian `sudo dpkg -i rcloud-gist-service_0.2.0-20170126172521_all.deb`
-1. Download the rcloud-gistproxy-service from the [GitHub repository](https://github.com/MangoTheCat/rcloud-gist-services/releases) for your platform.
-1. Install the archive using the appropriate tool e.g. for debian `sudo dpkg -i rcloud-gistproxy-service_0.2.0-20170126172521_all.deb`
 1. Start the rcloud-gist-service `sudo service rcloud-gist-service start`
-1. Start the rcloud-gistprox-service `sudo service rcloud-gistproxy-service start`
-1. Update the rcloud.conf to point to the proxy service, set the `github.api.url` value to `http://localhost:13010/` e.g. `github.api.url: http://localhost:13010/`
+1. Update the rcloud.conf to point to the proxy service, set the `github.api.url` value to `http://localhost:13020/` e.g. `github.api.url: http://localhost:13020/`
 1. Start RCloud
+
+The above instructions are almost identical for the proxy service just using `gistproxy` instead of `gist`.
 
 The services will have started up with their default configuration. If a different configuration is required, the configuration files can be found in `/opt/rcloud-gist-service/` and `/opt/rcloud-gistproxy-service/`
 
 ## LICENSE & Copyright
 
-Copyright (c) 2017 AT&T Intellectual Property, [http://www.att.com]
+Copyright (c) 2017-2018 AT&T Intellectual Property, [http://www.att.com]
 SPDX-License-Identifier:   MIT
 
 MIT License
