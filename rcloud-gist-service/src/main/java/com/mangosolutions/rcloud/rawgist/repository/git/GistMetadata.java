@@ -152,4 +152,74 @@ public class GistMetadata implements Serializable {
 		return this.forkOf;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (_public ? 1231 : 1237);
+		result = prime * result + ((additionalProperties == null) ? 0 : additionalProperties.hashCode());
+		result = prime * result + ((createdAt == null) ? 0 : createdAt.hashCode());
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((forkOf == null) ? 0 : forkOf.hashCode());
+		result = prime * result + ((forks == null) ? 0 : forks.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((owner == null) ? 0 : owner.hashCode());
+		result = prime * result + ((updatedAt == null) ? 0 : updatedAt.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GistMetadata other = (GistMetadata) obj;
+		if (_public != other._public)
+			return false;
+		if (additionalProperties == null) {
+			if (other.additionalProperties != null)
+				return false;
+		} else if (!additionalProperties.equals(other.additionalProperties))
+			return false;
+		if (createdAt == null) {
+			if (other.createdAt != null)
+				return false;
+		} else if (!createdAt.equals(other.createdAt))
+			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (forkOf == null) {
+			if (other.forkOf != null)
+				return false;
+		} else if (!forkOf.equals(other.forkOf))
+			return false;
+		if (forks == null) {
+			if (other.forks != null)
+				return false;
+		} else if (!forks.equals(other.forks))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (owner == null) {
+			if (other.owner != null)
+				return false;
+		} else if (!owner.equals(other.owner))
+			return false;
+		if (updatedAt == null) {
+			if (other.updatedAt != null)
+				return false;
+		} else if (!updatedAt.equals(other.updatedAt))
+			return false;
+		return true;
+	}
+	
 }
